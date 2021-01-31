@@ -28,8 +28,8 @@ RULE: b -> a
 
 If we apply the rule, we change the row to "aaa"  (b becomes a)
 
-If the RULE is "ab -> a" and the row is "aba", then applying it would result in "aa"
-If the RULE is "ab -> " and the row is "aba", then applying it woul result in "a" (ab goes away).
+* If the RULE is "ab -> a" and the row is "aba", then applying it would result in "aa"
+* If the RULE is "ab -> " and the row is "aba", then applying it woul result in "a" (ab goes away).
 
 In the game, "aba" would be blocks "blue, red, blue", etc.  
 The empty string would be a circle with a line through it, like the symbol for "empty set"
@@ -42,8 +42,8 @@ was approachable to people without a computer science background.
 
 To Play:
 
-1) click on the replacement you would like to apply
-2) click on the row where you'd like to apply it
+* click on the replacement you would like to apply
+* click on the row where you'd like to apply it
 Highlights will show valid options, and will darken rules that do not apply, or replacements that do not apply.
 (Invalid moves are disabled, such as trying to make the game row wider than the grid allows.)
 
@@ -52,18 +52,22 @@ Plan ahead to avoid going down dead ends.
 Keys:
 
 'p' : pause/unpause the music
+
 '+' '-' : volume up / down
+
 ']' : next track
+
 'u' : undo move (may ba applied many times until the row is in its initial position)
+
 'r' : restart the row from the beginning
 
 'h' : hint - It will take your current position and give you the next move for an optimal solution.
-      IF one exists.  Hints are shown incrementally, to not give too much away:
-      1) first hint shows the rule but does not show you the replacement to use for that rule
+      _If_ one exists.  Hints are shown incrementally, to not give too much away:
+      * 1) first hint shows the rule but does not show you the replacement to use for that rule
          unless only one is possible
-      2) the next hint shows the replacement row you should select
-      3) the next hint shows the target, effectively giving you the entire from/to information
-      4) yet another hint (for the truly lazy) will play the move for you
+      * 2) the next hint shows the replacement row you should select
+      * 3) the next hint shows the target, effectively giving you the entire from/to information
+      * 4) yet another hint (for the truly lazy) will play the move for you
       However, if there is only one replacement, it's shown along with the rule, and if there's only one
       target, then that will be shown with the replacement, to avoid need for gratuitious clicking for 
       obvious choices.
