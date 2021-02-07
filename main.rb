@@ -83,7 +83,6 @@ def next_level()
   end
 end
 
-if false
 ARGV.each do |arg|
   if arg =~ /--start-level=([\d]+)/
     $level_num = $1.to_i
@@ -93,7 +92,6 @@ ARGV.each do |arg|
     end
     puts("Starting on level #{$level_num}")
   end
-end
 end
 
 next_level()

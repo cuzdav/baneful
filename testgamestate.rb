@@ -1,7 +1,8 @@
 require "test/unit"
-require_relative "solve.rb"
+require_relative "gamestate.rb"
 
-class TestSolver < Test::Unit::TestCase
+
+class GameStatTest < Test::Unit::TestCase
 
   def setup()
     @state = GameState.new(
@@ -42,6 +43,35 @@ class TestSolver < Test::Unit::TestCase
     @state.cur_row = "012345678+"
     plays = @state.possible_plays()
     assert_equal([], plays)
+  end
+
+  def test_possible_plays2()
+    @state = GameState.new(
+      {
+        "a.a"  => ["1"],
+        "b.b"  => ["11"],
+      },
+      "", # initial_str
+      10, # num_moves
+      10  # max_width of board
+    )
+
+    @state.cur_row = "abacac"
+    plays = @state.possible_plays()
+    assert_equal(
+      [
+        [0, "aba", "b"],
+        [2, "aca", "c"],
+      ].sort,
+      plays.sort)
+
+    plays = @state.possible_plays()
+    assert_equal(
+      [
+        [3, "cac", "aa"],
+      ].sort,
+      plays.sort)
+
   end
 
   def test_clone()
@@ -150,63 +180,105 @@ class TestSolver < Test::Unit::TestCase
     assert_nil(@state.undo_move)
   end
 
-  def assert_solution(rules, init_position, expected_solution)
-    state = GameState.new(rules, init_position, 10)
-    solution = Solver.new().find_solution(state)
-    assert_equal(expected_solution, solution)
+  def test_wc_index_nowildcards_matches_char()
+    idx, repl_chars = wc_index("abcabc", "a", 0)
+    assert_equal(0, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "b", 0)
+    assert_equal(1, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "c", 0)
+    assert_equal(2, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "a", 1)
+    assert_equal(3, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "b", 2)
+    assert_equal(4, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "c", 3)
+    assert_equal(5, idx)
+    assert_equal("", repl_chars)
   end
 
-  def test_solver1()
-    assert_solution(
-      {
-        "=*"  => ["**"],
-        "---" => [""],
-        "*-"  => ["-"],
-      },
-      "=*---",
-      [
-        [0, "=*", "**"],
-        [1, "*-", "-"],
-        [0, "*-", "-"],
-        [0, "---", ""]
-      ]
-    )
+  def test_wc_index_nowildcards_doesnt_match_char()
+    idx, repl_chars = wc_index("abcabc", "x", 0)
+    assert_equal(nil, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "a", 4)
+    assert_equal(nil, idx)
+    assert_equal("", repl_chars)
   end
 
-  def test_solver2()
-    assert_solution(
-      {
-        "=*"  => ["=*", "**"],
-        "---" => [""],
-        "*-"  => ["-"],
-        "+"   => ["++"]
-      },
-      "=*---",
-      [
-        [0, "=*", "**"],
-        [1, "*-", "-"],
-        [0, "*-", "-"],
-        [0, "---", ""]
-      ]
-    )
+  def test_wc_index_nowildcards_matches_multichar()
+    idx, repl_chars = wc_index("abcabc", "ab", 0)
+    assert_equal(0, idx)
+    assert_equal("", repl_chars)
+    idx, repl_chars = wc_index("abcabc", "abc", 0)
+    assert_equal(0, idx)
+    assert_equal("", repl_chars)
+
+
+    idx, repl_chars = wc_index("abcabc", "bc", 0)
+    assert_equal(1, idx)
+    assert_equal("", repl_chars)
+    idx, repl_chars = wc_index("abcabc", "bca", 0)
+    assert_equal(1, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "cab", 0)
+    assert_equal(2, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "ab", 1)
+    assert_equal(3, idx)
+    assert_equal("", repl_chars)
+    idx, repl_chars = wc_index("abcabc", "abc", 1)
+    assert_equal(3, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "bc", 2)
+    assert_equal(4, idx)
+    assert_equal("", repl_chars)
   end
 
-  def test_solver3()
-    assert_solution(
-      {
-        "=*"    => ["=*", "**"],
-        "---"   => [""],
-        "*-"    => ["-"],
-        "+"     => ["++"],
-        "=*---" => [""]
-      },
-      "=*---",
-      [
-        [0, "=*---", ""],
-      ]
-    )
+  def test_wc_index_nowildcards_doesnt_match_char()
+    idx, repl_chars = wc_index("abcabc", "ac", 0)
+    assert_equal(nil, idx)
+    assert_equal("", repl_chars)
+
+    idx, repl_chars = wc_index("abcabc", "bca", 2)
+    assert_equal(nil, idx)
+    assert_equal("", repl_chars)
   end
 
+
+  def test_wc_index_with_wildcards_matches()
+    idx, repl_chars = wc_index("a", ".", 0)
+    assert_equal(0, idx)
+    assert_equal("a", repl_chars)
+
+    idx, repl_chars = wc_index("abc", "a.c", 0)
+    assert_equal(0, idx)
+    assert_equal("b", repl_chars)
+
+    idx, repl_chars = wc_index("aaabc", "a.c", 0)
+    assert_equal(2, idx)
+    assert_equal("b", repl_chars)
+
+    idx, repl_chars = wc_index("aaabcaxyc", "a..c", 0)
+    assert_equal(1, idx)
+    assert_equal("ab", repl_chars)
+
+    idx, repl_chars = wc_index("aaabcaxyc", "a..c", 2)
+    assert_equal(5, idx)
+    assert_equal("xy", repl_chars)
+  end
 
 end
-
