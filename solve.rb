@@ -38,7 +38,7 @@ private
 
     moves = @game_state.possible_plays
     moves.each do |move|
-      if @game_state.make_move(*move)
+      if @game_state.make_move(*(move[0..2]))
         @move_number += 1
         find_solution_impl()
         @move_number -= 1

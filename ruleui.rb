@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative 'empty_repl_ui.rb'
+require_relative 'custom_wigits.rb'
 
 FIRST_REPL_ROW = 2
 
@@ -104,7 +104,12 @@ class SingleRule
     row = 0
     col = 0
     from_str.each_char do |ch|
-      @rule_grid.set_cell_color(row, col, @color_map[ch])
+      if ch == '.'
+        @rule_grid.set_cell_object(row, col, WildcardWigit.new)
+      else
+        @rule_grid.set_cell_color(row, col, @color_map[ch])
+      end
+
       @rule_grid.show_cell(row, col)
       col += 1
     end
@@ -116,7 +121,11 @@ class SingleRule
     replacement_strs.each do |repl_str|
       if not repl_str.empty?
         repl_str.each_char do |ch|
-          @rule_grid.set_cell_color(row, col, @color_map[ch])
+          if SPECIAL_REPL_CHARS.include?(ch)
+            @rule_grid.set_cell_object(row, col, WildcardWigit.new)
+          else
+            @rule_grid.set_cell_color(row, col, @color_map[ch])
+          end
           @rule_grid.show_cell(row, col)
           col += 1
         end

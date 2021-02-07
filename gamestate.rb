@@ -2,8 +2,9 @@
 GS_PLAY_IDX = 0
 GS_PLAY_PAT = 1
 GS_PLAY_REPL = 2
+GS_PLAY_CAPTURES = 3
 
-SPECIAL_PATTERN_CHARS = "."
+SPECIAL_PATTERN_CHARS = ".123456789"
 SPECIAL_REPL_CHARS = "123456789"
 
 # similar to String.index but treats '.' as wildcard that matches anything
@@ -30,6 +31,25 @@ def wc_index(str, pat, start_idx)
     start_idx += 1
   end
   return nil, ""
+end
+
+# given a str, the pat may refer to captures represented in repl_chars
+# for any single digit D in (1...9), if str[i] == repl_chars[D] then it's a match
+# presumably, repl_chars was returned from wc_index.
+def wc_equals(str, pat, repl_chars)
+  return false if pat.size != str.size
+  idx = -1
+  pat.each_char do |ch|
+    idx += 1
+    if str[0] != ch
+      next if ch == '.'
+      if (ch.ord >= ?1.ord and ch.ord <= ?9.ord)
+        next if str[idx] == repl_chars[ch.ord - ?1.ord]
+      end
+      return false
+    end
+  end
+  return true
 end
 
 
@@ -63,11 +83,6 @@ class GameState
     @num_moves = num_moves
     @prev_rows = []
     @played_moves = []
-
-    # take all string keys and array of string values, make a big single string and
-    # sort the chars, joining back to a string and remove duplicates
-    @unique_chars = (rules.keys + rules.values.flatten).join.chars.sort.join.squeeze
-    puts("rules: #{rules}, UNIQUE CHARS: #{@unique_chars}")
   end
 
   def clone_from_cur_position()
@@ -92,7 +107,7 @@ class GameState
       return nil
     end
     if @cur_row.index(from, offset) != offset
-      raise "invalid replacement"
+      raise "invalid replacement: cur_row=#{@cur_row}, from=#{from}, offset=#{offset}"
     end
     if @cur_row.size - from.size + to.size > max_width
       raise "too wide: maxwidth= #{@max_width}"
@@ -133,25 +148,40 @@ class GameState
           loop do
             idx, repl_chars = wc_index(@cur_row, pat, idx)
             break if idx.nil?
-
-            # handle wildcards as necessary
-            if repl_chars.size > 0
-              replacement = replacement.dup
-              ridx = 0
-              (?1..).each do |placeholder| 
-                replacement.gsub!(placeholder, repl_chars[ridx])
-                ridx += 1
-                break if ridx == repl_chars.size
-              end
-            end
-
-            results << [idx, pat, replacement]
+            cur_pat, cur_repl = fixup_wildcards(pat, replacement ,repl_chars)
+            # GS_PLAY_IDX,
+            # GS_PLAY_PAT,
+            # GS_PLAY_REPL
+            # GS_PLAY_CAPTURES
+            results << [idx, cur_pat, cur_repl, repl_chars]
             idx += 1
           end
         end
       end
     end
     return results
+  end
+
+  def fixup_wildcards(pat, repl, repl_chars)
+    if repl_chars.size == 0
+      return pat, repl
+    end
+
+    pidx = 0
+    cur_pat = pat.dup.gsub(".") do |_|
+      pidx += 1
+      repl_chars[pidx-1]
+    end
+
+    cur_repl = repl.dup
+    ridx = 0
+    (?1..).each do |placeholder|
+      cur_repl.gsub!(placeholder, repl_chars[ridx])
+      ridx += 1
+      break if ridx == repl_chars.size
+    end
+
+    return cur_pat, cur_repl
   end
 
 end

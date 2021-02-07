@@ -24,11 +24,11 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_equal(
       [
-        [0, "=*", "**"],
-        [2, "---", ""],
-        [6, "---", ""],
-        [1, "*-", "-"],
-        [5, "*-", "-"]
+        [0, "=*", "**", ""],
+        [2, "---", "", ""],
+        [6, "---", "", ""],
+        [1, "*-", "-", ""],
+        [5, "*-", "-", ""]
       ].sort, plays.sort)
 
     # ok to grow
@@ -36,7 +36,7 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_equal(
       [
-        [8, "+", "++"]
+        [8, "+", "++", ""]
       ].sort, plays.sort)
 
     # grows too wide (max_width = 10)
@@ -60,15 +60,16 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_equal(
       [
-        [0, "aba", "b"],
-        [2, "aca", "c"],
+        [0, "aba", "b", "b"],
+        [2, "aca", "c", "c"],
       ].sort,
       plays.sort)
 
+    @state.cur_row = "cbabc"
     plays = @state.possible_plays()
     assert_equal(
       [
-        [3, "cac", "aa"],
+        [1, "bab", "aa", "a"],
       ].sort,
       plays.sort)
 
@@ -248,19 +249,13 @@ class GameStatTest < Test::Unit::TestCase
     assert_equal("", repl_chars)
   end
 
-  def test_wc_index_nowildcards_doesnt_match_char()
-    idx, repl_chars = wc_index("abcabc", "ac", 0)
-    assert_equal(nil, idx)
-    assert_equal("", repl_chars)
-
-    idx, repl_chars = wc_index("abcabc", "bca", 2)
-    assert_equal(nil, idx)
-    assert_equal("", repl_chars)
-  end
-
-
   def test_wc_index_with_wildcards_matches()
+
     idx, repl_chars = wc_index("a", ".", 0)
+    assert_equal(0, idx)
+    assert_equal("a", repl_chars)
+
+    idx, repl_chars = wc_index("aba", ".", 0)
     assert_equal(0, idx)
     assert_equal("a", repl_chars)
 
@@ -279,6 +274,26 @@ class GameStatTest < Test::Unit::TestCase
     idx, repl_chars = wc_index("aaabcaxyc", "a..c", 2)
     assert_equal(5, idx)
     assert_equal("xy", repl_chars)
+  end
+
+  def test_wc_equals
+    assert_equal(true, wc_equals("aba", "a1a", "b"))
+    assert_equal(true, wc_equals("aba", "a1a", "bc"))
+    assert_equal(true, wc_equals("aba", "a2a", "mb"))
+    assert_equal(true, wc_equals("aba", "a3a", "mnb"))
+    assert_equal(true, wc_equals("aba", "a4a", "mnob"))
+    assert_equal(true, wc_equals("aba", "a5a", "mnopb"))
+    assert_equal(true, wc_equals("aba", "a6a", "mnopqb"))
+    assert_equal(true, wc_equals("aba", "a7a", "mnopqrb"))
+    assert_equal(true, wc_equals("aba", "a8a", "mnopqrsb"))
+    assert_equal(true, wc_equals("aba", "a9a", "mnopqrstb"))
+    assert_equal(false, wc_equals("aba", "121", "ab"))
+    assert_equal(false, wc_equals("aba", "212", "ba"))
+
+
+    assert_equal(false, wc_equals("aba", "a1a", "c"))
+    assert_equal(false, wc_equals("aba", "a2a", "bc"))
+    assert_equal(false, wc_equals("aba", "a9a", "x"))
   end
 
 end

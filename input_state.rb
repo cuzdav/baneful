@@ -5,6 +5,9 @@ require_relative 'hint.rb'
 TGT_START_X = 0
 TGT_END_X = 1
 TGT_COL = 2
+TGT_PAT = 3
+TGT_REPL = 4
+
 
 class InputState
 
@@ -26,7 +29,7 @@ class InputState
     # rule pattern to data associated:
     #  :wigits add to Window to indicate rule is active
     #  :target_cell_xcoords: when locked&loaded, these x-ranges will
-    #      select the potential replacement cells in plary area
+    #      select the potential replacement cells in play area
     @rule_data = Hash.new()
   end
 
@@ -76,7 +79,8 @@ class InputState
 
         # all possible plays from the current rule
         plays = @possible_plays.select do |p|
-          p[GS_PLAY_REPL] == rep_str and p[GS_PLAY_PAT] == rule.from_str
+          wc_equals(rep_str, p[GS_PLAY_REPL], p[GS_PLAY_CAPTURES]) and
+            wc_equals(p[GS_PLAY_PAT], rule.from_str, "")
         end
 
         repl_has_moves[repl_idx + FIRST_REPL_ROW] = !plays.empty?
@@ -91,7 +95,7 @@ class InputState
           pat_x2 = @cur_level.active_x1_coord(idx + pat.size)
           pat_y2 = pat_y1
 
-          move_data = [pat_x1, pat_x2, idx]
+          move_data = [pat_x1, pat_x2, idx, pat, repl]
           target_cell_xcoords << move_data
 
           quad = get_quad
@@ -268,7 +272,7 @@ class InputState
 
   def apply_choice_maybe
     if @selected_rule != nil
-      from = @selected_rule.from_str
+      from = @selected_pat
       to = @selected_repl_str
       idx = @selected_target_idx
       unselect_replacement()
@@ -335,9 +339,13 @@ class InputState
 
     if @locked_row != nil and not @target_cell_coords.empty? and @selected_target_idx == nil
       start_col = @target_cell_coords[0][TGT_COL]
+      cur_pat = @target_cell_coords[0][TGT_PAT]
     end
-    @target_cell_coords.each do |x1, x2, col|
-      start_col = col if mousex > x1 and mousex < x2
+    @target_cell_coords.each do |x1, x2, col, pat, _|
+      if mousex > x1 and mousex < x2
+        start_col = col
+        cur_pat = pat
+      end
     end
     if start_col != nil
       start_col
@@ -346,6 +354,7 @@ class InputState
           @cur_level.grid.unselect
         end
         @selected_target_idx = start_col
+        @selected_pat = cur_pat
         @cur_level.grid.select_cells(
           @cur_level.cur_row,
           start_col,

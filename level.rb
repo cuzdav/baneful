@@ -81,14 +81,24 @@ class Level
     # build mapping from char -> color
     level_cfg[:rules].each do |from, tolist|
       from.each_char do|c|
-        color_map[c] ||= COLORS[color_idx += 1]
-      end
-      tolist.each do|to|
-        to.each_char do |c|
+        if not SPECIAL_PATTERN_CHARS.include?(c)
           color_map[c] ||= COLORS[color_idx += 1]
         end
       end
+      tolist.each do|to|
+        to.each_char do |c|
+          if not SPECIAL_REPL_CHARS.include?(c)
+            color_map[c] ||= COLORS[color_idx += 1]
+          end
+        end
+      end
     end
+    level_cfg[:rows].each do |row|
+      row.each_char do |c|
+        color_map[c] ||= COLORS[color_idx += 1]
+      end
+    end
+
     return color_map
   end
 
@@ -137,6 +147,7 @@ class Level
 
     hide_cells_in_row(rownum, 0, @eff_col) # leading empty cells
     row_str.each_char do |ch|
+      puts("update_grid_row: ch=#{ch} (#{ch.ord})")
       @grid.set_cell_color(effrow, effcol, @color_map[ch]).add
       @grid.set_cell_opacity(effrow, effcol, opacity)
       effcol += 1
@@ -172,11 +183,11 @@ class Level
   end
 
   def verify_rows()
-    @rows.each do |row|
-      row.each_char do |ch|
-        if @color_map[ch] == nil
-          raise("Error in input: row contains `#{ch}' but not represented in rules")
-        end
+    solver = Solver.new
+    @rows.each do |row_str|
+      game_state = GameState.new(@rules, row_str, @num_moves)
+      if solver.find_solution(game_state) == nil
+        raise("Row #{row_str} is not solvable")
       end
     end
   end

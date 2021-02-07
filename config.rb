@@ -29,6 +29,18 @@ MUSIC = [
 LEVELS =[
   {
     rules: {
+      "." => [""],
+      "a.a" => ["1"],
+    },
+    rows: [
+      "aba",
+      "abc",
+    ]
+  },
+
+
+  {
+    rules: {
       "x" => [""],
     },
     rows: [
