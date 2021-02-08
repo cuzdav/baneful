@@ -33,21 +33,34 @@ def wc_index(str, pat, start_idx)
   return nil, ""
 end
 
+def wc_replace(str, repl_chars)
+  idx = 0
+  result = ""
+  str.each_char do |ch|
+    if (ch.ord >= ?1.ord and ch.ord <= ?9.ord)
+      ridx = ch.ord - ?1.ord
+      rep_ch = repl_chars[ridx]
+      raise "invalid substitution #{ridx}" if rep_ch == nil
+      result += rep_ch
+    else
+      result += ch
+    end
+    idx += 1
+  end
+  return result
+end
+
+
 # given a str, the pat may refer to captures represented in repl_chars
 # for any single digit D in (1...9), if str[i] == repl_chars[D] then it's a match
 # presumably, repl_chars was returned from wc_index.
 def wc_equals(str, pat, repl_chars)
   return false if pat.size != str.size
-  idx = -1
-  pat.each_char do |ch|
+  idx = 0
+  fixed_pat = wc_replace(pat, repl_chars)
+  fixed_pat.each_char do |ch|
+    return false if str[idx] != ch and ch != '.'
     idx += 1
-    if str[0] != ch
-      next if ch == '.'
-      if (ch.ord >= ?1.ord and ch.ord <= ?9.ord)
-        next if str[idx] == repl_chars[ch.ord - ?1.ord]
-      end
-      return false
-    end
   end
   return true
 end

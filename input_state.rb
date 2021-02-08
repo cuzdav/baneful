@@ -28,7 +28,7 @@ class InputState
 
     # rule pattern to data associated:
     #  :wigits add to Window to indicate rule is active
-    #  :target_cell_xcoords: when locked&loaded, these x-ranges will
+    #  :target_cell_info: when locked&loaded, these x-ranges will
     #      select the potential replacement cells in play area
     @rule_data = Hash.new()
   end
@@ -70,35 +70,52 @@ class InputState
       rule_y1 = rule.y1
       rule_x2 = rule.x2 + rule_gap / 2
       rule_y2 = rule_y1
+
+      wigits_per_row = []
+      target_cell_info_per_row = []
+      row_has_moves = []
       has_moves = false
-      repl_has_moves = []
-      repl_idx = 0
+
+      rule_data = {
+        wigits: wigits_per_row,
+        has_moves: false,
+        target_cell_info: target_cell_info_per_row,
+        row_has_moves: row_has_moves,
+      }
+      @rule_data[rule.from_str] = rule_data
+
+      row_idx = FIRST_REPL_ROW
       rule.replacement_strs.each do |rep_str|
         quads = []
-        target_cell_xcoords = []
+        row_info = []
+        wigits_per_row[row_idx] = quads
+        target_cell_info_per_row[row_idx] = row_info
 
-        # all possible plays from the current rule
+        # filter all possible plays from the current rule to just those of
+        # this pattern and replacement string
         plays = @possible_plays.select do |p|
-          wc_equals(rep_str, p[GS_PLAY_REPL], p[GS_PLAY_CAPTURES]) and
-            wc_equals(p[GS_PLAY_PAT], rule.from_str, "")
+          wc_equals(p[GS_PLAY_REPL], rep_str, p[GS_PLAY_CAPTURES]) and
+            wc_equals(p[GS_PLAY_PAT], rule.from_str, p[GS_PLAY_CAPTURES])
         end
+        row_has_moves[row_idx] = !plays.empty?
+        has_moves = rule_data[:has_moves] |= !plays.empty?
 
-        repl_has_moves[repl_idx + FIRST_REPL_ROW] = !plays.empty?
-
+        #
+        # Store the move data for each play, and the quad (for the spotlight)
+        # in per-row data, which is in the per-rule data
+        #
         plays.each do |idx, pat, repl|
-          #idx is 0-based, while we want it to be grid-
+          #idx is 0-based, while we want it to be grid-based
           idx += grid_first_col_offset
-
-          has_moves = true
           pat_x1 = @cur_level.active_x1_coord(idx)
           pat_y1 = @cur_level.active_y2_coord() # bottom edge of row's y
           pat_x2 = @cur_level.active_x1_coord(idx + pat.size)
           pat_y2 = pat_y1
-
           move_data = [pat_x1, pat_x2, idx, pat, repl]
-          target_cell_xcoords << move_data
+          row_info << move_data
 
-          quad = get_quad
+          quad = Quad.new
+          quad.remove
           quad.x1 = rule_x1
           quad.x2 = rule_x2
           quad.x3 = pat_x2
@@ -112,21 +129,20 @@ class InputState
           quads << quad
         end
 
-        @rule_data[rule.from_str] = {
-          :wigits              => quads,
-          :target_cell_xcoords => target_cell_xcoords,
-          :has_moves           => has_moves,
-          :row_has_moves      => repl_has_moves
-        }
-        repl_idx += 1
+        row_idx += 1
       end
 
+      # show rule pattern, rows, as lit or dim, based on if they are playable.
+      # (Pattern is playable if any replacement is playable.  Some replacements
+      # are not playable because they might make the row too wide.)
       opacity = has_moves ? 1 : 0.6
       rule.rule_grid.foreach_rect_with_index do |rect, row, col|
         if row == 0
+          # pattern
           rect.opacity = opacity
         elsif row >= FIRST_REPL_ROW
-          rect.opacity = repl_has_moves[row] ? 1 : 0.6
+          # replacement row(s)
+          rect.opacity = row_has_moves[row] ? 1 : 0.6
         end
       end
     end
@@ -334,27 +350,30 @@ class InputState
     # have same index as "string" coords.  Example:
     # String: "XXY" and grid width is 5, grid may be [_XXY_]
     # XXY string coords (in gamestate) are 0, but in grid are 1.
-    # @target_cell_coords are grid-relative, not string relative.
+    # @target_row_info are grid-relative, not string relative.
     # This offset is @cur_level.eff_col
 
-    if @locked_row != nil and not @target_cell_coords.empty? and @selected_target_idx == nil
-      start_col = @target_cell_coords[0][TGT_COL]
-      cur_pat = @target_cell_coords[0][TGT_PAT]
+    if @locked_row != nil and not @target_row_info.empty? and @selected_target_idx == nil
+      start_col = @target_row_info[0][TGT_COL]
+      cur_pat = @target_row_info[0][TGT_PAT]
+      cur_rep = @target_row_info[0][TGT_REPL]
     end
-    @target_cell_coords.each do |x1, x2, col, pat, _|
+
+    @target_row_info.each do |x1, x2, col, pat, repl|
       if mousex > x1 and mousex < x2
         start_col = col
         cur_pat = pat
+        cur_rep = repl
       end
     end
     if start_col != nil
-      start_col
       if @selected_target_idx != start_col
         if @selected_target_idx != nil
           @cur_level.grid.unselect
         end
         @selected_target_idx = start_col
         @selected_pat = cur_pat
+        @selected_repl_str = cur_rep
         @cur_level.grid.select_cells(
           @cur_level.cur_row,
           start_col,
@@ -405,13 +424,14 @@ class InputState
 
       repl_str = @selected_rule.get_replacement_str_for_row(row)
       @selected_row = row
-      @selected_repl_str = repl_str
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
 
-      @target_cell_coords = data[:target_cell_xcoords]
-      wigits = data[:wigits]
-      wigits.each do |quad|
-        quad.add
+      @target_row_info = data[:target_cell_info][row]
+      wigits = data[:wigits][row]
+      if wigits != nil
+        wigits.each do |quad|
+          quad.add
+        end
       end
     end
   end
@@ -420,7 +440,6 @@ class InputState
     unselect_wigits
     return if @selected_rule == nil
     @selected_rule.rule_grid.unselect if @selected_rule != nil
-    @selected_repl_str = nil
     @selected_row = nil
     unselect_playarea_grid
   end
@@ -446,23 +465,14 @@ class InputState
     if @rule_data != nil and @selected_rule != nil
       data = @rule_data[@selected_rule.from_str]
       if data != nil
-        wigits = data[:wigits]
-        if wigits != nil
-          wigits.each do |quad|
-            quad.remove
+        data[:wigits].each do |wigit_row|
+          if wigit_row != nil
+            wigit_row.each do |quad|
+              quad.remove
+            end
           end
         end
       end
     end
-  end
-
-  def get_quad
-    quad = @quads_free.pop || Quad.new
-    quad.remove
-    return quad
-  end
-
-  def release_quad(quad)
-    @quads_free.pop << quad
   end
 end

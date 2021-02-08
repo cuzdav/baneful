@@ -287,13 +287,13 @@ class GameStatTest < Test::Unit::TestCase
     assert_equal(true, wc_equals("aba", "a7a", "mnopqrb"))
     assert_equal(true, wc_equals("aba", "a8a", "mnopqrsb"))
     assert_equal(true, wc_equals("aba", "a9a", "mnopqrstb"))
-    assert_equal(false, wc_equals("aba", "121", "ab"))
-    assert_equal(false, wc_equals("aba", "212", "ba"))
+    assert_equal(true, wc_equals("aba", "121", "ab"))
+    assert_equal(true, wc_equals("aba", "212", "ba"))
 
 
     assert_equal(false, wc_equals("aba", "a1a", "c"))
     assert_equal(false, wc_equals("aba", "a2a", "bc"))
-    assert_equal(false, wc_equals("aba", "a9a", "x"))
+    assert_raise(RuntimeError) { wc_equals("aba", "a9a", "x") }
   end
 
 end
