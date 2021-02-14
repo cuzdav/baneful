@@ -58,7 +58,7 @@ class Hint
         @hint_strength += 1
       end
     else
-      puts ("***** no @solution found *****")
+      puts("***** no @solution found *****")
     end
   end
 
@@ -85,7 +85,9 @@ class Hint
 
     # grid-coord from string coord is offset by eff_col
     idx = @next_move[GS_PLAY_IDX] + cur_level.eff_col
-    end_idx = idx + @next_move[GS_PLAY_PAT].size
+    pat = @next_move[GS_PLAY_PAT]
+    rep = @next_move[GS_PLAY_REPL]
+    end_idx = idx + pat.size
     x = grid.xcoord(idx)
     y = grid.ycoord(cur_level.cur_row)
     width = grid.xcoord(end_idx) - x + grid.gap_px
@@ -97,7 +99,7 @@ class Hint
     @target_hintbox.height = height
     @target_hintbox.add
     @hint_strength += 1
-    @input.selected_target_idx = idx
+    @input.select_target(idx, pat, rep)
   end
 
 end

@@ -220,7 +220,7 @@ class InputState
           puts("#{idx}: #{from}->#{to}   ==> #{gs.cur_row} ")
         end
       end
-      unselect_playarea_grid
+
     when "r"
       restart
     when "u"
@@ -293,7 +293,6 @@ class InputState
       idx = @selected_target_idx
       unselect_replacement()
       unselect_playarea_grid
-
       if idx != nil
         apply_move(idx, from, to)
       end
@@ -366,20 +365,25 @@ class InputState
         cur_rep = repl
       end
     end
-    if start_col != nil
-      if @selected_target_idx != start_col
+    select_target(start_col, cur_pat, cur_rep)
+  end
+
+  def select_target(col, pat, rep)
+    if col != nil
+      if @selected_target_idx != col
         if @selected_target_idx != nil
           @cur_level.grid.unselect
         end
-        @selected_target_idx = start_col
-        @selected_pat = cur_pat
-        @selected_repl_str = cur_rep
+        @selected_target_idx = col
+        @selected_pat = pat
+        @selected_repl_str = rep
         @cur_level.grid.select_cells(
           @cur_level.cur_row,
-          start_col,
-          start_col + @locked_rule.from_str.size - 1)
+          col,
+          col + pat.size - 1)
       end
     end
+
   end
 
   def mouse_over_rule(event)
