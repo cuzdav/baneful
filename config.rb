@@ -27,161 +27,166 @@ MUSIC = [
 # can add your own.
 
 LEVELS =[
+
   {
     rules: {
-      "x" => [""],
+      "a" => [""],
     },
     rows: [
-      "xxx",
-      "x"
+      "aaa",
+      "a"
     ]
   },
   {
     rules: {
-      "x"  => ["y"],
-      "y" => [""],
+      "a"  => ["b"],
+      "b" => [""],
     },
     rows: [
-      "yxy",
-      "xx",
+      "bab",
+      "aa",
     ]
   },
   {
     rules: {
-      "xy" => [""],
-      "y" => ["x"],
+      "ab" => [""],
+      "b" => ["a"],
     },
     rows: [
-      "xy",
-      "yy"
+      "ab",
+      "bb"
     ]
   },
 
   {
     rules: {
-      "xy" => [""],
-      "yx" => ["xy"],
-      "y" => ["x"],
+      "ab" => [""],
+      "ba" => ["ab"],
+      "b" => ["a"],
     },
     rows: [
-      "yxxy",
-      "yyyy",
-      "yxyx",
+      "baab",
+      "bbbb",
+      "baba",
     ]
   },
 
 
   {
     rules: {
-      "xy"  => ["y"],
-      "y" => [""],
+      "ab"  => ["b"],
+      "b" => [""],
     },
     rows: [
-      "xxxy",
-      "yxy",
-      "yy"
+      "aaab",
+      "bab",
+      "bb"
     ]
   },
   {
     rules: {
-      "x" => ["yy"],
-      "xxy" => ["xy", "xxx"],
-      "yyy" => [""],
+      "a" => ["bb"],
+      "aab" => ["ab", "aaa"],
+      "bbb" => [""],
     },
     rows: [
-      "xxxxxyy",
-      "xy",
-      "yx",
+      "aaaaabb",
+      "ab",
+      "ba",
     ]
   },
   {
     rules: {
-      "y"  => ["yy", ""],
-      "xyyy" => [""],
+      "b"  => ["bb", ""],
+      "abbb" => [""],
     },
     rows: [
-      "xxy",
-      "yxy",
-      "y"
+      "aab",
+      "bab",
+      "b"
     ]
   },
   {
     rules: {
-      "yy"  => [""],
-      "xx" => [""],
+      "bb"  => [""],
+      "aa" => [""],
     },
     rows: [
-      "yxyxxyxy",
-      "xyyyyyyx",
+      "babaabab",
+      "abbbbbba",
     ]
   },
   {
     rules: {
-      "x"  => ["zz"],
-      "zyz" => ["y"],
-      "y" => [""]
+      "a"  => ["cc"],
+      "cbc" => ["b"],
+      "b" => [""]
     },
     rows: [
-      "xyx",
+      "aba",
     ]
   },
   {
     rules: {
-      "x"  => ["xx", "yx"],
-      "xyx" => [""],
-      "y" => ["xy"]
+      "a"  => ["aa", "ba"],
+      "aba" => [""],
+      "b" => ["ab"]
     },
     rows: [
-      "xxyx",
-      "xyx",
-    ]
-  },
-
-  {
-    rules: {
-      "x"  => ["y", "z"],
-      "y" => ["xz"],
-      "zz" => [""]
-    },
-    rows: [
-      "xyz",
-      "xz",
-      "x",
+      "baa",
+      "abaa",
+      "a",
+      "ba",
+      "aa",
+      "aba",
     ]
   },
 
   {
     rules: {
-      "x"  => ["y", "z"],
-      "y" => ["xz"],
-      "zzz" => [""]
+      "a"  => ["b", "c"],
+      "b" => ["ac"],
+      "cc" => [""]
     },
     rows: [
-      "xyz",
-      "xz",
-      "x",
+      "abc",
+      "ac",
+      "a",
     ]
   },
 
   {
     rules: {
-      "xx"  => ["xy"],
-      "yy" => ["y"],
-      "xy" => [""]
+      "a"  => ["b", "c"],
+      "b" => ["ac"],
+      "ccc" => [""]
     },
     rows: [
-      "xxxxxxx"
+      "abc",
+      "ac",
+      "a",
     ]
   },
 
   {
     rules: {
-      "0"  =>  ["1"],
-      "01"  =>  ["1x"],
-      "-1x" => ["-1", ""],
+      "aa"  => ["ab"],
+      "bb" => ["b"],
+      "ab" => [""]
     },
     rows: [
-      "-00000"
+      "aaaaaaa"
+    ]
+  },
+
+  {
+    rules: {
+      "a"  =>  ["b"],
+      "ab"  =>  ["bc"],
+      "dbc" => ["db", ""],
+    },
+    rows: [
+      "daaaaa"
     ]
   },
 
@@ -189,14 +194,15 @@ LEVELS =[
   #KINDA HARD
   {
     rules: {
-      "x"   => ["yy", "zz"],
-      "z"   => ["yx", "xy"],
-      "xx"  => ["z"],
-      "yzy" => [""]
+      "a"   => ["bb", "cc"],
+      "c"   => ["ba", "ab"],
+      "aa"  => ["c"],
+      "bcb" => [""]
     },
     rows: [
-      "z",
-      "x", #"zz" "yxz" "yxxy" "yzy"
+      "bcbc",
+      "c",
+      "a", #"cc" "bac" "baab" "bcb"
     ]
   },
 
@@ -211,6 +217,7 @@ LEVELS =[
       "cbc" => ["ab"]
     },
     rows: [
+      "bd",
       "acd"
     ]
   },

@@ -1,7 +1,7 @@
 require_relative 'gamestate'
 
 class Solver
- 
+
   def initialize()
     @visited = {}
   end

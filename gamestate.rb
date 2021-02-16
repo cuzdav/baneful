@@ -7,27 +7,44 @@ GS_PLAY_CAPTURES = 3
 SPECIAL_PATTERN_CHARS = ".123456789"
 SPECIAL_REPL_CHARS = "123456789"
 
+def create_reverse_mapping(rules)
+  rev = {}
+  rules.each do |from, to_list|
+    to_list.each do |to|
+      rev[to] ||= []
+      rev[to] << from
+    end
+  end
+  rev.values.each do |values|
+    values.sort!
+    values.uniq!
+  end
+  return rev
+end
+
 # similar to String.index but treats '.' as wildcard that matches anything
 # note: each '.' is its own capture group, and return is a string of length N
 # where N is the number of '.' in the pattern.  Each char is the captured value
 # for the ith wildcard.
 # RETURNS: a pair of values, index of match (or nil) and replacement chars as a string
 def wc_index(str, pat, start_idx)
-  while start_idx + pat.size <= str.size
-    ridx = 0
-    matches = true
+  size = str.size - pat.size
+  while start_idx <= size
+    ridx = start_idx
     repls = ""
     pat.each_char do |ch|
-      str_char = str[start_idx + ridx]
-      if ch == '.'
-        repls += str_char
-      elsif str_char != ch
-        matches = false
-        break
+      str_char = str[ridx]
+      if str_char != ch
+        if ch != '.'
+          ridx = nil
+          break
+        else
+          repls += str_char
+        end
       end
       ridx += 1
     end
-    return start_idx, repls if matches
+    return start_idx, repls if ridx != nil
     start_idx += 1
   end
   return nil, ""
@@ -151,12 +168,11 @@ class GameState
   #   1 2 3, ..., 9  : placeholder for whatever char matched Nth '.' in PATTERN
   def possible_plays()
     results = []
-
     # pat: string, repls: array of replacements
     rules.each do |pat, repls|
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
-        if base_len + replacement.size <= max_width
+        if base_len + replacement.size <= @max_width
           idx = 0
           loop do
             idx, repl_chars = wc_index(@cur_row, pat, idx)
