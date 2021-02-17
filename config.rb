@@ -27,6 +27,16 @@ MUSIC = [
 # can add your own.
 
 LEVELS =[
+  ## for testing... 
+  ##{
+  ##  rules: {
+  ##    "cba" => [""],
+  ##    "..." => ["321"],
+  ##  },
+  ##  rows: [
+  ##    "abc",
+  ##  ]
+  ##},
 
   {
     rules: {
@@ -222,16 +232,17 @@ LEVELS =[
     ]
   },
 
-  {
-    rules: {
-      "cba" => [""],
-      "..." => ["321"],
-    },
-    rows: [
-      "abc",
-    ]
-  },
-
+## This level works but is not visibly displayed in a useful way yet
+##{
+##  rules: {
+##    "cba" => [""],
+##    "..." => ["321"],
+##  },
+##  rows: [
+##    "abc",
+##  ]
+##},
+##
   {
     rules: {
       "." => [""],

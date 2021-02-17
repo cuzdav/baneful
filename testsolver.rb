@@ -6,10 +6,10 @@ class TestSolver < Test::Unit::TestCase
   def setup()
     @state = GameState.new(
       {
-        "=*"  => ["**"],
-        "---" => [""],
-        "*-"  => ["-"],
-        "+"   => ["++"]
+        "ab"  => ["bb"],
+        "ccc" => [""],
+        "bc"  => ["c"],
+        "d"   => ["dd"]
       },
       "", # initial_str
       10, # num_moves
@@ -21,22 +21,27 @@ class TestSolver < Test::Unit::TestCase
   def assert_solution(rules, init_position, expected_solution)
     state = GameState.new(rules, init_position, 10)
     solution = Solver.new().find_solution(state)
-    assert_equal(expected_solution, solution)
+
+    # convert hash back into a small array for comparison
+    model_solution = solution.map do |move|
+      [move[GS_PLAY_IDX], move[GS_PLAY_PAT], move[GS_PLAY_REPL]]
+    end
+    assert_equal(expected_solution, model_solution)
   end
 
   def test_solver1()
     assert_solution(
       {
-        "=*"  => ["**"],
-        "---" => [""],
-        "*-"  => ["-"],
+        "ab"  => ["bb"],
+        "ccc" => [""],
+        "bc"  => ["c"],
       },
-      "=*---",
+      "abccc",
       [
-        [0, "=*", "**"],
-        [1, "*-", "-"],
-        [0, "*-", "-"],
-        [0, "---", ""]
+        [0, "ab", "bb"],
+        [1, "bc", "c"],
+        [0, "bc", "c"],
+        [0, "ccc", ""]
       ]
     )
   end
@@ -44,17 +49,17 @@ class TestSolver < Test::Unit::TestCase
   def test_solver2()
     assert_solution(
       {
-        "=*"  => ["=*", "**"],
-        "---" => [""],
-        "*-"  => ["-"],
-        "+"   => ["++"]
+        "ab"  => ["ab", "bb"],
+        "ccc" => [""],
+        "bc"  => ["c"],
+        "d"   => ["dd"]
       },
-      "=*---",
+      "abccc",
       [
-        [0, "=*", "**"],
-        [1, "*-", "-"],
-        [0, "*-", "-"],
-        [0, "---", ""]
+        [0, "ab", "bb"],
+        [1, "bc", "c"],
+        [0, "bc", "c"],
+        [0, "ccc", ""]
       ]
     )
   end
@@ -62,15 +67,15 @@ class TestSolver < Test::Unit::TestCase
   def test_solver3()
     assert_solution(
       {
-        "=*"    => ["=*", "**"],
-        "---"   => [""],
-        "*-"    => ["-"],
-        "+"     => ["++"],
-        "=*---" => [""]
+        "ab"    => ["ab", "bb"],
+        "ccc"   => [""],
+        "bc"    => ["c"],
+        "d"     => ["dd"],
+        "abccc" => [""]
       },
-      "=*---",
+      "abccc",
       [
-        [0, "=*---", ""],
+        [0, "abccc", ""],
       ]
     )
   end

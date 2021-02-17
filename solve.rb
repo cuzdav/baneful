@@ -3,17 +3,24 @@ require_relative 'gamestate'
 class Solver
 
   def initialize()
+    #
+    # [from, to, index, ]
+    #
     @visited = {}
+  end
+
+  def reset()
+    @move_number = 0
+    @best_solution = nil
+    @visited.clear
   end
 
   # return list of moves for ideal solution
   # moves are in the form of tuples returned from game_state.played_moves
   # [offset, to, from] relative to string form of solution.
   def find_solution(game_state)
-    @best_solution = nil
+    reset
     @game_state = game_state.clone_from_cur_position()
-    @visited.clear
-    @move_number = 0
     find_solution_impl()
     return @best_solution
   end
@@ -38,7 +45,7 @@ private
 
     moves = @game_state.possible_plays
     moves.each do |move|
-      if @game_state.make_move(*(move[0..2]))
+      if @game_state.make_move(move)
         @move_number += 1
         find_solution_impl()
         @move_number -= 1

@@ -1,8 +1,13 @@
+GS_PLAY_IDX = :idx   # index into row where to apply the move
+GS_PLAY_PAT = :pat   # wildcards resolved
+GS_PLAY_REPL = :repl # placeholders resolved
+GS_PLAY_RAW_PAT = :rawpat  # wildcards unresolved
+GS_PLAY_RAW_REPL = :rawrepl # wildcards unresolved
 
-GS_PLAY_IDX = 0
-GS_PLAY_PAT = 1
-GS_PLAY_REPL = 2
-GS_PLAY_CAPTURES = 3
+# when wildcards involved, each '.' in :pat is replaced, with ith char
+# in `capture` string.  captures.size = (count of '.' in pat)
+GS_PLAY_CAPTURES = :captures
+
 
 SPECIAL_PATTERN_CHARS = ".123456789"
 SPECIAL_REPL_CHARS = "123456789"
@@ -95,6 +100,10 @@ class GameState
   attr_reader :played_moves
   attr_accessor :verbose
 
+  def to_s
+    "GameState:\n\trules:#{rules}\n\tcur_row: #{cur_row}"
+  end
+
   # rules = {<from> -> [<to>, ...]}
   # initial_str = staring position
   # num_moves (max turns)
@@ -127,7 +136,9 @@ class GameState
     initialize(@rules, @initial_row, @num_moves, @max_width, @goal)
   end
 
-  def make_move(offset, from, to)
+  # move_hash: same fields returned from each elt of possible_plays
+  # all the GS_PLAY_* fields from top of file
+  def make_move(move)
     if moves_remaining == 0
       puts ("No moves remain") if @verbose
       return nil
@@ -136,6 +147,10 @@ class GameState
       puts ("max_depth of #{@max_depth} reached") if @verbose
       return nil
     end
+
+    from = move[GS_PLAY_PAT]
+    to = move[GS_PLAY_REPL]
+    offset = move[GS_PLAY_IDX]
     if @cur_row.index(from, offset) != offset
       raise "invalid replacement: cur_row=#{@cur_row}, from=#{from}, offset=#{offset}"
     end
@@ -144,7 +159,7 @@ class GameState
     end
 
     @prev_rows.push(@cur_row.dup)
-    @played_moves.push([offset, from, to])
+    @played_moves.push(move.dup)
     @cur_row[offset...offset+from.size] = to
     return @cur_row
   end
@@ -169,7 +184,9 @@ class GameState
   def possible_plays()
     results = []
     # pat: string, repls: array of replacements
+    rulenum = -1
     rules.each do |pat, repls|
+      rulenum += 1
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
         if base_len + replacement.size <= @max_width
@@ -178,11 +195,14 @@ class GameState
             idx, repl_chars = wc_index(@cur_row, pat, idx)
             break if idx.nil?
             cur_pat, cur_repl = fixup_wildcards(pat, replacement ,repl_chars)
-            # GS_PLAY_IDX,
-            # GS_PLAY_PAT,
-            # GS_PLAY_REPL
-            # GS_PLAY_CAPTURES
-            results << [idx, cur_pat, cur_repl, repl_chars]
+            results << {
+              GS_PLAY_PAT      => cur_pat,
+              GS_PLAY_REPL     => cur_repl,
+              GS_PLAY_RAW_PAT  => pat,
+              GS_PLAY_RAW_REPL => replacement,
+              GS_PLAY_IDX      => idx,
+              GS_PLAY_CAPTURES => repl_chars,
+            }
             idx += 1
           end
         end

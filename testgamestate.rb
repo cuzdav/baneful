@@ -7,10 +7,10 @@ class GameStatTest < Test::Unit::TestCase
   def setup()
     @state = GameState.new(
       {
-        "=*"  => ["**"],
-        "---" => [""],
-        "*-"  => ["-"],
-        "+"   => ["++"]
+        "ab"  => ["bb"],  # =a  *b
+        "ccc" => [""],    # -c
+        "bc"  => ["c"],
+        "d"   => ["dd"]   # +d
       },
       "", # initial_str
       10, # num_moves
@@ -20,27 +20,27 @@ class GameStatTest < Test::Unit::TestCase
 
 
   def test_possible_plays1()
-    @state.cur_row = "=*---*---"
+    @state.cur_row = "abcccbccc"
     plays = @state.possible_plays()
-    assert_equal(
+    assert_possible_plays_equal(
       [
-        [0, "=*", "**", ""],
-        [2, "---", "", ""],
-        [6, "---", "", ""],
-        [1, "*-", "-", ""],
-        [5, "*-", "-", ""]
-      ].sort, plays.sort)
+        [0, "ab", "bb"],
+        [2, "ccc", ""],
+        [6, "ccc", ""],
+        [1, "bc", "c"],
+        [5, "bc", "c"]
+      ], plays)
 
     # ok to grow
-    @state.cur_row = "01234567+"
+    @state.cur_row = "ffffffffd"
     plays = @state.possible_plays()
-    assert_equal(
+    assert_possible_plays_equal(
       [
-        [8, "+", "++", ""]
-      ].sort, plays.sort)
+        [8, "d", "dd"]
+      ], plays)
 
     # grows too wide (max_width = 10)
-    @state.cur_row = "012345678+"
+    @state.cur_row = "fffffffffd"
     plays = @state.possible_plays()
     assert_equal([], plays)
   end
@@ -58,20 +58,50 @@ class GameStatTest < Test::Unit::TestCase
 
     @state.cur_row = "abacac"
     plays = @state.possible_plays()
-    assert_equal(
+    assert_possible_plays_equal(
       [
-        [0, "aba", "b", "b"],
-        [2, "aca", "c", "c"],
-      ].sort,
-      plays.sort)
+        [0, "aba", "b", "a.a", "1", "b"],
+        [2, "aca", "c", "a.a", "1", "c"],
+      ],
+      plays
+    )
 
     @state.cur_row = "cbabc"
     plays = @state.possible_plays()
-    assert_equal(
+    assert_possible_plays_equal(
       [
-        [1, "bab", "aa", "a"],
-      ].sort,
-      plays.sort)
+        [1, "bab", "aa", "b.b", "11", "a"],
+      ],
+      plays
+    )
+
+  end
+
+  def move_hash(idx, pat, repl, rawpat=nil, rawrepl=nil, captures="")
+    return {
+      GS_PLAY_IDX      => idx,
+      GS_PLAY_PAT      => pat,
+      GS_PLAY_REPL     => repl,
+      GS_PLAY_CAPTURES => captures,
+      GS_PLAY_RAW_PAT  => rawpat  == nil ? pat : rawpat,
+      GS_PLAY_RAW_REPL => rawrepl == nil ? repl : rawrepl,
+    }
+  end
+
+  # converts a simple idx/from/to invocation into the slightly more cumbersome
+  # (but more useful) hash
+  def make_move(idx, pat, repl, rawpat=nil, rawrepl=nil, captures="")
+    return @state.make_move(move_hash(idx, pat, repl, rawpat, rawrepl, captures))
+  end
+
+  def assert_possible_plays_equal(possible_plays_model, possible_plays_actual)
+    expected = possible_plays_model.map do |move_array|
+      move_hash(*move_array)
+    end
+
+    puts("*** hash expected: #{expected}")
+    puts("*** hash actual  : #{possible_plays_actual}")
+    assert_equal(expected, possible_plays_actual)
 
   end
 
@@ -86,96 +116,96 @@ class GameStatTest < Test::Unit::TestCase
   end
 
   def test_make_moves1()
-    @state.cur_row = "=*---"
+    @state.cur_row = "abccc"
     assert_equal(10, @state.moves_remaining)
-    assert_equal("=*---", @state.cur_row)
+    assert_equal("abccc", @state.cur_row)
     assert_equal([], @state.prev_rows)
 
-    move = @state.make_move(0, "=*", "**")
-    assert_equal("**---", move)
+    move = make_move(0, "ab", "bb")
+    assert_equal("bbccc", move)
     assert_equal(move, @state.cur_row)
     assert_equal(9, @state.moves_remaining)
-    assert_equal(["=*---"], @state.prev_rows)
+    assert_equal(["abccc"], @state.prev_rows)
 
-    move = @state.make_move(1, "*-", "-")
-    assert_equal("*---", move)
+    move = make_move(1, "bc", "c")
+    assert_equal("bccc", move)
     assert_equal(move, @state.cur_row)
     assert_equal(8, @state.moves_remaining)
-    assert_equal(["=*---", "**---"], @state.prev_rows)
+    assert_equal(["abccc", "bbccc"], @state.prev_rows)
 
-    move = @state.make_move(0, "*-", "-")
-    assert_equal("---", move)
+    move = make_move(0, "bc", "c")
+    assert_equal("ccc", move)
     assert_equal(move, @state.cur_row)
     assert_equal(7, @state.moves_remaining)
-    assert_equal(["=*---", "**---", "*---"], @state.prev_rows)
+    assert_equal(["abccc", "bbccc", "bccc"], @state.prev_rows)
 
-    move = @state.make_move(0, "---", "")
+    move = make_move(0, "ccc", "")
     assert_equal("", move)
     assert_equal(move, @state.cur_row)
     assert_equal(6, @state.moves_remaining)
-    assert_equal(["=*---", "**---", "*---", "---"], @state.prev_rows)
+    assert_equal(["abccc", "bbccc", "bccc", "ccc"], @state.prev_rows)
   end
 
   def test_make_moves_fail()
-    @state.cur_row = "=*---"
-    assert_equal("=*---", @state.cur_row)
+    @state.cur_row = "abccc"
+    assert_equal("abccc", @state.cur_row)
     assert_equal(10, @state.moves_remaining)
 
     begin
-      move = @state.make_move(0, "---", "")
+      move = make_move(0, "ccc", "")
       fail
     rescue
     end
 
     begin
-      move = @state.make_move(1, "=*", "")
+      move = make_move(1, "ab", "")
       fail
     rescue
     end
   end
 
   def test_undo()
-    @state.cur_row = "=*---"
+    @state.cur_row = "abccc"
     assert_equal(10, @state.moves_remaining)
-    assert_equal("=*---", @state.cur_row)
+    assert_equal("abccc", @state.cur_row)
 
-    move = @state.make_move(2, "---", "")
+    move = make_move(2, "ccc", "")
     assert_equal(move, @state.cur_row)
-    assert_equal("=*", move)
+    assert_equal("ab", move)
     assert_equal(9, @state.moves_remaining)
-    assert_equal(["=*---"], @state.prev_rows)
+    assert_equal(["abccc"], @state.prev_rows)
 
     @state.undo_move
-    assert_equal("=*---", @state.cur_row)
+    assert_equal("abccc", @state.cur_row)
     assert_equal(10, @state.moves_remaining)
     assert_equal([], @state.prev_rows)
 
-    move = @state.make_move(0, "=*", "**")
-    move = @state.make_move(1, "*-", "-")
-    move = @state.make_move(0, "*-", "-")
-    move = @state.make_move(0, "---", "")
+    move = make_move(0, "ab", "bb")
+    move = make_move(1, "bc", "c")
+    move = make_move(0, "bc", "c")
+    move = make_move(0, "ccc", "")
 
     assert_equal("", @state.cur_row)
     assert_equal(6, @state.moves_remaining)
-    assert_equal(["=*---", "**---", "*---", "---"], @state.prev_rows)
+    assert_equal(["abccc", "bbccc", "bccc", "ccc"], @state.prev_rows)
 
     @state.undo_move
-    assert_equal("---", @state.cur_row)
+    assert_equal("ccc", @state.cur_row)
     assert_equal(7, @state.moves_remaining)
-    assert_equal(["=*---", "**---", "*---"], @state.prev_rows)
+    assert_equal(["abccc", "bbccc", "bccc"], @state.prev_rows)
 
     @state.undo_move
-    assert_equal("*---", @state.cur_row)
+    assert_equal("bccc", @state.cur_row)
     assert_equal(8, @state.moves_remaining)
-    assert_equal(["=*---", "**---"], @state.prev_rows)
+    assert_equal(["abccc", "bbccc"], @state.prev_rows)
 
     @state.undo_move
-    assert_equal("**---", @state.cur_row)
+    assert_equal("bbccc", @state.cur_row)
     assert_equal(9, @state.moves_remaining)
-    assert_equal(["=*---"], @state.prev_rows)
+    assert_equal(["abccc"], @state.prev_rows)
 
     @state.undo_move
-    assert_equal("=*---", @state.cur_row)
+    assert_equal("abccc", @state.cur_row)
     assert_equal(10, @state.moves_remaining)
     assert_equal([], @state.prev_rows)
     assert_nil(@state.undo_move)

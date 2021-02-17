@@ -5,8 +5,7 @@ require_relative 'hint.rb'
 TGT_START_X = 0
 TGT_END_X = 1
 TGT_COL = 2
-TGT_PAT = 3
-TGT_REPL = 4
+TGT_MOVE = 3
 
 
 class InputState
@@ -63,8 +62,10 @@ class InputState
     @rule_data.clear
 
     rule_gap = @ruleui.gap_px
-    grid_first_col_offset = @cur_level.eff_col
 
+    #
+    # Build up rep for current state of each rule
+    #
     @ruleui.rules.each do |rule|
       rule_x1 = rule.x1 - rule_gap / 2
       rule_y1 = rule.y1
@@ -94,8 +95,8 @@ class InputState
         # filter all possible plays from the current rule to just those of
         # this pattern and replacement string
         plays = @possible_plays.select do |p|
-          wc_equals(p[GS_PLAY_REPL], rep_str, p[GS_PLAY_CAPTURES]) and
-            wc_equals(p[GS_PLAY_PAT], rule.from_str, p[GS_PLAY_CAPTURES])
+          p[GS_PLAY_RAW_REPL] == rep_str and
+            p[GS_PLAY_RAW_PAT] == rule.from_str
         end
         row_has_moves[row_idx] = !plays.empty?
         has_moves = rule_data[:has_moves] |= !plays.empty?
@@ -104,14 +105,16 @@ class InputState
         # Store the move data for each play, and the quad (for the spotlight)
         # in per-row data, which is in the per-rule data
         #
-        plays.each do |idx, pat, repl|
+        plays.each do |move|
           #idx is 0-based, while we want it to be grid-based
-          idx += grid_first_col_offset
-          pat_x1 = @cur_level.active_x1_coord(idx)
+          idx = move[GS_PLAY_IDX]
+          pat = move[GS_PLAY_PAT]
+          grid_idx = idx + @cur_level.eff_col
+          pat_x1 = @cur_level.active_x1_coord(grid_idx)
           pat_y1 = @cur_level.active_y2_coord() # bottom edge of row's y
-          pat_x2 = @cur_level.active_x1_coord(idx + pat.size)
+          pat_x2 = @cur_level.active_x1_coord(grid_idx + pat.size)
           pat_y2 = pat_y1
-          move_data = [pat_x1, pat_x2, idx, pat, repl]
+          move_data = [pat_x1, pat_x2, grid_idx, move]
           row_info << move_data
 
           quad = Quad.new
@@ -153,15 +156,13 @@ class InputState
     end
   end
 
-  def apply_move(grid_idx, from_str, to_str)
-    idx = grid_idx - @cur_level.eff_col
-
+  def apply_move(move)
     # CHANGE OFFICIAL GAME STATE (attempt)
-    result = @cur_level.game_state.make_move(idx, from_str, to_str)
+    result = @cur_level.game_state.make_move(move)
 
     if result == nil
       puts("Curr game state: #{@cur_level.game_state.cur_row}xo")
-      puts("idx:#{idx}, from:#{from_str}, to:#{to_str}")
+      puts("MOVE: #{move}")
       puts("PROBLEM??? applying move failed!")
     end
 
@@ -210,16 +211,7 @@ class InputState
     when "escape"
       unselect_replacement
     when "h"
-      @hint.next_hint(@cur_level)
-      if @hint.solution != nil
-        gs = @cur_level.game_state.clone_from_cur_position
-        puts("Start")
-        puts gs.cur_row
-        @hint.solution.each do |idx, from, to|
-          gs.make_move(idx, from, to)
-          puts("#{idx}: #{from}->#{to}   ==> #{gs.cur_row} ")
-        end
-      end
+      give_hint
 
     when "r"
       restart
@@ -260,6 +252,19 @@ class InputState
     end
   end
 
+  def give_hint
+    @hint.next_hint(@cur_level)
+    if @hint.solution != nil
+      gs = @cur_level.game_state.clone_from_cur_position
+      puts("Start")
+      puts gs.cur_row
+      @hint.solution.each do |move|
+        gs.make_move(move)
+        puts("#{move[GS_PLAY_IDX]}: #{move[GS_PLAY_PAT]}->#{move[GS_PLAY_REPL]}   ==> #{gs.cur_row} ")
+      end
+    end
+  end
+
   def on_mouse_up(event)
     case event.button
     when :left
@@ -288,13 +293,11 @@ class InputState
 
   def apply_choice_maybe
     if @selected_rule != nil
-      from = @selected_pat
-      to = @selected_repl_str
-      idx = @selected_target_idx
+      move = @selected_move
       unselect_replacement()
       unselect_playarea_grid
-      if idx != nil
-        apply_move(idx, from, to)
+      if move != nil
+        apply_move(move)
       end
     end
     unselect_rule
@@ -352,35 +355,37 @@ class InputState
     # @target_row_info are grid-relative, not string relative.
     # This offset is @cur_level.eff_col
 
+    # start by selecting the potential leftmost target, then
+    # scan for better mouse-coord matches
     if @locked_row != nil and not @target_row_info.empty? and @selected_target_idx == nil
-      start_col = @target_row_info[0][TGT_COL]
-      cur_pat = @target_row_info[0][TGT_PAT]
-      cur_rep = @target_row_info[0][TGT_REPL]
+      first_target = @target_row_info[0]
+      cur_move = first_target[TGT_MOVE]
+      grid_col = first_target[TGT_COL]
     end
 
-    @target_row_info.each do |x1, x2, col, pat, repl|
+    # x1, x2 are mouse coord ranges, col is grid-relative index,
+    # and move is hash from possible_plays, describing a move
+    @target_row_info.each do |x1, x2, col, move|
       if mousex > x1 and mousex < x2
-        start_col = col
-        cur_pat = pat
-        cur_rep = repl
+        grid_col = col
+        cur_move = move
       end
     end
-    select_target(start_col, cur_pat, cur_rep)
+    select_target(grid_col, cur_move)
   end
 
-  def select_target(col, pat, rep)
-    if col != nil
-      if @selected_target_idx != col
+  def select_target(grid_col, move)
+    if grid_col != nil
+      if @selected_target_idx != grid_col
         if @selected_target_idx != nil
           @cur_level.grid.unselect
         end
-        @selected_target_idx = col
-        @selected_pat = pat
-        @selected_repl_str = rep
+        @selected_target_idx = grid_col
+        @selected_move = move
         @cur_level.grid.select_cells(
           @cur_level.cur_row,
-          col,
-          col + pat.size - 1)
+          grid_col,
+          grid_col + move[GS_PLAY_PAT].size - 1)
       end
     end
 
@@ -450,6 +455,7 @@ class InputState
 
   def unselect_playarea_grid
     @selected_target_idx = nil
+    @selected_move = nil
     @cur_level.grid.unselect
   end
 

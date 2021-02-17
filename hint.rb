@@ -18,6 +18,7 @@ class Hint
   end
 
   def next_hint(cur_level)
+    puts("*** next hint: strength#{@hint_strength}")
     case @hint_strength
     when 0
       rule_hint(cur_level)
@@ -43,7 +44,8 @@ class Hint
     @solution = @solver.find_solution(cur_level.game_state)
     if @solution != nil
       @next_move = @solution[0]
-      from_str = @next_move[GS_PLAY_PAT]
+      puts("**** next_move: #{@next_move}")
+      from_str = @next_move[GS_PLAY_RAW_PAT]
       @rule = cur_level.ruleui.get_rule_for_string(from_str)
       if @rule != nil
         @input.select_rule(@rule)
@@ -63,7 +65,7 @@ class Hint
   end
 
   def repl_hint(cur_level)
-    repl = @next_move[GS_PLAY_REPL]
+    repl = @next_move[GS_PLAY_RAW_REPL]
     idx = @rule.index_of_repl(repl)
     @rule.show_repl_hint(repl)
     @hint_strength += 1
@@ -86,7 +88,6 @@ class Hint
     # grid-coord from string coord is offset by eff_col
     idx = @next_move[GS_PLAY_IDX] + cur_level.eff_col
     pat = @next_move[GS_PLAY_PAT]
-    rep = @next_move[GS_PLAY_REPL]
     end_idx = idx + pat.size
     x = grid.xcoord(idx)
     y = grid.ycoord(cur_level.cur_row)
@@ -99,7 +100,7 @@ class Hint
     @target_hintbox.height = height
     @target_hintbox.add
     @hint_strength += 1
-    @input.select_target(idx, pat, rep)
+    @input.select_target(idx, @next_move)
   end
 
 end
