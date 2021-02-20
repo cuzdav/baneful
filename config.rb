@@ -14,11 +14,13 @@ MUSIC = [
 # Each level is a dictionary consisting of rules and rows.
 #
 # rules: a dictionary of PATTERN -> [ARRAY OF REPLACEMENTS]
-# rows: array of strings, representing the game rows
+#   letters represent blocks, [a-p] are solid colors, '.' is a wildcard
+#   In replacements, 1,2,3,...9 are captures of whatever match corresponded to the nth previous '.'
+# rows: array of strings, representing the play-area game rows
 # The 0th element in this array is at the TOP of the screen, while the
 # last element in the array is the FIRST row active in the play area.
 # That is, the are drawn on the screen approximately how they look here
-# (Except centered.)
+# (but centered.)
 # All characters appearing in rows must appear at least once somewhere in rules
 # characters can be anything, but the same character refers to the same color block.
 # Each unique character is a different color.
@@ -136,6 +138,17 @@ LEVELS =[
       "aba",
     ]
   },
+  {
+    rules: {
+      "a"    => ["ba", "bb"],
+      "ba"   => ["aab"],
+      "abbb" => [""]
+    },
+    rows: [
+      "a",
+    ]
+  },
+
   {
     rules: {
       "a"  => ["aa", "ba"],
