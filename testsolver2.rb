@@ -109,6 +109,49 @@ class TestSolver < Test::Unit::TestCase
     )
   end
 
+  def test_solver_wildcard1()
+    @max_moves = 10
+    assert_solution(
+      {
+        "."    => [""],
+      },
+      "ab",
+      [[0, "a", ""],
+       [0, "b", ""],
+      ]
+    )
+  end
 
+  def test_solver_wildcard2()
+    @max_moves = 10
+    assert_solution(
+      {
+        "b"      => [""],
+        "a.a"    => ["aa"],
+        "aa"     => ["b"],
+      },
+      "aacaa",
+      [[1, "aca", "aa"],
+       [0, "aaa", "aa"],
+       [0, "aaa", "aa"],
+       [0, "aa", "b"],
+       [0, "b", ""],
+      ]
+    )
+  end
+
+  def test_solver_wildcard3()
+    @max_moves = 10
+    assert_solution(
+      {
+        "..."      => [""],
+      },
+      "abcdef",
+      [
+        [0, "abc", ""],
+        [0, "def", ""]
+      ]
+    )
+  end
 end
 

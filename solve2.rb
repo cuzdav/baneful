@@ -14,10 +14,8 @@ class Solver
   attr_reader :visited
 
   def initialize(rules, rows, max_width, max_moves)
-#    puts("BEFORE: RULES: #{@rules}")
     @rules = create_reverse_mapping(rules)
     explode_wildcards(rows)
-#    puts("AFTER : RULES: #{@rules}")
     @visited = {}
     @max_width = max_width
     @max_moves = max_moves
