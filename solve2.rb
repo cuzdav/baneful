@@ -13,12 +13,16 @@ class Solver
 
   attr_reader :visited
 
-  def initialize(rules, max_width, max_moves)
+  def initialize(rules, rows, max_width, max_moves)
+#    puts("BEFORE: RULES: #{@rules}")
     @rules = create_reverse_mapping(rules)
+    explode_wildcards(rows)
+#    puts("AFTER : RULES: #{@rules}")
     @visited = {}
     @max_width = max_width
     @max_moves = max_moves
     populate()
+    puts ("@visited size = #{@visited.size}")
   end
 
   def find_solution(row)
@@ -33,11 +37,9 @@ class Solver
         GS_PLAY_IDX      => move_data[S_MOVE_IDX],
         GS_PLAY_PAT      => move_data[S_MOVE_PAT],
         GS_PLAY_REPL     => move_data[S_MOVE_REPL],
+        GS_PLAY_CAPTURES => move_data[S_MOVE_CAPTURES],
         :result          => move_data[S_MOVE_RESULT],
         :num_moves       => move_data[S_MOVE_NUM_MOVES],
-        GS_PLAY_RAW_PAT  => move_data[S_MOVE_RAW_PAT],
-        GS_PLAY_RAW_REPL => move_data[S_MOVE_RAW_REPL],
-        GS_PLAY_CAPTURES => move_data[S_MOVE_CAPTURES],
       }
       result << move # [idx, from, to, next, moves]
       move_data = @visited[move_data[3]]
@@ -45,7 +47,50 @@ class Solver
     return result
   end
 
-private
+  private
+
+  def explode_wildcards(rows)
+    # find all unique "block letters" in level
+    data = (rows.to_s + @rules.to_s).chars.sort.uniq
+    letters = data.select {|s| s.ord >= ?a.ord and s.ord <= ?z.ord}.join
+
+    @rules.each do |from, to_list|
+      to_list.dup.each do |to|
+        if to.include?('.')
+          explode_single_replacement(letters, from, to)
+        end
+      end
+    end
+  end
+
+  # for a single rule from->to, generate every combination of replacements of
+  # wildcards with each letter in "letters" string
+  # example: letters="abc", from="12", to="a..b"
+  # this will "explode" to add the following to the map:
+  # aa => aaab,  ab => aabb,  ac => aacb
+  # ba => abab,  bb => abbb,  bc => abcb
+  # ca => acab,  cb => acbb,  cc => accb
+  def explode_single_replacement(letters, from, to, placeholder=1, char_idx=0)
+    puts("ESR: #{letters} `#{from}`->`#{to}` pl=#{placeholder}, chidx=#{char_idx}")
+    to[char_idx..].each_char do |ch|
+      if ch == '.'
+        letters.each_char do |letter|
+          f = from.gsub((?0.ord + placeholder).chr, letter)
+          t = to.dup
+          t[char_idx] = letter
+          puts("Recursing... letter=#{letter}")
+          explode_single_replacement(letters, f, t, placeholder+1, char_idx+1)
+        end
+        break
+      end
+      char_idx += 1
+    end
+    @rules[from] ||= []
+
+    puts("Adding [#{from}] = #{to}")
+    @rules[from] << to
+  end
+
 
   def populate()
     # use double buffering to dequeue from one buffer and enqueue onto another,
@@ -68,28 +113,24 @@ private
 
         # to help prevent solutions that exceed max-width of the grid
         width_remain = @max_width - cur_row.size
-        puts("*** cur_row: #{cur_row}")
         # over every rule...
         @rules.each do |from, to_list|
+          from_size = from.size
           next_idx = 0
 
           # for every location in the current row where this rule applies...
           while (idx = cur_row.index(from, next_idx)) != nil
             next_idx = idx + 1
-#            puts("  rule: #{from} matches at #{idx}")
             # apply every replacement...
             to_list.each do |to|
-#              puts("    -> applying #{to} at #{idx}")
               # ensuring result fits
-              if to.size - from.size <= width_remain
-                newrow = cur_row[0...idx] + to + cur_row[idx + from.size..]
+              if to.size - from_size <= width_remain
+                newrow = cur_row[0...idx] + to + cur_row[idx + from_size..]
 
                 #... and we haven't seen this position before
                 # (because if we have, then seeing it again MUST mean we
                 # are on a worse/longer path than before)
-#                puts("      Newrow: #{newrow}")
                 if not @visited.has_key?(newrow)
-#                  puts("        NOT VISITED!  Enqueuing")
                   # queue this up for processing as part of the work for the
                   # next group of solutions at N+1 (moves) compared to cur_row.
                   next_q.push(newrow)
@@ -122,31 +163,28 @@ private
 end
 
 
-rules= {
-  "a"   => ["bb", "cc"],
-  "c"   => ["ba", "ab"],
-  "aa"  => ["c"],
-  "bcb" => [""]
-}
+def main
+  rules = {
+    "a" => ["b"],
+    "." => [""],
+  }
 
-rules= {
-  "abcd" => [""],
-  "a" => ["bc"],
-  "bc" => ["bcd", "c"],
-  "d" => ["a", "db"],
-  "db" => ["b"],
-  "cbc" => ["ab"]
-}
+  rows = ["abc"]
 
+  solver = Solver.new(rules, rows, 7, 10)
 
-solver = Solver.new(rules, 7, 18)
+  solution = solver.find_solution(rows[0])
 
-solution = solver.find_solution("bbd")
-
-if solution != nil
-  solution.each do |move|
-    puts("#{move}")
+  if solution != nil
+    solution.each do |move|
+      puts("#{move}")
+    end
+  else
+    puts "No solution found"
   end
-else
-  puts "No solution found"
+end
+
+
+if __FILE__ == $0
+  main
 end

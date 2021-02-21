@@ -95,8 +95,14 @@ class InputState
         # filter all possible plays from the current rule to just those of
         # this pattern and replacement string
         plays = @possible_plays.select do |p|
-          p[GS_PLAY_RAW_REPL] == rep_str and
-            p[GS_PLAY_RAW_PAT] == rule.from_str
+          repl = p[GS_PLAY_REPL]
+          captures = p[GS_PLAY_CAPTURES]
+          wc_equals(p[GS_PLAY_PAT], rule.from_str) and
+            wc_with_placeholder_equals(repl, rep_str, captures)
+
+
+#          p[GS_PLAY_RAW_REPL] == rep_str and
+#            p[GS_PLAY_RAW_PAT] == rule.from_str
         end
         row_has_moves[row_idx] = !plays.empty?
         has_moves = rule_data[:has_moves] |= !plays.empty?

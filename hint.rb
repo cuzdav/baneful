@@ -44,9 +44,8 @@ class Hint
     @solution = @solver.find_solution(cur_level.game_state)
     if @solution != nil
       @next_move = @solution[0]
-      puts("**** next_move: #{@next_move}")
-      from_str = @next_move[GS_PLAY_RAW_PAT]
-      @rule = cur_level.ruleui.get_rule_for_string(from_str)
+
+      @rule = cur_level.ruleui.get_rule_matching_move(@next_move)
       if @rule != nil
         @input.select_rule(@rule)
 
@@ -65,7 +64,7 @@ class Hint
   end
 
   def repl_hint(cur_level)
-    repl = @next_move[GS_PLAY_RAW_REPL]
+    repl = @next_move[GS_PLAY_REPL]
     idx = @rule.index_of_repl(repl)
     @rule.show_repl_hint(repl)
     @hint_strength += 1

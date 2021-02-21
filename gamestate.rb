@@ -1,11 +1,8 @@
+# when wildcards involved, each '.' in :pat is replaced, with i'th char
+# in `capture` string.  captures.size = (count of '.' in pat)
 GS_PLAY_IDX = :idx   # index into row where to apply the move
 GS_PLAY_PAT = :pat   # wildcards resolved
 GS_PLAY_REPL = :repl # placeholders resolved
-GS_PLAY_RAW_PAT = :rawpat  # wildcards unresolved
-GS_PLAY_RAW_REPL = :rawrepl # wildcards unresolved
-
-# when wildcards involved, each '.' in :pat is replaced, with ith char
-# in `capture` string.  captures.size = (count of '.' in pat)
 GS_PLAY_CAPTURES = :captures
 
 
@@ -73,18 +70,25 @@ def wc_replace(str, repl_chars)
 end
 
 
-# given a str, the pat may refer to captures represented in repl_chars
-# for any single digit D in (1...9), if str[i] == repl_chars[D] then it's a match
-# presumably, repl_chars was returned from wc_index.
-def wc_equals(str, pat, repl_chars)
+# Compare two strings.  Pat _may_ contain . as a wildcard char, which matches
+# any corresponding character in str at the same offset.
+def wc_equals(str, pat)
   return false if pat.size != str.size
   idx = 0
-  fixed_pat = wc_replace(pat, repl_chars)
-  fixed_pat.each_char do |ch|
+  pat.each_char do |ch|
     return false if str[idx] != ch and ch != '.'
     idx += 1
   end
   return true
+end
+
+# given a str, the pat may refer to captures represented in repl_chars
+# for any single digit D in (1...9), if str[i] == repl_chars[D] then it's a match
+# presumably, repl_chars was returned from wc_index.
+def wc_with_placeholder_equals(str, pat, repl_chars)
+  return false if pat.size != str.size
+  fixed_pat = wc_replace(pat, repl_chars)
+  return wc_equals(str, fixed_pat)
 end
 
 
@@ -196,11 +200,9 @@ class GameState
             break if idx.nil?
             cur_pat, cur_repl = fixup_wildcards(pat, replacement ,repl_chars)
             results << {
+              GS_PLAY_IDX      => idx,
               GS_PLAY_PAT      => cur_pat,
               GS_PLAY_REPL     => cur_repl,
-              GS_PLAY_RAW_PAT  => pat,
-              GS_PLAY_RAW_REPL => replacement,
-              GS_PLAY_IDX      => idx,
               GS_PLAY_CAPTURES => repl_chars,
             }
             idx += 1

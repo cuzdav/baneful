@@ -16,7 +16,7 @@ class TestSolver < Test::Unit::TestCase
 
 
   def assert_solution(rules, init_position, expected_solution)
-    solver = Solver.new(rules, @max_width, @max_moves)
+    solver = Solver.new(rules, [init_position], @max_width, @max_moves)
     solution = solver.find_solution(init_position)
 
     if solution != nil
@@ -88,7 +88,7 @@ class TestSolver < Test::Unit::TestCase
   end
 
   def test_solver4()
-    @max_moves = 8
+    @max_moves = 10
     assert_solution(
       {
         "a"    => ["ba", "bb"],
@@ -96,13 +96,15 @@ class TestSolver < Test::Unit::TestCase
         "abbbb" => [""]
       },
       "a",
-      [
-        [0, "a", "ba"],
-        [0, "ba", "ab"],
-        [1, "b", "bb"],
-        [1, "b", "bb"],
-        [1, "b", "bb"],
-        [0, "abbbb", ""],
+      [[0, "a", "ba"],
+       [0, "ba", "ab"],
+       [0, "a", "ba"],
+       [0, "ba", "ab"],
+       [0, "a", "ba"],
+       [1, "a", "ba"],
+       [1, "ba", "ab"],
+       [0, "ba", "ab"],
+       [0, "abbbb", ""],
       ]
     )
   end

@@ -250,6 +250,29 @@ class RuleUI
     end
   end
 
+  # find a rule that can produce the given move, matching the from (pat)
+  # and containing the replace pattern.
+  # The move provided is fully resolved, so matching it to a rule requires
+  # accounting for wildcards in the rule code.
+  def get_rule_matching_move(move)
+    resolved_from_str = move[GS_PLAY_PAT]
+    resolved_to_str = move[GS_PLAY_REPL]
+    @rules.each do |rule|
+      idx, captures = wc_index(resolved_from_str, rule.from_str, 0)
+      if idx != nil and rule.from_str.size == resolved_from_str.size
+        # rule pattern matches, but does a repl also match?  Given
+        # wildcards, it's possible this rule matches the from_str pat,
+        # but has no replacement that matches.
+        rule.replacement_strs.each do |repl|
+          if wc_with_placeholder_equals(resolved_to_str, repl, captures)
+            return rule
+          end
+        end
+      end
+    end
+    return nil
+  end
+
   def get_rule_for_string(from_str)
     @rules.each do |rule|
       if rule.from_str == from_str

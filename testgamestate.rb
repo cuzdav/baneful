@@ -83,24 +83,19 @@ class GameStatTest < Test::Unit::TestCase
       GS_PLAY_PAT      => pat,
       GS_PLAY_REPL     => repl,
       GS_PLAY_CAPTURES => captures,
-      GS_PLAY_RAW_PAT  => rawpat  == nil ? pat : rawpat,
-      GS_PLAY_RAW_REPL => rawrepl == nil ? repl : rawrepl,
     }
   end
 
   # converts a simple idx/from/to invocation into the slightly more cumbersome
   # (but more useful) hash
-  def make_move(idx, pat, repl, rawpat=nil, rawrepl=nil, captures="")
-    return @state.make_move(move_hash(idx, pat, repl, rawpat, rawrepl, captures))
+  def make_move(idx, pat, repl, captures="")
+    return @state.make_move(move_hash(idx, pat, repl, captures))
   end
 
   def assert_possible_plays_equal(possible_plays_model, possible_plays_actual)
     expected = possible_plays_model.map do |move_array|
       move_hash(*move_array)
     end
-
-    puts("*** hash expected: #{expected}")
-    puts("*** hash actual  : #{possible_plays_actual}")
     assert_equal(expected, possible_plays_actual)
 
   end
@@ -306,24 +301,44 @@ class GameStatTest < Test::Unit::TestCase
     assert_equal("xy", repl_chars)
   end
 
+  def test_wc_with_placeholder_equals
+    assert_equal(true, wc_with_placeholder_equals("aba", "a1a", "b"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a1a", "bc"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a2a", "mb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a3a", "mnb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a4a", "mnob"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a5a", "mnopb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a6a", "mnopqb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a7a", "mnopqrb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a8a", "mnopqrsb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "a9a", "mnopqrstb"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "121", "ab"))
+    assert_equal(true, wc_with_placeholder_equals("aba", "212", "ba"))
+
+
+    assert_equal(false, wc_with_placeholder_equals("aba", "a1a", "c"))
+    assert_equal(false, wc_with_placeholder_equals("aba", "a2a", "bc"))
+    assert_raise(RuntimeError) {
+      wc_with_placeholder_equals("aba", "a9a", "x")
+    }
+  end
+
   def test_wc_equals
-    assert_equal(true, wc_equals("aba", "a1a", "b"))
-    assert_equal(true, wc_equals("aba", "a1a", "bc"))
-    assert_equal(true, wc_equals("aba", "a2a", "mb"))
-    assert_equal(true, wc_equals("aba", "a3a", "mnb"))
-    assert_equal(true, wc_equals("aba", "a4a", "mnob"))
-    assert_equal(true, wc_equals("aba", "a5a", "mnopb"))
-    assert_equal(true, wc_equals("aba", "a6a", "mnopqb"))
-    assert_equal(true, wc_equals("aba", "a7a", "mnopqrb"))
-    assert_equal(true, wc_equals("aba", "a8a", "mnopqrsb"))
-    assert_equal(true, wc_equals("aba", "a9a", "mnopqrstb"))
-    assert_equal(true, wc_equals("aba", "121", "ab"))
-    assert_equal(true, wc_equals("aba", "212", "ba"))
+    # . has no special meaning on LHS, only on RHS
+    assert_equal(true, wc_equals("aba", "aba"))
+    assert_equal(true, wc_equals("aba", ".ba"))
+    assert_equal(true, wc_equals("aba", "a.a"))
+    assert_equal(true, wc_equals("aba", "ab."))
+    assert_equal(true, wc_equals("aba", "..a"))
+    assert_equal(true, wc_equals("aba", "a.."))
+    assert_equal(true, wc_equals("aba", "..."))
+    assert_equal(true, wc_equals("...", "..."))
 
-
-    assert_equal(false, wc_equals("aba", "a1a", "c"))
-    assert_equal(false, wc_equals("aba", "a2a", "bc"))
-    assert_raise(RuntimeError) { wc_equals("aba", "a9a", "x") }
+    assert_equal(false, wc_equals("...", ""))
+    assert_equal(false, wc_equals("a.a", "aba"))
+    assert_equal(false, wc_equals("aba", "abaa"))
+    assert_equal(false, wc_equals("aba", "ab"))
+    assert_equal(false, wc_equals("aba", ""))
   end
 
 end
