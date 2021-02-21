@@ -60,8 +60,8 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_possible_plays_equal(
       [
-        [0, "aba", "b", "a.a", "1", "b"],
-        [2, "aca", "c", "a.a", "1", "c"],
+        [0, "aba", "b", "b"],
+        [2, "aca", "c", "c"],
       ],
       plays
     )
@@ -70,34 +70,61 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_possible_plays_equal(
       [
-        [1, "bab", "aa", "b.b", "11", "a"],
+        [1, "bab", "aa", "a"],
+      ],
+      plays
+    )
+  end
+
+  def test_possible_plays_wildcard_only()
+    @state = GameState.new(
+      {
+        "a.a"  => ["1"],
+        "a"    => ["c"],
+        "b.b"  => ["11"],
+      },
+      "", # initial_str
+      10, # num_mo411ves
+      10  # max_width of board
+    )
+
+    @state.cur_row = "abacac"
+    plays = @state.possible_plays()
+    puts("***#{plays}")
+    assert_possible_plays_equal(
+      [
+        [0, "a",   "c", ""],
+        [2, "a",   "c", ""],
+        [4, "a",   "c", ""],
+        [0, "aba", "b", "b"],
+        [2, "aca", "c", "c"],
+      ],
+      plays
+    )
+
+    plays = @state.possible_plays(true)
+    assert_possible_plays_equal(
+      [
+        [0, "aba", "b", "b"],
+        [2, "aca", "c", "c"],
       ],
       plays
     )
 
   end
 
-  def move_hash(idx, pat, repl, rawpat=nil, rawrepl=nil, captures="")
-    return {
-      GS_PLAY_IDX      => idx,
-      GS_PLAY_PAT      => pat,
-      GS_PLAY_REPL     => repl,
-      GS_PLAY_CAPTURES => captures,
-    }
-  end
-
   # converts a simple idx/from/to invocation into the slightly more cumbersome
   # (but more useful) hash
   def make_move(idx, pat, repl, captures="")
-    return @state.make_move(move_hash(idx, pat, repl, captures))
+    return @state.make_move([idx, pat, repl, captures])
   end
 
-  def assert_possible_plays_equal(possible_plays_model, possible_plays_actual)
-    expected = possible_plays_model.map do |move_array|
-      move_hash(*move_array)
+  def assert_possible_plays_equal(expected_plays, possible_plays_actual)
+    expected = expected_plays.sort.map do |idx, pat, repl, capture|
+      [idx, pat, repl, capture ? capture : ""]
     end
-    assert_equal(expected, possible_plays_actual)
-
+    actual = possible_plays_actual.sort
+    assert_equal(expected, actual)
   end
 
   def test_clone()

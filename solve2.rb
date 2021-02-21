@@ -11,22 +11,66 @@ S_MOVE_CAPTURES = 7
 
 class Solver
 
-  attr_reader :visited
+  # all the positions requiring 1 move to solve, then on top of those, all the
+  # positions requiring 2 moves to solve, and so on, up to max_depth This is
+  # *not* comprehensive, as wildcard moves are are present but still in an
+  # encoded form.  They require dynamic searching to utilize.
+  attr_reader :positions
 
   def initialize(rules, rows, max_width, max_moves)
     @rules = create_reverse_mapping(rules)
-    explode_wildcards(rows)
-    @visited = {}
+    @positions = {}
     @max_width = max_width
     @max_moves = max_moves
     populate()
-    puts ("@visited size = #{@visited.size}")
+    puts ("@positions size = #{@positions.size}")
   end
 
-  def find_solution(row)
-    move_data = @visited[row]
-    return nil if move_data == nil
+  def find_solution(game_state)
+    move_data = @positions[row]
+    if move_data == nil
+      @visited = {}
+      @game_state = game_state.clone_from_cur_position()
+      move_data = find_solution_dynamic()
+    end
+    convert_solution_to_external_format(move_data)
+    return result
+  end
 
+  private
+
+  def find_solution_dynamic()
+    if @game_state.solved?
+      moves = @game_state.played_moves
+      if @best_solution == nil or moves.size < @best_solution.size
+        @best_solution = moves.clone
+        @game_state.max_depth = @best_solution.size
+      end
+      return
+    end
+
+    prev_move_num = @visited[@game_state.cur_row]
+    if prev_move_num != nil and prev_move_num <= @move_number
+      return
+    end
+    @visited[@game_state.cur_row] = @move_number
+
+    moves = @game_state.possible_plays
+    moves.each do |move|
+      if @game_state.make_move(move)
+        @move_number += 1
+        find_solution_impl()
+        @move_number -= 1
+        @game_state.undo_move()
+      end
+    end
+  end
+
+
+  def convert_solution_to_external_format(move_data)
+    # internally the moves are stored in arrays, but outside they are hashes
+    # this saves quite a bit of memory since only the actual path needs to
+    # become a hash, instead of every prepopulated possible solution.
     result = []
     n = 0
     while move_data != nil and n < @max_moves
@@ -40,55 +84,10 @@ class Solver
         :num_moves       => move_data[S_MOVE_NUM_MOVES],
       }
       result << move # [idx, from, to, next, moves]
-      move_data = @visited[move_data[3]]
+      move_data = @positions[move_data[3]]
     end
-    return result
+
   end
-
-  private
-
-  def explode_wildcards(rows)
-    # find all unique "block letters" in level
-    data = (rows.to_s + @rules.to_s).chars.sort.uniq
-    letters = data.select {|s| s.ord >= ?a.ord and s.ord <= ?z.ord}.join
-
-    @rules.each do |from, to_list|
-      to_list.dup.each do |to|
-        if to.include?('.')
-          explode_single_replacement(letters, from, to)
-        end
-      end
-    end
-  end
-
-  # for a single rule from->to, generate every combination of replacements of
-  # wildcards with each letter in "letters" string
-  # example: letters="abc", from="12", to="a..b"
-  # this will "explode" to add the following to the map:
-  # aa => aaab,  ab => aabb,  ac => aacb
-  # ba => abab,  bb => abbb,  bc => abcb
-  # ca => acab,  cb => acbb,  cc => accb
-  def explode_single_replacement(letters, from, to, placeholder=1, char_idx=0)
-    puts("ESR: #{letters} `#{from}`->`#{to}` pl=#{placeholder}, chidx=#{char_idx}")
-    to[char_idx..].each_char do |ch|
-      if ch == '.'
-        letters.each_char do |letter|
-          f = from.gsub((?0.ord + placeholder).chr, letter)
-          t = to.dup
-          t[char_idx] = letter
-          puts("Recursing... letter=#{letter}")
-          explode_single_replacement(letters, f, t, placeholder+1, char_idx+1)
-        end
-        break
-      end
-      char_idx += 1
-    end
-    @rules[from] ||= []
-
-    puts("Adding [#{from}] = #{to}")
-    @rules[from] << to
-  end
-
 
   def populate()
     # use double buffering to dequeue from one buffer and enqueue onto another,
@@ -128,7 +127,7 @@ class Solver
                 #... and we haven't seen this position before
                 # (because if we have, then seeing it again MUST mean we
                 # are on a worse/longer path than before)
-                if not @visited.has_key?(newrow)
+                if not @positions.has_key?(newrow)
                   # queue this up for processing as part of the work for the
                   # next group of solutions at N+1 (moves) compared to cur_row.
                   next_q.push(newrow)
@@ -140,7 +139,7 @@ class Solver
                   # list from any given position toward the solution (cur_row is
                   # one better than whatever position they are in before
                   # applying this move)
-                  @visited[newrow] = [
+                  @positions[newrow] = [
                     idx,           # S_MOVE_IDX
                     to,            # S_MOVE_PAT
                     from,          # S_MOVE_REPL

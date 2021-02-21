@@ -1,9 +1,9 @@
 # when wildcards involved, each '.' in :pat is replaced, with i'th char
 # in `capture` string.  captures.size = (count of '.' in pat)
-GS_PLAY_IDX = :idx   # index into row where to apply the move
-GS_PLAY_PAT = :pat   # wildcards resolved
-GS_PLAY_REPL = :repl # placeholders resolved
-GS_PLAY_CAPTURES = :captures
+GS_PLAY_IDX = 0   # index into row where to apply the move
+GS_PLAY_PAT = 1   # wildcards resolved
+GS_PLAY_REPL = 2 # placeholders resolved
+GS_PLAY_CAPTURES = 3
 
 
 SPECIAL_PATTERN_CHARS = ".123456789"
@@ -185,11 +185,12 @@ class GameState
   #   .  matches any single char
   # REPLACEMENT:
   #   1 2 3, ..., 9  : placeholder for whatever char matched Nth '.' in PATTERN
-  def possible_plays()
+  def possible_plays(only_wildcards=false)
     results = []
     # pat: string, repls: array of replacements
     rulenum = -1
     rules.each do |pat, repls|
+      next if only_wildcards and not pat.include?('.')
       rulenum += 1
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
@@ -199,12 +200,7 @@ class GameState
             idx, repl_chars = wc_index(@cur_row, pat, idx)
             break if idx.nil?
             cur_pat, cur_repl = fixup_wildcards(pat, replacement ,repl_chars)
-            results << {
-              GS_PLAY_IDX      => idx,
-              GS_PLAY_PAT      => cur_pat,
-              GS_PLAY_REPL     => cur_repl,
-              GS_PLAY_CAPTURES => repl_chars,
-            }
+            results << [idx, cur_pat, cur_repl, repl_chars]
             idx += 1
           end
         end
