@@ -41,6 +41,7 @@ LEVELS =[
   ##},
 
   {
+    name: "hello",
     rules: {
       "a" => [""],
     },
@@ -50,27 +51,51 @@ LEVELS =[
     ]
   },
   {
+    name: "2-step",
     rules: {
       "a"  => ["b"],
       "b" => [""],
     },
     rows: [
-      "bab",
-      "aa",
+      "a",
     ]
   },
   {
+    name: "simple chain",
     rules: {
-      "ab" => [""],
-      "b" => ["a"],
+      "a" => ["b"],
+      "b" => ["c"],
+      "c" => [""]
     },
     rows: [
-      "ab",
-      "bb"
+      "a",
     ]
   },
 
   {
+    name: "pairs",
+    rules: {
+      "ab" => [""],
+      "ba" => [""],
+    },
+    rows: [
+      "abba",
+    ]
+  },
+
+  {
+    name: "choice",
+    rules: {
+      "ab" => ["a", "b", "c"],
+      "c" => [""]
+    },
+    rows: [
+      "abba",
+    ]
+  },
+
+  {
+    name: "setup",
     rules: {
       "ab" => [""],
       "ba" => ["ab"],
@@ -83,19 +108,18 @@ LEVELS =[
     ]
   },
 
-
   {
+    name: "reduce",
     rules: {
       "ab"  => ["b"],
       "b" => [""],
     },
     rows: [
       "aaab",
-      "bab",
-      "bb"
     ]
   },
   {
+    name: "rows",
     rules: {
       "a" => ["bb"],
       "aab" => ["ab", "aaa"],
@@ -108,6 +132,7 @@ LEVELS =[
     ]
   },
   {
+    name: "careful",
     rules: {
       "b"  => ["bb", ""],
       "abbb" => [""],
@@ -119,6 +144,7 @@ LEVELS =[
     ]
   },
   {
+    name: "cavity",
     rules: {
       "bb"  => [""],
       "aa" => [""],
@@ -129,6 +155,7 @@ LEVELS =[
     ]
   },
   {
+    name: "rise and fall",
     rules: {
       "a"  => ["cc"],
       "cbc" => ["b"],
@@ -139,6 +166,7 @@ LEVELS =[
     ]
   },
   {
+    name: "reverse",
     rules: {
       "a"    => ["ba", "bb"],
       "ba"   => ["aab"],
@@ -150,6 +178,7 @@ LEVELS =[
   },
 
   {
+    name: "onion",
     rules: {
       "a"  => ["aa", "ba"],
       "aba" => [""],
@@ -157,7 +186,6 @@ LEVELS =[
     },
     rows: [
       "baa",
-      "abaa",
       "a",
       "ba",
       "aa",
@@ -166,6 +194,7 @@ LEVELS =[
   },
 
   {
+    name: "patchwork",
     rules: {
       "a"  => ["b", "c"],
       "b" => ["ac"],
@@ -179,19 +208,7 @@ LEVELS =[
   },
 
   {
-    rules: {
-      "a"  => ["b", "c"],
-      "b" => ["ac"],
-      "ccc" => [""]
-    },
-    rows: [
-      "abc",
-      "ac",
-      "a",
-    ]
-  },
-
-  {
+    name: "reverence",
     rules: {
       "a"    => ["ba", "bb"],
       "ba"   => ["ab"],
@@ -200,9 +217,10 @@ LEVELS =[
     rows: [
       "a",
     ]
-  },  
+  },
 
   {
+    name: "parity",
     rules: {
       "aa"  => ["ab"],
       "bb" => ["b"],
@@ -214,6 +232,7 @@ LEVELS =[
   },
 
   {
+    name: "aha!",
     rules: {
       "a"  =>  ["b"],
       "ab"  =>  ["bc"],
@@ -227,6 +246,7 @@ LEVELS =[
 
   #KINDA HARD
   {
+    name: "I believe in you",
     rules: {
       "a"   => ["bb", "cc"],
       "c"   => ["ba", "ab"],
@@ -240,8 +260,8 @@ LEVELS =[
     ]
   },
 
-  # april's first, hard level
   {
+    name: "April",
     rules: { # a/bc/bcd/bcdd/bcda/bcdbc/bcbc/cbc/aa/
       "abcd" => [""],
       "a" => ["bc"],
@@ -258,6 +278,7 @@ LEVELS =[
 
 ## This level works but is not visibly displayed in a useful way yet
 ##{
+##  name: "reverse 3",
 ##  rules: {
 ##    "cba" => [""],
 ##    "..." => ["321"],
@@ -268,6 +289,7 @@ LEVELS =[
 ##},
 ##
   {
+    name: "wild!",
     rules: {
       "." => [""],
     },
@@ -277,6 +299,7 @@ LEVELS =[
   },
 
   {
+    name: "I remember you",
     rules: {
       "b" => [""],
       "a.a" => ["1", ""],
@@ -285,7 +308,5 @@ LEVELS =[
       "aabaa",
     ]
   },
-
-
 
 ]
