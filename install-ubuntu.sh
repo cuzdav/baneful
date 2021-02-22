@@ -25,12 +25,5 @@ https://www.scottbuckley.com.au/library/wp-content/uploads/2020/05/sb_solace.mp3
 https://www.scottbuckley.com.au/library/wp-content/uploads/2019/12/sb_undertow.mp3
 '
 
-mkdir resource
-pushd resource
-for URL in $MUSIC; do 
-    wget $URL
-done
-popd
-
 sudo gem install ruby2d
 
