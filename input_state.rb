@@ -23,6 +23,7 @@ class InputState
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
+    @level_name_wigit = Text.new("", x:5, y:5, z:20, color:"white", size:18)
 
     # [rule_data]
     # rule pattern to data associated:
@@ -45,6 +46,7 @@ class InputState
     @hint = Hint.new(self, solver)
     @ruleui = ruleui
     @cur_level = cur_level
+    @level_name_wigit.text = cur_level.name
     update_from_game_state
   end
 
@@ -63,7 +65,6 @@ class InputState
             wigit.remove
           end
         end
-
       end
     end
     @rule_data.clear

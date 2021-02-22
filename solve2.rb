@@ -43,7 +43,7 @@ class Solver
       @visited = {}
       @move_number = 0
       find_solution_dynamic()
-      result = @best_solution
+      result = @best_solution or []
     end
     return result
   end

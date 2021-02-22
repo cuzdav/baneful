@@ -226,6 +226,7 @@ class GameState
   # note:the move provided is fully resolved, so matching it to a rule requires
   # accounting for wildcards in the rule code.
   def get_raw_rule_and_repl_for_move(move)
+    puts("*** move:#{move}")
     resolved_from_str = move[GS_PLAY_PAT]
     resolved_to_str = move[GS_PLAY_REPL]
     @rules.each do |raw_from_str, raw_repl_strs|

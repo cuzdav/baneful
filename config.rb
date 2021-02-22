@@ -87,6 +87,7 @@ LEVELS =[
     name: "choice",
     rules: {
       "ab" => ["a", "b", "c"],
+      "ba" => ["b", "c", "a"],
       "c" => [""]
     },
     rows: [

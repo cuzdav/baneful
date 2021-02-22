@@ -63,7 +63,7 @@ def next_level()
   puts ("***** NEW LEVEL *****")
   $curlevel_config = LEVELS[$level_num]
   if $curlevel_config != nil
-    puts("LEVEL NOW: #{$level_num}")
+    puts("LEVEL NOW: #{$level_num}: #{$curlevel_config[:name]}")
     $level_num += 1
     $row_num = 0
 
@@ -81,20 +81,32 @@ def next_level()
       Window.get(:width) - 20, playarea_height())
     $input_state.prepare_next_level(
       $curlevel.ruleui,
-      $curlevel,
-      $curlevel.solver)
+      $curlevel, $curlevel.solver)
   end
 end
 
 ARGV.each do |arg|
-  if arg =~ /--start-level=([\d]+)/
+  if arg =~ /--level=([\d]+)/
     $level_num = $1.to_i
     if $level_num >= LEVELS.size
       puts("Max level is #{LEVELS.size}")
       exit 1
     end
     puts("Starting on level #{$level_num}")
+  elsif arg =~ /--level=(.*)/
+    pat = Regexp.new($1)
+    idx = 0
+    LEVELS.each do |lvl|
+      break if lvl[:name] =~ pat
+      idx += 1
+    end
+    if idx == LEVELS.size
+      puts("Max level is #{LEVELS.size}")
+      exit 1
+    end
+    $level_num = idx
   end
+  puts("Starting on level #{$level_num}")
 end
 
 next_level()

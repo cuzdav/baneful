@@ -13,6 +13,7 @@ class Level
   attr_reader :cur_row
   attr_reader :color_map
   attr_reader :solver
+  attr_reader :name
 
   def initialize(level, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
     @cur_row = 0
@@ -21,6 +22,7 @@ class Level
     @num_moves = num_moves
     @max_width = maxwidth
     @eff_col = 0
+    @name = level[:name] || ""
 
     @color_map = make_color_map(level)
     make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
@@ -149,7 +151,6 @@ class Level
 
     hide_cells_in_row(rownum, 0, @eff_col) # leading empty cells
     row_str.each_char do |ch|
-      puts("update_grid_row: ch=#{ch} (#{ch.ord})")
       @grid.set_cell_color(effrow, effcol, @color_map[ch]).add
       @grid.set_cell_opacity(effrow, effcol, opacity)
       effcol += 1
@@ -188,7 +189,7 @@ class Level
     @solver = Solver.new(@rules, @num_moves, @max_width)
     @rows.each do |row_str|
       game_state = GameState.new(@rules, row_str, @num_moves, @max_width)
-      if @solver.find_solution(game_state) == nil
+      if @solver.find_solution(game_state).empty?
         raise("Row #{row_str} is not solvable")
       end
     end

@@ -105,7 +105,6 @@ def analyze_level_solutions(level, solutions)
   end
 end
 
-
 $tested = 0
 $failed = 0
 
