@@ -1,13 +1,5 @@
 require_relative 'gamestate'
 
-S_MOVE_IDX = 0
-S_MOVE_PAT = 1
-S_MOVE_REPL = 2
-S_MOVE_CAPTURES = 3
-S_MOVE_RESULT = 4 # position after applying repl for pat at idx
-S_MOVE_NUM_MOVES = 5
-
-
 # Has two separate algorithms that work together. 1) a top-down
 # brute force search, starting at the game position this is the
 # dynamic search 2) a pre-computed set of position starting at the
@@ -105,7 +97,7 @@ class Solver
 
   def build_solution_path(move_data)
     # walk the linked list of move-tuples, and put into an actual
-    # array (The static solution's next field is in S_MOVE_RESULT
+    # array (The static solution's next field is in GS_PLAY_RESULT
     # index, so we can jump from position to position, toward the
     # solution by looking them up.)
     result = []
@@ -113,14 +105,14 @@ class Solver
     while move_data != nil and n < @max_moves
       n += 1
       result << move_data # [idx, from, to, captures, next(result), num_moves]
-      move_data = @positions[move_data[S_MOVE_RESULT]]
+      move_data = @positions[move_data[GS_PLAY_RESULT]]
     end
     return result
   end
 
   def update_best_maybe(move_data)
     moves = @game_state.played_moves
-    total_moves = moves.size + (move_data ? move_data[S_MOVE_NUM_MOVES] : 0)
+    total_moves = moves.size + (move_data ? move_data[GS_PLAY_NUM_MOVES] : 0)
     if @best_solution.empty? or total_moves < @best_solution.size
       static_solution = build_solution_path(move_data)
       if not static_solution.empty?
@@ -190,12 +182,12 @@ class Solver
                   # Also, there are no captures because these are only moves
                   # that do not involve wildcards.
                   @positions[newrow] = [
-                    idx,           # S_MOVE_IDX
-                    to,            # S_MOVE_PAT
-                    from,          # S_MOVE_REPL
-                    "",            # S_CAPTURES
-                    cur_row,       # S_MOVE_RESULT
-                    move_count,    # S_MOVE_NUM_MOVES
+                    idx,           # GS_PLAY_IDX
+                    to,            # GS_PLAY_PAT
+                    from,          # GS_PLAY_REPL
+                    "",            # GS_PLAY_CAPTURES
+                    cur_row,       # GS_PLAY_RESULT
+                    move_count,    # GS_PLAY_NUM_MOVES
                  ]
                 end
               end

@@ -4,7 +4,8 @@ GS_PLAY_IDX = 0   # index into row where to apply the move
 GS_PLAY_PAT = 1   # wildcards resolved
 GS_PLAY_REPL = 2 # placeholders resolved
 GS_PLAY_CAPTURES = 3
-
+GS_PLAY_RESULT = 4 # result of applying move to current row (opt)
+GS_PLAY_NUM_MOVES = 5 # number of moves from the solution (opt)
 
 SPECIAL_PATTERN_CHARS = ".123456789"
 SPECIAL_REPL_CHARS = "123456789"
@@ -115,7 +116,7 @@ class GameState
   # max_width = limit to how wide row can grow when applying constructive rules
   # goal = win condition
 
-  def initialize(rules, initial_row_str, num_moves, max_width = 7, goal = "")
+  def initialize(rules, initial_row_str, num_moves, max_width = 9, goal = "")
     @verbose = false
     @rules = rules
     @goal = goal
@@ -155,9 +156,10 @@ class GameState
       return nil
     end
 
+    offset = move[GS_PLAY_IDX]
     from = move[GS_PLAY_PAT]
     to = move[GS_PLAY_REPL]
-    offset = move[GS_PLAY_IDX]
+
     if @cur_row.index(from, offset) != offset
       raise "invalid replacement: cur_row=#{@cur_row}, from=#{from}, offset=#{offset}"
     end
@@ -165,8 +167,12 @@ class GameState
       raise "too wide: maxwidth= #{@max_width}"
     end
 
-    @prev_rows.push(@cur_row.dup)
-    @played_moves.push(move.dup)
+    cached_row = @cur_row.dup
+    cached_move = move.dup
+    cached_move[GS_PLAY_RESULT] = cached_row
+
+    @prev_rows.push(cached_row)
+    @played_moves.push(cached_move)
     @cur_row[offset...offset+from.size] = to
     return @cur_row
   end
