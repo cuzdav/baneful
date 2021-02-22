@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative 'solve.rb'
+require_relative 'solve2.rb'
 require_relative 'ruleui.rb'
 require_relative 'gamestate.rb'
 require_relative 'level.rb'
@@ -9,7 +9,8 @@ class Hint
 
   def initialize(input_state)
     @input = input_state
-    @solver = Solver.new
+    state = input_state.gamestate
+    @solver = Solver.new(state.rules, state.max_moves, state.max_width)
     @target_hintbox = Rectangle.new(
       :color => "white",
       :z => 0,

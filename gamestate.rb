@@ -110,17 +110,17 @@ class GameState
   end
 
   # rules = {<from> -> [<to>, ...]}
-  # initial_str = staring position
+  # initial_row_str = staring position
   # num_moves (max turns)
   # max_width = limit to how wide row can grow when applying constructive rules
   # goal = win condition
 
-  def initialize(rules, initial_str, num_moves, max_width = 7, goal = "")
+  def initialize(rules, initial_row_str, num_moves, max_width = 7, goal = "")
     @verbose = false
     @rules = rules
     @goal = goal
-    @cur_row = initial_str.dup
-    @initial_row = initial_str
+    @cur_row = initial_row_str.dup
+    @initial_row = initial_row_str
     @max_width = max_width
     @curdepth = 0
     @max_depth = 99

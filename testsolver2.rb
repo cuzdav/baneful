@@ -27,7 +27,7 @@ class TestSolver < Test::Unit::TestCase
   end
 
   def assert_solution(rules, init_position, expected_solution)
-    solver = Solver.new(rules, [init_position], @max_width, @max_moves)
+    solver = Solver.new(rules, @max_moves, @max_width)
     game_state = GameState.new(rules, init_position, @max_moves, @max_width)
     validate_solution(game_state, expected_solution)
 
@@ -49,6 +49,17 @@ class TestSolver < Test::Unit::TestCase
     end
 
     assert_equal(expected_solution, model_solution)
+  end
+
+  def test_constructor
+    rules = {"ccc" => ["bbb"]}
+    moves = 99
+    width = 8
+    solver = Solver.new(rules, moves, width)
+
+    assert_equal(create_reverse_mapping(rules), solver.rev_rules)
+    assert_equal(moves, solver.max_moves)
+    assert_equal(width, solver.max_width)
   end
 
   def test_solver1()

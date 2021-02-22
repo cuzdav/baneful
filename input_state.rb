@@ -23,7 +23,6 @@ class InputState
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
-    @hint = Hint.new(self)
 
     # rule pattern to data associated:
     #  :wigits add to Window to indicate rule is active
@@ -41,6 +40,7 @@ class InputState
   end
 
   def prepare_next_level(ruleui, cur_level)
+    @hint = Hint.new(self)
     @ruleui = ruleui
     @cur_level = cur_level
     update_from_game_state

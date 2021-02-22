@@ -8,18 +8,30 @@ S_MOVE_RESULT = 4 # position after applying repl for pat at idx
 S_MOVE_NUM_MOVES = 5
 
 
+# Has two separate algorithms that work together. 1) a top-down
+# brute force search, starting at the game position this is the
+# dynamic search 2) a pre-computed set of position starting at the
+# solved state, then building backwards, applying every possible
+# move to make all the 1-move-to-solve positions, then on top of
+# those applying all possible 2-moves-to-solve positions, and so on,
+# building "up" to a given depth. Then the solution is a simple
+# lookup, without getting stuck in any dark corners of uselessness.
+# Every path it finds is optimal Problem is here, WILDCARDS are not
+# "blown up" in to every possible
+
+# So, If the static lookup succeeds, it's super fast, but if it
+# doesn't (due to use of wildcards in the solution) a dynamic search
+# will work from the problem down to anything in the precomputed
+# answers.  This means when they hook up, we have a complete answer.
+
 class Solver
-
-  # all the positions requiring 1 move to solve, then on top of those, all the
-  # positions requiring 2 moves to solve, and so on, up to max_depth This is
-  # *not* comprehensive, as wildcard moves are are present but still in an
-  # encoded form.  They require dynamic searching to utilize.
   attr_reader :positions
+  attr_reader :max_width
+  attr_reader :max_moves
+  attr_reader :rev_rules
 
-  #TODO: reverse max_width and max_moves, to be consistent with gamestate,
-  # OR just take a gamestate and remember it.  (I like this)
-  def initialize(rules, rows, max_width, max_moves)
-    @rules = create_reverse_mapping(rules)
+  def initialize(rules, max_moves, max_width)
+    @rev_rules = create_reverse_mapping(rules)
     @positions = {}
     @max_width = max_width
     @max_moves = max_moves
@@ -46,25 +58,6 @@ class Solver
 
   private
 
-  # find_solution_dynamic is based on code from original solver, which worked
-  # well but was too slow getting stuck checking out too many dark corners in
-  # certain types of levels with a lot of loops and recursion. Its premise is
-  # to start with the problem, and work toward the solution via brute force.
-
-  # The pre-populated solver works fantastically for non-wildcard solutions, but
-  # introducing wildcards causes a blowup of solutions it must pre-populate.
-  # This approach is to start at the solution, and reverse all possible moves
-  # from that position, yielding positions solvable with 1-move. Then for each
-  # of those, reverse every next possible move yielding every 2-move solvable
-  # positions etc. What is left is an optimal lookup table for solutions up to N
-  # solutions deep. Wildcards makes this huge; otherwise is remains fairly small.
-
-  # Now I'm trying to merge the two such that all the "static" solutions are
-  # pre-computed as before, and used when possible. But if a solution isn't
-  # found (due to a wildcard) it does a brute force from the "old" technique.
-  # However, instead of finding THE solution via brute force, it only needs to
-  # find any solution that was in the pre-computed pool. (Though the first it
-  # finds might not be the best, it's at least a solution, and keeps searching.)
   def find_solution_dynamic()
     if @game_state.solved?
       update_best_maybe(nil)
@@ -90,12 +83,13 @@ class Solver
           cur_pos = @game_state.cur_row.dup
         end
 
-        # did our two solver techniques connect? (Brute force found a
-        # prepopulated answer)
+        # did our two solver techniques connect? (Brute force ran into a
+        # pre-populated static answer if 'pos' exists)
         pos = @positions[cur_pos]
         if pos != nil
           # Success! Limited brute force search with wildcards was able to
           # find a solution in the precomputed set of positions!
+          # DON'T BREAK because the first found solution may not be the best.
           update_best_maybe(pos)
         end
 
@@ -110,8 +104,10 @@ class Solver
 
 
   def build_solution_path(move_data)
-
-    # walk the linked list of tuples, and put into an actual array
+    # walk the linked list of move-tuples, and put into an actual
+    # array (The static solution's next field is in S_MOVE_RESULT
+    # index, so we can jump from position to position, toward the
+    # solution by looking them up.)
     result = []
     n = 0
     while move_data != nil and n < @max_moves
@@ -128,11 +124,11 @@ class Solver
     if @best_solution.empty? or total_moves < @best_solution.size
       static_solution = build_solution_path(move_data)
       if not static_solution.empty?
-        # dynamic search met an non-empty static solution.
-        # The last of the dynamic path is the same first move as the
-        # static, which is how they were linked up.  So remove the
-        # one in static, since if it's a wildcard it's unexpanded,
-        # and the dynamic one is resolved.
+        # dynamic search met an non-empty static solution. The last of
+        # the dynamic path is the same first move as the static, which
+        # is how they were linked up. So remove the first one in
+        # static, since if it's a wildcard it's unexpanded, and the
+        # dynamic one is resolved.
         static_solution = static_solution[1..]
       end
       @best_solution = moves.clone + static_solution
@@ -141,11 +137,12 @@ class Solver
   end
 
   def populate()
-    # use double buffering to dequeue from one buffer and enqueue onto another,
-    # then swap when we run out.  When both are empty, we are done.
-    # This allows for tracking the depth, so we know when we swap we are at
-    # a new "tier" in answer-space: the number of moves required to solve it
-    # has increased.
+    # This builds the static set of pre-populated solutions.
+    # use double buffering to dequeue from one buffer and enqueue onto
+    # another, then swap when we run out. When both are empty, we are
+    # done. This allows for tracking the depth, so we know when we
+    # swap we are at a new "tier" in answer-space: the number of moves
+    # required to solve it has increased.
     q = []
     next_q = [""]
     move_count = 0
@@ -162,7 +159,7 @@ class Solver
         # to help prevent solutions that exceed max-width of the grid
         width_remain = @max_width - cur_row.size
         # over every rule...
-        @rules.each do |from, to_list|
+        @rev_rules.each do |from, to_list|
           from_size = from.size
           next_idx = 0
 
@@ -210,7 +207,7 @@ class Solver
   end
 end
 
-
+# mainly for 1-off testing
 def main()
   rules = { # a/bc/bcd/bcdd/bcda/bcdbc/bcbc/cbc/aa/
     "abcd" => [""],
@@ -226,7 +223,7 @@ def main()
   ]
   moves = 10
   width = 7
-  solver = Solver.new(rules, rows, moves, width)
+  solver = Solver.new(rules, moves, width)
   game_state = GameState.new(rules, rows[0], 10, 15)
   solution = solver.find_solution(game_state)
 
