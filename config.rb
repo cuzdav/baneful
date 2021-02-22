@@ -193,6 +193,17 @@ LEVELS =[
 
   {
     rules: {
+      "a"    => ["ba", "bb"],
+      "ba"   => ["ab"],
+      "abbbb" => [""]
+    },
+    rows: [
+      "a",
+    ]
+  },  
+
+  {
+    rules: {
       "aa"  => ["ab"],
       "bb" => ["b"],
       "ab" => [""]

@@ -19,6 +19,61 @@ class GameStatTest < Test::Unit::TestCase
   end
 
 
+  def test_constructor
+    rules = {
+      "a" => ["abc"],
+      "abc" => [""],
+    }
+
+    gs = GameState.new(
+      rules,
+      "a",
+      num_moves = 8,
+      max_width = 9
+    )
+    assert_equal(rules, gs.rules)
+    assert_equal("", gs.goal)
+    assert_equal("a", gs.cur_row)
+    assert_equal(num_moves, gs.num_moves)
+    assert_equal(max_width, gs.max_width)
+
+    gs2 = gs.clone_from_cur_position
+    gs = nil
+
+    assert_equal(rules, gs2.rules)
+    assert_equal("", gs2.goal)
+    assert_equal("a", gs2.cur_row)
+    assert_equal(num_moves, gs2.num_moves)
+    assert_equal(max_width, gs2.max_width)
+  end
+
+  def test_reset
+    rules = {
+      "a" => ["abc"],
+      "abc" => [""],
+    }
+
+    gs = GameState.new(
+      rules,
+      "a",
+      num_moves = 8,
+      max_width = 9
+    )
+    gs.cur_row = "aaaa" # <<<<<<<<< modified
+    assert_equal(rules, gs.rules)
+    assert_equal("", gs.goal)
+    assert_equal("aaaa", gs.cur_row)
+    assert_equal(num_moves, gs.num_moves)
+    assert_equal(max_width, gs.max_width)
+
+    gs.reset
+    assert_equal(rules, gs.rules)
+    assert_equal("", gs.goal)
+    assert_equal("a", gs.cur_row) # <<<<< orig
+    assert_equal(num_moves, gs.num_moves)
+    assert_equal(max_width, gs.max_width)
+  end
+
   def test_possible_plays1()
     @state.cur_row = "abcccbccc"
     plays = @state.possible_plays()
@@ -84,13 +139,12 @@ class GameStatTest < Test::Unit::TestCase
         "b.b"  => ["11"],
       },
       "", # initial_str
-      10, # num_mo411ves
+      10, # num_moves
       10  # max_width of board
     )
 
     @state.cur_row = "abacac"
     plays = @state.possible_plays()
-    puts("***#{plays}")
     assert_possible_plays_equal(
       [
         [0, "a",   "c", ""],

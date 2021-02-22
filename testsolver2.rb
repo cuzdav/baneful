@@ -14,10 +14,25 @@ class TestSolver < Test::Unit::TestCase
     @max_moves = 4
   end
 
+  def validate_solution(game_state, solution)
+    return if solution.empty?
+    begin
+      solution.each do |move|
+        game_state.make_move(move)
+      end
+      assert_true game_state.solved?
+    ensure
+      game_state.reset
+    end
+  end
 
   def assert_solution(rules, init_position, expected_solution)
     solver = Solver.new(rules, [init_position], @max_width, @max_moves)
-    solution = solver.find_solution(init_position)
+    game_state = GameState.new(rules, init_position, @max_moves, @max_width)
+    validate_solution(game_state, expected_solution)
+
+    solution = solver.find_solution(game_state)
+    validate_solution(game_state, solution)
 
     if solution != nil
       # convert hash back into a small array for comparison
@@ -37,6 +52,7 @@ class TestSolver < Test::Unit::TestCase
   end
 
   def test_solver1()
+    puts("solver1: width #{@max_width}")
     assert_solution(
       {
         "ab"  => ["bb"],
@@ -54,6 +70,7 @@ class TestSolver < Test::Unit::TestCase
   end
 
   def test_solver2()
+    puts("solver2: width #{@max_width}")
     assert_solution(
       {
         "ab"  => ["ab", "bb"],
@@ -96,15 +113,16 @@ class TestSolver < Test::Unit::TestCase
         "abbbb" => [""]
       },
       "a",
-      [[0, "a", "ba"],
-       [0, "ba", "ab"],
-       [0, "a", "ba"],
-       [0, "ba", "ab"],
-       [0, "a", "ba"],
-       [1, "a", "ba"],
-       [1, "ba", "ab"],
-       [0, "ba", "ab"],
-       [0, "abbbb", ""],
+      [
+        [0, "a", "ba"],
+        [0, "ba", "ab"],
+        [0, "a", "ba"],
+        [0, "ba", "ab"],
+        [0, "a", "ba"],
+        [1, "a", "ba"],
+        [1, "ba", "ab"],
+        [0, "ba", "ab"],
+        [0, "abbbb", ""]
       ]
     )
   end
@@ -153,5 +171,22 @@ class TestSolver < Test::Unit::TestCase
       ]
     )
   end
+
+  def test_solver_wildcard4()
+    @max_moves = 10
+    assert_solution(
+      {
+        ".."      => ["21"],
+        "ba"      => [""],
+      },
+      "ab",
+      [
+        [0, "ab", "ba"],
+        [0, "ba", ""]
+      ]
+    )
+  end
+
+
 end
 

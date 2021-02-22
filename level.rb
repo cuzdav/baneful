@@ -17,6 +17,7 @@ class Level
     @rules = level[:rules]
     @rows = level[:rows]
     @num_moves = num_moves
+    @max_width = maxwidth
     @eff_col = 0
 
     @color_map = make_color_map(level)
@@ -27,7 +28,7 @@ class Level
 
   def next_gamestate()
     row_str = @cur_row >= 0 ? @rows[@cur_row] : ""
-    @game_state = GameState.new(@rules, row_str, @num_moves)
+    @game_state = GameState.new(@rules, row_str, @num_moves, @max_width)
   end
 
   # grid index of pixel coord
@@ -60,7 +61,6 @@ class Level
       next_gamestate
       update_grid_row(@cur_row, @game_state.cur_row)
     end
-    puts("**** gamestate after: #{@game_state.cur_row}")
   end
 
   def reset_cur_level
@@ -185,7 +185,7 @@ class Level
   def verify_rows()
     solver = Solver.new
     @rows.each do |row_str|
-      game_state = GameState.new(@rules, row_str, @num_moves)
+      game_state = GameState.new(@rules, row_str, @num_moves, @max_width)
       if solver.find_solution(game_state) == nil
         raise("Row #{row_str} is not solvable")
       end

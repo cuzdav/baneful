@@ -100,6 +100,7 @@ class GameState
   attr_accessor :max_depth
   attr_reader :goal
   attr_reader :max_width
+  attr_reader :num_moves
   attr_reader :prev_rows
   attr_reader :played_moves
   attr_accessor :verbose
@@ -126,6 +127,8 @@ class GameState
     @num_moves = num_moves
     @prev_rows = []
     @played_moves = []
+
+    raise "Invalid max_width" if max_width == nil
   end
 
   def clone_from_cur_position()
@@ -141,10 +144,10 @@ class GameState
   end
 
   # move_hash: same fields returned from each elt of possible_plays
-  # all the GS_PLAY_* fields from top of file
+  # all the gs_play_* fields from top of file
   def make_move(move)
     if moves_remaining == 0
-      puts ("No moves remain") if @verbose
+      puts ("no moves remain") if @verbose
       return nil
     end
     if @max_depth == @prev_rows.size
@@ -178,13 +181,13 @@ class GameState
     @cur_row == @goal
   end
 
-  # return an array of possible moves.  A move is represented as:
+  # return an array of possible moves.  a move is represented as:
   # [offset, from-str, to-str]
-  # Special characters in rule strings affect options:
-  # PATTERN:
+  # special characters in rule strings affect options:
+  # pattern:
   #   .  matches any single char
-  # REPLACEMENT:
-  #   1 2 3, ..., 9  : placeholder for whatever char matched Nth '.' in PATTERN
+  # replacement:
+  #   1 2 3, ..., 9  : placeholder for whatever char matched nth '.' in pattern
   def possible_plays(only_wildcards=false)
     results = []
     # pat: string, repls: array of replacements
@@ -194,6 +197,7 @@ class GameState
       rulenum += 1
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
+        raise "WTF" if @max_width == nil
         if base_len + replacement.size <= @max_width
           idx = 0
           loop do
@@ -207,6 +211,31 @@ class GameState
       end
     end
     return results
+  end
+
+  # find a rule that can produce the given move, matching the from (pat)
+  # and containing the replace pattern.  same format as moves returned from
+  # possible_plays in this class.
+  #
+  # note:the move provided is fully resolved, so matching it to a rule requires
+  # accounting for wildcards in the rule code.
+  def get_raw_rule_and_repl_for_move(move)
+    resolved_from_str = move[GS_PLAY_PAT]
+    resolved_to_str = move[GS_PLAY_REPL]
+    @rules.each do |raw_from_str, raw_repl_strs|
+      idx, captures = wc_index(resolved_from_str, raw_from_str, 0)
+      if idx != nil and raw_from_str.size == resolved_from_str.size
+        # rule pattern matches, but does a repl also match?  given
+        # wildcards, it's possible this rule matches the from_str pat,
+        # but has no replacement that matches.
+        raw_repl_strs.each do |raw_repl|
+          if wc_with_placeholder_equals(resolved_to_str, raw_repl, captures)
+            return raw_from_str, raw_repl
+          end
+        end
+      end
+    end
+    return nil, nil
   end
 
   def fixup_wildcards(pat, repl, repl_chars)

@@ -41,11 +41,12 @@ class Hint
   private
 
   def rule_hint(cur_level)
-    @solution = @solver.find_solution(cur_level.game_state)
+    game_state = cur_level.game_state
+    @solution = @solver.find_solution(game_state)
     if @solution != nil
       @next_move = @solution[0]
-
-      @rule = cur_level.ruleui.get_rule_matching_move(@next_move)
+      rpat, rrepl = game_state.get_raw_rule_and_repl_for_move(@next_move)
+      @rule = cur_level.ruleui.get_rule_for_pat_and_repl(rpat, rrepl)
       if @rule != nil
         @input.select_rule(@rule)
 
