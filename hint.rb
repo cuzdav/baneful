@@ -7,10 +7,9 @@ require_relative 'level.rb'
 class Hint
   attr_reader :solution
 
-  def initialize(input_state)
+  def initialize(input_state, solver)
     @input = input_state
-    state = input_state.gamestate
-    @solver = Solver.new(state.rules, state.max_moves, state.max_width)
+    @solver = solver
     @target_hintbox = Rectangle.new(
       :color => "white",
       :z => 0,

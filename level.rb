@@ -2,6 +2,7 @@ require 'ruby2d'
 require_relative 'grid.rb'
 require_relative 'gamestate.rb'
 require_relative 'ruleui.rb'
+require_relative 'solve2.rb'
 
 class Level
   attr_reader :ruleui
@@ -11,6 +12,7 @@ class Level
   attr_reader :eff_col
   attr_reader :cur_row
   attr_reader :color_map
+  attr_reader :solver
 
   def initialize(level, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
     @cur_row = 0
@@ -183,10 +185,10 @@ class Level
   end
 
   def verify_rows()
-    solver = Solver.new
+    @solver = Solver.new(@rules, @num_moves, @max_width)
     @rows.each do |row_str|
       game_state = GameState.new(@rules, row_str, @num_moves, @max_width)
-      if solver.find_solution(game_state) == nil
+      if @solver.find_solution(game_state) == nil
         raise("Row #{row_str} is not solvable")
       end
     end

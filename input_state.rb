@@ -24,6 +24,7 @@ class InputState
     @quads_free = []
     @possible_plays = nil
 
+    # [rule_data]
     # rule pattern to data associated:
     #  :wigits add to Window to indicate rule is active
     #  :target_cell_info: when locked&loaded, these x-ranges will
@@ -39,24 +40,30 @@ class InputState
     end
   end
 
-  def prepare_next_level(ruleui, cur_level)
-    @hint = Hint.new(self)
+  def prepare_next_level(ruleui, cur_level, solver)
+    @hint.clear if @hint != nil
+    @hint = Hint.new(self, solver)
     @ruleui = ruleui
     @cur_level = cur_level
     update_from_game_state
   end
 
   #
-  # precompute all possible moves, build "spotlights" to the
-  # targets. Should be called after the gamestate changes
+  # precompute all possible moves for current position, build "spotlights" to
+  # the targets. Should be called after the gamestate changes
   def update_from_game_state
     @possible_plays = @cur_level.game_state.possible_plays || []
 
     puts("Possible plays: #{@possible_plays}")
 
     @rule_data.each do |pat, data|
-      data[:wigits].each do |v|
-        @quads_free << v
+      data[:wigits].each do |wigits_per_row|
+        if wigits_per_row != nil
+          wigits_per_row.each do |wigit|
+            wigit.remove
+          end
+        end
+
       end
     end
     @rule_data.clear
@@ -99,10 +106,6 @@ class InputState
           captures = p[GS_PLAY_CAPTURES]
           wc_equals(p[GS_PLAY_PAT], rule.from_str) and
             wc_with_placeholder_equals(repl, rep_str, captures)
-
-
-#          p[GS_PLAY_RAW_REPL] == rep_str and
-#            p[GS_PLAY_RAW_PAT] == rule.from_str
         end
         row_has_moves[row_idx] = !plays.empty?
         has_moves = rule_data[:has_moves] |= !plays.empty?

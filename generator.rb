@@ -66,12 +66,12 @@ rules= { # a/bc/bcd/bcdd/bcda/bcdbc/bcbc/cbc/aa/
 # Running the solver may be too expensive to use while generating levels.
 
 
-solver = Solver.new(rules, 7, 20)
+solver = Solver.new(rules, 20, 7)
 rows = generate(rules, 4)
 annotated_rows = []
 rows.each do |depth, row|
   gs = GameState.new(rules, row, 15)
-  solution = solver.find_solution(gs.cur_row)
+  solution = solver.find_solution(gs)
   annotated_rows << [solution.size, depth, row]
 end
 

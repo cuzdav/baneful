@@ -1,10 +1,10 @@
 
-require_relative 'gamestate.rb'
-require_relative 'solve.rb'
+require_relative '../gamestate.rb'
+require_relative '../solve2.rb'
 
 $verbose = false
 
-require_relative("config.rb")
+require_relative("../config.rb")
 
 row_num = 0
 level_num = 0
@@ -40,7 +40,7 @@ def solve_level(level, level_num)
 
   puts("*** Level #{level_num}") if $verbose
   puts("    RULES: #{rules}") if $verbose
-  solver = Solver.new
+  solver = Solver.new(rules, num_moves, max_width)
   row_num = 0
   rows.each do |line|
     puts("  Row: #{line}") if $verbose

@@ -79,7 +79,10 @@ def next_level()
       MAX_WIDTH,
       20, 20,
       Window.get(:width) - 20, playarea_height())
-    $input_state.prepare_next_level($curlevel.ruleui, $curlevel)
+    $input_state.prepare_next_level(
+      $curlevel.ruleui,
+      $curlevel,
+      $curlevel.solver)
   end
 end
 
