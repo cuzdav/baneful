@@ -11,7 +11,6 @@ level_num = 0
 all = true
 levels = LEVELS
 
-
 ARGV.each do |arg|
   case arg
   when /--verbose/
@@ -69,6 +68,14 @@ def solve_level(level, level_num)
   return solutions
 end
 
+def longest_common_array(a, b, &comp)
+  rows = Array.new(b.size + 1) do |rownum|
+    Array.new(a.size + 1, 0)
+  end
+
+  puts rows
+end
+
 def analyze_level_solutions(level, solutions)
 
   # let's find some basic comparison metrics for each row in a level:
@@ -96,23 +103,31 @@ def analyze_level_solutions(level, solutions)
     end
   end
 
-  puts "** Level: #{level[:name]} **"
-  puts "All position frequency:"
-  puts  all_positions
-  puts "solution[0]: #{solutions[0]}"
-  all_positions.keys.sort.each do |key|
-    puts ("#{key} => #{all_positions[key]}")
+  stats = []
+  solutions.combination(2).each do |a, b|
+    lca = longest_common_array(a, b)
   end
+
 end
 
-$tested = 0
-$failed = 0
-
-levels.each do |level|
+def process_level(level)
+  level_begin_time = Time.now
   solutions = solve_level(level, level_num)
   analyze_level_solutions(level, solutions)
   level_num += 1
+  level_end_time = Time.now
+  puts("Processing level took #{level_end_time - level_begin_time}")
 end
+
+def test_all_levels(levels)
+  levels.each do |level|
+    process_level(level)
+  end
+end
+
+
+$tested = 0
+$failed = 0
 puts("Done: total: #{$tested}, failed: #{$failed}")
 
 

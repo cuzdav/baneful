@@ -335,10 +335,18 @@ class InputState
 
   def restart
     @cur_level.reset_cur_level
+    @selected_target_idx = nil
+    @locked_row = nil
+    unselect_rule
+    unselect_replacement
+    unselect_playarea_grid
+
+
     if @game_over_state != nil
       @game_over_state.clear
       @game_over_state = nil
     end
+
     update_from_game_state()
   end
 

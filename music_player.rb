@@ -36,11 +36,14 @@ class MusicPlayer
   end
 
   def resume()
-    puts ("resume")
-    paused_duration = Time.now - @pause_time
-    puts("ADDING #{paused_duration} to stop time...")
-    @stop_time += paused_duration
-    @music.resume
+    if @pause_time != nil
+      puts ("resume")
+      paused_duration = Time.now - @pause_time
+      puts("ADDING #{paused_duration} to stop time...")
+      @stop_time += paused_duration
+      @music.resume
+      @pause_time = nil
+    end
   end
 
   def next_track
@@ -71,7 +74,7 @@ class MusicPlayer
   end
 
   def update()
-    if Time.now >= @stop_time
+    if @pause_time == nil and Time.now >= @stop_time
       next_track
     end
   end
