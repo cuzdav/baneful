@@ -1,1 +1,8 @@
-ruby main.rb $*
+#! /bin/env bash
+
+# builtin realpath is not reliably available on mac/OSX, so simulate it
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+ruby $(realpath $(dirname $0))/src/main.rb $*

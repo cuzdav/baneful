@@ -64,11 +64,16 @@ class MusicPlayer
     @index = 0
 
     #verify
-    @music_playlist.each do |file, _|
-      if not File.exists?("resource/" + file)
-        raise "Music File Not Found #{file}"
+    @music_playlist.map! do |file, duration|
+      dir = File.dirname($0)
+      song = "#{dir}/../resource/" + file
+      if not File.exists?(song)
+        raise "Music File Not Found #{song}"
       end
+      [song, duration]
     end
+
+#puts("*********** playlist: #{@music_laylist}")
 
     play_next_track()
   end
@@ -82,7 +87,7 @@ class MusicPlayer
   def play_next_track
     music_file, duration = @music_playlist[@index % @music_playlist.size]
     puts("Next song: #{music_file}")
-    @music = Music.new("resource/" + music_file)
+    @music = Music.new(music_file)
     @music.volume = @volume
 
     @stop_time = Time.now + duration
