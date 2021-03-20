@@ -69,21 +69,31 @@ class GameStatTest < Test::Unit::TestCase
   def test_possible_plays1()
     @state.cur_row = "abcccbccc"
     plays = @state.possible_plays()
+#    assert_possible_plays_equal(
+#      [
+#        [0, "ab", "bb"],
+#        [2, "ccc", ""],
+#        [6, "ccc", ""],
+#        [1, "bc", "c"],
+#        [5, "bc", "c"],
+#      ], plays)
+#
     assert_possible_plays_equal(
       [
-        [0, "ab", "bb"],
-        [2, "ccc", ""],
-        [6, "ccc", ""],
-        [1, "bc", "c"],
-        [5, "bc", "c"]
+        move(idx:0, from:"ab", repl:"bb"),
+        move(idx:2, from:"ccc", repl:""),
+        move(idx:6, from:"ccc", repl:""),
+        move(idx:1, from:"bc", repl:"c"),
+        move(idx:5, from:"bc", repl:"c"),
       ], plays)
+
 
     # ok to grow
     @state.cur_row = "ffffffffd"
     plays = @state.possible_plays()
     assert_possible_plays_equal(
       [
-        [8, "d", "dd"]
+        move(idx:8, from:"d", repl:"dd")
       ], plays)
 
     # grows too wide (max_width = 10)
@@ -106,8 +116,8 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_possible_plays_equal(
       [
-        [0, "aba", "b", "b"],
-        [2, "aca", "c", "c"],
+        move(idx:0, from:"aba", repl:"b", captures:"b", rawrepl: "1"),
+        move(idx:2, from:"aca", repl:"c", captures:"c", rawrepl: "1"),
       ],
       plays
     )
@@ -116,13 +126,13 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_possible_plays_equal(
       [
-        [1, "bab", "aa", "a"],
+        move(idx:1, from:"bab", repl:"aa", captures:"a", rawrepl: "11"),
       ],
       plays
     )
   end
 
-  def test_possible_plays_wildcard_only()
+  def test_possible_plays_wildcard()
     @state = GameState.new(
       {
         "a.a"  => ["1"],
@@ -137,11 +147,11 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays()
     assert_possible_plays_equal(
       [
-        [0, "a",   "c", ""],
-        [2, "a",   "c", ""],
-        [4, "a",   "c", ""],
-        [0, "aba", "b", "b"],
-        [2, "aca", "c", "c"],
+        move(idx:0, from:"a",   repl:"c"),
+        move(idx:2, from:"a",   repl:"c"),
+        move(idx:4, from:"a",   repl:"c"),
+        move(idx:0, from:"aba", repl:"b", captures:"b", rawrepl:"1"),
+        move(idx:2, from:"aca", repl:"c", captures:"c", rawrepl:"1"),
       ],
       plays
     )
@@ -149,8 +159,8 @@ class GameStatTest < Test::Unit::TestCase
     plays = @state.possible_plays(true)
     assert_possible_plays_equal(
       [
-        [0, "aba", "b", "b"],
-        [2, "aca", "c", "c"],
+        move(idx:0, from:"aba", repl:"b", captures:"b", rawrepl:"1"),
+        move(idx:2, from:"aca", repl:"c", captures:"c", rawrepl:"1"),
       ],
       plays
     )
@@ -158,15 +168,25 @@ class GameStatTest < Test::Unit::TestCase
   end
 
   # converts a simple idx/from/to invocation into the slightly more cumbersome
-  # (but more useful) hash
+  # (but more useful) array
   def make_move(idx, pat, repl, captures="")
-    return @state.make_move([idx, pat, repl, captures])
+    mv = move(idx:idx, from:pat, repl:repl, captures:captures)
+    return @state.make_move(mv)
+  end
+
+  def move(idx:, from:, repl:, rawrepl: nil, captures: "")
+    rawrepl = repl if rawrepl == nil
+    return [idx, from, repl, rawrepl, captures]
   end
 
   def assert_possible_plays_equal(expected_plays, possible_plays_actual)
-    expected = expected_plays.sort.map do |idx, pat, repl, capture|
-      [idx, pat, repl, capture ? capture : ""]
+
+    # GS_PLAY_ARRAY
+    expected = expected_plays.sort.map do |idx, pat, repl, rawrepl, capture|
+      # GS_PLAY_ARRAY
+      [idx, pat, repl, rawrepl, capture ? capture : ""]
     end
+
     actual = possible_plays_actual.sort
     assert_equal(expected, actual)
   end

@@ -50,6 +50,16 @@ class Solver
 
   private
 
+  #
+  # This is a dynamic brute-force search FROM the player's current position
+  # toward the final goal.  However, finding the empty string is not necessary,
+  # since there are pre-built solutions (static solutions) for up to N moves
+  # from the solution (not including wildcards), so all we really need to do is
+  # brute force into _any_ of the solutions in the static solution set, because
+  # the rest is known.  This speeds up the search _massively_.  But even after
+  # finding a solution, keep searching for a little while because a shorter path
+  # may still be found.
+  #
   def find_solution_dynamic()
     if @game_state.solved?
       update_best_maybe(nil)
@@ -66,6 +76,7 @@ class Solver
     moves.each do |move|
       if @game_state.make_move(move)
         raw_pat, raw_repl = @game_state.get_raw_rule_and_repl_for_move(move)
+
         if raw_pat.include?('.')
           cur_pos = @game_state.cur_row.dup
           # replace the replaced chars with the raw (wildcard) pattern
@@ -135,6 +146,31 @@ class Solver
     # done. This allows for tracking the depth, so we know when we
     # swap we are at a new "tier" in answer-space: the number of moves
     # required to solve it has increased.
+
+    # general approach:
+    # 1) start with an empty string
+    # 2) find every move that could result in current string before a replacement
+    # 3) for each move, add the cells to the string, creating the position it would
+    #    look like *before* that replacement was made.
+    #    Example: if current string is "bb" and we have a rule "a" -> [""],
+    #    then for that rule, there are 3 moves we could have made:
+    #       abb -> bb
+    #       bab -> bb
+    #       bba -> bb
+    #    each of these would be added to the set of solutions.
+
+    # In short, we start empty, then insert all of the positions that are solvable
+    # in 1 move.  Then on top of those, we insert every previous position that could
+    # result in those 1-move-to-win positions.  Those are 2-moves-to-win.  And so on,
+    # building a set of every solution "up" from the winning state backwards, to some
+    # depth.
+
+    # Due to an explosion of potential, the static set of solutions DOES NOT INCLUDE
+    # WILDCARDS.  Those are left for dynamic search, which is trying to find a path
+    # into any position in the static set (but looks for the best it can find)
+    # Every position in the static set has a known path to the true solution,
+    # so finding a position anywhere in this pre-built static set is equivalent to
+    # finding a solution (though some paths are shorter than others.)
     q = []
     next_q = [""]
     move_count = 0
@@ -181,10 +217,13 @@ class Solver
                   # applying this move)
                   # Also, there are no captures because these are only moves
                   # that do not involve wildcards.
+
+                  #GS_PLAY_ARRAY
                   @positions[newrow] = [
                     idx,           # GS_PLAY_IDX
                     to,            # GS_PLAY_PAT
                     from,          # GS_PLAY_REPL
+                    from,          # GS_PLAY_RAWREPL (no wildcards in static solutions)
                     "",            # GS_PLAY_CAPTURES
                     cur_row,       # GS_PLAY_RESULT
                     move_count,    # GS_PLAY_NUM_MOVES

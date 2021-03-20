@@ -65,7 +65,10 @@ class Hint
   end
 
   def repl_hint(cur_level)
-    repl = @next_move[GS_PLAY_REPL]
+    puts ("[repl_hint] next move: #{@next_move}")
+    puts ("rule: #{@rule.from_str} -> #{@rule.replacement_strs}")
+    repl = @next_move[GS_PLAY_RAWREPL]
+
     idx = @rule.index_of_repl(repl)
     raise "could not find index of repl #{repl}" if idx == nil
     @rule.show_repl_hint(repl)

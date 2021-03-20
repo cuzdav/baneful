@@ -1,11 +1,15 @@
 # when wildcards involved, each '.' in :pat is replaced, with i'th char
 # in `capture` string.  captures.size = (count of '.' in pat)
+
+# GS_PLAY_ARRAY  - locations in code referring to this array (grep-able)
 GS_PLAY_IDX = 0   # index into row where to apply the move
 GS_PLAY_PAT = 1   # wildcards resolved
-GS_PLAY_REPL = 2 # placeholders resolved
-GS_PLAY_CAPTURES = 3
-GS_PLAY_RESULT = 4 # result of applying move to current row (opt)
-GS_PLAY_NUM_MOVES = 5 # number of moves from the solution (opt)
+GS_PLAY_REPL = 2  # placeholders resolved
+GS_PLAY_RAWREPL = 3 # placeholders unresolved (wildcards intact)
+GS_PLAY_CAPTURES = 4
+GS_PLAY_RESULT = 5 # result of applying move to current row (opt)
+GS_PLAY_NUM_MOVES = 6 # number of moves from the solution (opt)
+
 
 SPECIAL_PATTERN_CHARS = ".123456789"
 SPECIAL_REPL_CHARS = "123456789"
@@ -225,7 +229,9 @@ class GameState
             idx, repl_chars = wc_index(@cur_row, pat, idx)
             break if idx.nil?
             cur_pat, cur_repl = fixup_wildcards(pat, replacement, repl_chars)
-            results << [idx, cur_pat, cur_repl, repl_chars]
+
+            # Grepable key: GS_PLAY_ARRAY
+            results << [idx, cur_pat, cur_repl, replacement, repl_chars]
             idx += 1
           end
         end
@@ -293,6 +299,7 @@ class GameState
   def get_raw_rule_and_repl_for_move(move)
     resolved_from_str = move[GS_PLAY_PAT]
     resolved_to_str = move[GS_PLAY_REPL]
+
     @rules.each do |raw_from_str, raw_repl_strs|
       idx, captures = wc_index(resolved_from_str, raw_from_str, 0)
       if idx != nil and raw_from_str.size == resolved_from_str.size
