@@ -1,4 +1,4 @@
-#! /bin/env bash
+#! /usr/bin/env bash
 
 # builtin realpath is not reliably available on mac/OSX, so simulate it
 realpath() {
