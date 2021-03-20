@@ -121,7 +121,7 @@ class Solver
         # is how they were linked up. So remove the first one in
         # static, since if it's a wildcard it's unexpanded, and the
         # dynamic one is resolved.
-        static_solution = static_solution[1..]
+        static_solution = static_solution[1..-1]
       end
       @best_solution = moves.clone + static_solution
       @game_state.max_depth = total_moves
@@ -162,7 +162,7 @@ class Solver
             to_list.each do |to|
               # ensuring result fits
               if to.size - from_size <= width_remain
-                newrow = cur_row[0...idx] + to + cur_row[idx + from_size..]
+                newrow = cur_row[0...idx] + to + cur_row[idx + from_size..-1]
 
                 #... and we haven't seen this position before
                 # (because if we have, then seeing it again MUST mean we

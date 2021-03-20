@@ -257,9 +257,11 @@ class GameState
 
     cur_repl = repl.dup
     ridx = 0
-    (?1..).each do |placeholder|
+    placeholder = ?1
+    loop do 
       cur_repl.gsub!(placeholder, repl_chars[ridx])
       ridx += 1
+      placeholder += 1
       break if ridx == repl_chars.size
     end
 
