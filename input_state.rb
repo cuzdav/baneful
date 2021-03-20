@@ -17,7 +17,7 @@ class InputState
     @ruleui = nil
     @cur_level = nil
     @selected_rule = nil
-    @selected_row = nil
+    @selected_repl = nil
     @selected_target_idx = nil
     @mousedown = false
     @lines_free = []
@@ -199,8 +199,8 @@ class InputState
     @mousedown = true
     if @selected_rule != nil
       replacement_str = @ruleui.get_replacement_str_at(event.x, event.y)
-      if @selected_row != nil and replacement_str != nil
-        @selected_rule.rule_grid.select_row(@selected_row, 'yellow', 5)
+      if @selected_repl != nil and replacement_str != nil
+        @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5)
       end
     end
   end
@@ -235,12 +235,11 @@ class InputState
         @bg_music.volume_down(5)
 
     when 'p'
-      if @paused
-        @bg_music.resume
-        @paused = false
-      else
-        @bg_music.pause
-        @paused = true
+      toggle_music_paused
+
+    when 'q'
+      if @ctrldown
+        exit
       end
 
     when '.'
@@ -252,13 +251,23 @@ class InputState
       end
 
     when "]"
-      puts("calling next track")
       @bg_music.next_track
 
     when "left shift", "right shift"
       @shiftdown = false
+
     when "left ctrl", "right ctrl"
       @ctrldown = false
+    end
+  end
+
+  def toggle_music_paused
+    if @music_paused
+      @bg_music.resume
+      @music_paused = false
+    else
+      @bg_music.pause
+      @music_paused = true
     end
   end
 
@@ -289,15 +298,15 @@ class InputState
     @mousedown = false
     if @game_over_state != nil
       restart()
+    elsif @selected_repl != @locked_repl
+      @locked_repl = @selected_repl
+      @locked_rule = @selected_rule
     elsif @selected_target_idx != nil
       apply_choice_maybe
-      @locked_row = nil
+      @locked_repl = nil
       @locked_rule = nil
       unselect_playarea_grid
       unselect_rule
-    elsif @selected_row != nil
-      @locked_row = @selected_row
-      @locked_rule = @selected_rule
     end
   end
 
@@ -320,7 +329,7 @@ class InputState
     unselect_replacement
     unselect_playarea_grid
     unselect_rule
-    @locked_row = nil
+    @locked_repl = nil
     @locked_rule = nil
   end
 
@@ -336,7 +345,7 @@ class InputState
   def restart
     @cur_level.reset_cur_level
     @selected_target_idx = nil
-    @locked_row = nil
+    @locked_repl = nil
     unselect_rule
     unselect_replacement
     unselect_playarea_grid
@@ -351,7 +360,7 @@ class InputState
   end
 
   def on_mouse_move(event)
-    if @locked_row != nil
+    if @locked_repl != nil
       mouse_targeting(event.x, event.y)
     elsif event.y >= @ruleui.y1
       mouse_over_rule(event)
@@ -375,7 +384,7 @@ class InputState
 
     # start by selecting the potential leftmost target, then
     # scan for better mouse-coord matches
-    if @locked_row != nil and not @target_row_info.empty? and @selected_target_idx == nil
+    if @locked_repl != nil and not @target_row_info.empty? and @selected_target_idx == nil
       first_target = @target_row_info[0]
       cur_move = first_target[TGT_MOVE]
       grid_col = first_target[TGT_COL]
@@ -419,7 +428,7 @@ class InputState
 
       if rule != nil
         row, _ = rule.rowcol_for_coord(x, y)
-        if @selected_row != row || rule.replacement_strs.size == 1
+        if @selected_repl != row || rule.replacement_strs.size == 1
           unselect_replacement
           if row != nil
             select_replacement(row, x, y)
@@ -446,11 +455,11 @@ class InputState
     maxrow = @selected_rule.replacement_strs.size + FIRST_REPL_ROW
 
     if row != nil and row_has_moves[row]
-      # weird, when compiled this is float, interpreted, it's an int
+      # weird, when compiled with mruby, this is a float, but interpreted it's an int
       row = row.floor
 
       repl_str = @selected_rule.get_replacement_str_for_row(row)
-      @selected_row = row
+      @selected_repl = row
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
 
       @target_row_info = data[:target_cell_info][row]
@@ -467,7 +476,7 @@ class InputState
     unselect_wigits
     return if @selected_rule == nil
     @selected_rule.rule_grid.unselect if @selected_rule != nil
-    @selected_row = nil
+    @selected_repl = nil
     unselect_playarea_grid
   end
 
