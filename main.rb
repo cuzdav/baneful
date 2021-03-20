@@ -20,13 +20,11 @@ $curlevel = nil       # ui game objects for cur level
 
 charmap = {}
 
-MAX_ROWS = 12
+MAX_ROWS = 6
 MAX_WIDTH = 9
 
 VERT_RULE_OFFSET_PX = 30
 HORIZ_RULE_OFFSET_PX = 5
-
-RULE_AREA_HEIGHT_PX = 150
 
 COLORS = [
   "aqua", "red", "lime", "yellow", "purple", "gray",
@@ -35,7 +33,11 @@ COLORS = [
   "navy", "white", "silver", "black", "teal", "fuchsia"]
 
 def playarea_height()
-  return Window.get(:height) - RULE_AREA_HEIGHT_PX
+  return Window.get(:height) / 3
+end
+
+def rulearea_max_height()
+  return Window.get(:height) / 2
 end
 
 $music = MusicPlayer.new(MUSIC)
@@ -77,8 +79,9 @@ def next_level()
       99999, #num moves
       MAX_ROWS,
       MAX_WIDTH,
-      20, 20,
-      Window.get(:width) - 20, playarea_height())
+      20, 20, #playarea_height() - $curlevel_config[:rows].size * 50,
+      Window.get(:width)-20, playarea_height() #x2, y2
+    )
     $input_state.prepare_next_level(
       $curlevel.ruleui,
       $curlevel, $curlevel.solver)
@@ -94,7 +97,7 @@ ARGV.each do |arg|
     end
     puts("Starting on level #{$level_num}")
   elsif arg =~ /--level=(.*)/
-    pat = Regexp.new($1)
+    pat = Regexp.new("^#{$1}$")
     idx = 0
     LEVELS.each do |lvl|
       break if lvl[:name] =~ pat
@@ -114,6 +117,8 @@ next_level()
 puts("******* LEVELS: #{LEVELS.size}")
 
 tick = 0
+
+set title: "Baneful"
 
 update do
   tick += 1

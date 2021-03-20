@@ -97,11 +97,10 @@ end
 # generates all possible moves according to the rules
 class GameState
   attr_accessor :rules
-  attr_accessor :cur_row
   attr_accessor :max_depth
+  attr_reader :cur_row
   attr_reader :goal
   attr_reader :max_width
-  attr_reader :num_moves
   attr_reader :prev_rows
   attr_reader :played_moves
   attr_accessor :verbose
@@ -112,45 +111,58 @@ class GameState
 
   # rules = {<from> -> [<to>, ...]}
   # initial_row_str = staring position
-  # num_moves (max turns)
   # max_width = limit to how wide row can grow when applying constructive rules
   # goal = win condition
 
-  def initialize(rules, initial_row_str, num_moves, max_width = 9, goal = "")
+  def initialize(rules, initial_row_str, max_width = 9, goal = "")
     @verbose = false
     @rules = rules
     @goal = goal
-    @cur_row = initial_row_str.dup
+    @cur_raw_row = initial_row_str.dup
     @initial_row = initial_row_str
     @max_width = max_width
-    @curdepth = 0
     @max_depth = 99
-    @num_moves = num_moves
     @prev_rows = []
     @played_moves = []
+    @played_moves.size
 
+    @cur_row = compute_cur_row(@cur_raw_row)
     raise "Invalid max_width" if max_width == nil
   end
 
   def clone_from_cur_position()
-    return GameState.new(@rules, @cur_row, @num_moves, @max_width, @goal)
+    return GameState.new(@rules, @cur_row, @max_width, @goal)
   end
 
-  def moves_remaining
-    return @num_moves - @played_moves.size
+  def cur_move_number()
+    return @played_moves.size
+  end
+
+  def cur_raw_row=(cur_raw_row)
+    @cur_raw_row = cur_raw_row
+    @cur_row = compute_cur_row(cur_raw_row)
+  end
+
+  # normally the cur_row is computed from the raw row, but it's
+  # "ok" if the cur_row doesn't transform when we pretend it's the
+  # raw row.  (raw rows contains placeholder chars that may have special
+  # rules applied to update them, while cur_row is resolved, and loses
+  # that metadata.)
+  def cur_row=(cur_row)
+    if compute_cur_row(cur_row) != cur_row
+      raise("overrides detected; must use cur_raw_row= instead")
+    end
+    @cur_raw_row = cur_row
+    @cur_row = cur_row
   end
 
   def reset
-    initialize(@rules, @initial_row, @num_moves, @max_width, @goal)
+    initialize(@rules, @initial_row, @max_width, @goal)
   end
 
   # move_hash: same fields returned from each elt of possible_plays
   # all the gs_play_* fields from top of file
   def make_move(move)
-    if moves_remaining == 0
-      puts ("no moves remain") if @verbose
-      return nil
-    end
     if @max_depth == @prev_rows.size
       puts ("max_depth of #{@max_depth} reached") if @verbose
       return nil
@@ -171,20 +183,23 @@ class GameState
     cached_move = move.dup
     cached_move[GS_PLAY_RESULT] = cached_row
 
-    @prev_rows.push(cached_row)
+    cached_raw_row = @cur_raw_row.dup
+    @prev_rows.push(cached_raw_row)
     @played_moves.push(cached_move)
-    @cur_row[offset...offset+from.size] = to
+    @cur_raw_row[offset...offset+from.size] = to
+    @cur_row = compute_cur_row(@cur_raw_row)
     return @cur_row
   end
 
   def undo_move()
     return nil if @prev_rows.empty?
     @played_moves.pop
-    @cur_row = @prev_rows.pop
+    @cur_raw_row = @prev_rows.pop
+    @cur_row = compute_cur_row(@cur_raw_row)
   end
 
   def solved?()
-    @cur_row == @goal
+    return @cur_row == @goal
   end
 
   # return an array of possible moves.  a move is represented as:
@@ -203,13 +218,13 @@ class GameState
       rulenum += 1
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
-        raise "WTF" if @max_width == nil
+        replacement = "" if replacement == nil
         if base_len + replacement.size <= @max_width
           idx = 0
           loop do
             idx, repl_chars = wc_index(@cur_row, pat, idx)
             break if idx.nil?
-            cur_pat, cur_repl = fixup_wildcards(pat, replacement ,repl_chars)
+            cur_pat, cur_repl = fixup_wildcards(pat, replacement, repl_chars)
             results << [idx, cur_pat, cur_repl, repl_chars]
             idx += 1
           end
@@ -219,21 +234,72 @@ class GameState
     return results
   end
 
+  # if the rule has an :_overrides key, then it should be of the form:
+  # {
+  #    "type": "<name",
+  #    ...
+  # }
+  # Where fields depend on the type.
+  # Currently supported types are:
+  #
+  # "rotating", meaning to cycle through n pieces (chars), one per turn.
+  #    fields: "cycle_chars": "abc" (string)
+  #    Requires: cycle_chars.size == 2 or 3
+  def compute_cur_row(cur_raw_row)
+    overrides = @rules["_overrides"]
+    return cur_raw_row if overrides == nil
+
+    charmap = make_charmap(overrides)
+    cur_row = ""
+    cur_raw_row.each_char do |char|
+      translated  = charmap[char]
+      cur_row += translated ? translated : char
+    end
+    return cur_row
+  end
+
+  # for the current turn in the current state, each
+  # special cell char must map to ... SOMETHING
+  # so build a map to pre-resolve those transformations
+  # (They may be different each turn.)
+  def make_charmap(overrides)
+    charmap = {}
+    overrides.each do |char, char_override|
+      type = char_override["type"]
+      case type
+      # cycle through the string of chars in cycle_chars
+      when "rotating"
+        cycle_chars = char_override["cycle_chars"]
+        if cycle_chars == nil
+          raise "Invalid 'cycle_chars' attribute of 'rotating' colors override"
+        end
+        idx = cur_move_number % cycle_chars.size
+        charmap[char] = cycle_chars[idx]
+
+      else
+        raise "Unhandled override type '#{type}'"
+      end
+    end
+    return charmap
+  end
+
   # find a rule that can produce the given move, matching the from (pat)
   # and containing the replace pattern.  same format as moves returned from
   # possible_plays in this class.
   #
   # note:the move provided is fully resolved, so matching it to a rule requires
-  # accounting for wildcards in the rule code.
+  # accounting for wildcards in the rule code. (That is, it's not directly
+  # obvious that a move came from a wildcard, but it needs to be figured out.)
   def get_raw_rule_and_repl_for_move(move)
     resolved_from_str = move[GS_PLAY_PAT]
     resolved_to_str = move[GS_PLAY_REPL]
     @rules.each do |raw_from_str, raw_repl_strs|
       idx, captures = wc_index(resolved_from_str, raw_from_str, 0)
       if idx != nil and raw_from_str.size == resolved_from_str.size
-        # rule pattern matches, but does a repl also match?  given
-        # wildcards, it's possible this rule matches the from_str pat,
-        # but has no replacement that matches.
+        # rule pattern matches, but does a repl also match? given wildcards,
+        # it's possible this rule matches the from_str pat, but has no
+        # replacement that matches. (Must be from a different rule, if it can
+        # match multiple rules.)
         raw_repl_strs.each do |raw_repl|
           if wc_with_placeholder_equals(resolved_to_str, raw_repl, captures)
             return raw_from_str, raw_repl
@@ -258,10 +324,12 @@ class GameState
     cur_repl = repl.dup
     ridx = 0
     placeholder = ?1
-    loop do 
+    loop do
+      ch = repl_chars[ridx]
+      break if ch == nil
       cur_repl.gsub!(placeholder, repl_chars[ridx])
       ridx += 1
-      placeholder += 1
+      placeholder = placeholder.next
       break if ridx == repl_chars.size
     end
 

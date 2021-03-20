@@ -32,7 +32,7 @@ class Level
 
   def next_gamestate()
     row_str = @cur_row >= 0 ? @rows[@cur_row] : ""
-    @game_state = GameState.new(@rules, row_str, @num_moves, @max_width)
+    @game_state = GameState.new(@rules, row_str, @max_width)
   end
 
   # grid index of pixel coord
@@ -112,7 +112,7 @@ class Level
     height = (y2 - y1).abs
     max_cell_height = height / maxrows
 
-    eff_y2 = (height * 0.6).to_i
+    eff_y2 = height
     eff_y1 = eff_y2 - @numrows * max_cell_height
     if eff_y1 < 0
       eff_y2 += eff_y1.abs
@@ -120,7 +120,7 @@ class Level
     end
 
     @numcols = maxwidth
-    @grid = Grid.new(@numrows, maxwidth, x1, eff_y1, x2, [y2, eff_y2].min)
+    @grid = Grid.new(@numrows, maxwidth, x1, eff_y1, x2, eff_y2)
     @grid.remove_all()
 
     @grid.highlight_background
@@ -169,26 +169,34 @@ class Level
 
     window_width = Window.get(:width)
     window_height = Window.get(:height)
+
     width = [
       window_width - 2 * HORIZ_RULE_OFFSET_PX,
       @grid.cell_width * @ruleui.num_cols
     ].min
-    height = [
-      RULE_AREA_HEIGHT_PX,
-      @grid.cell_height * @ruleui.num_rows
+
+    # adjustable height, try to keep same top unless necessary to move up
+    cell_height = @grid.cell_height + @grid.vert_gap_px
+    rulearea_height = [
+      rulearea_max_height(),
+      cell_height * @ruleui.num_rows
     ].min
 
     x1 = window_width / 2 - width / 2 + HORIZ_RULE_OFFSET_PX
     x2 = window_width / 2 + width / 2 - HORIZ_RULE_OFFSET_PX
-    y1 = playarea_height + VERT_RULE_OFFSET_PX
-    y2 = window_height - VERT_RULE_OFFSET_PX
+
+    y1 = window_height - rulearea_height - VERT_RULE_OFFSET_PX
+    y2 = y1 + rulearea_height
     @ruleui.resizing_move_to(x1, y1, x2, y2)
+
+    puts("height=#{rulearea_height}, actual=#{y2-y1}")
+
   end
 
   def verify_rows()
     @solver = Solver.new(@rules, @num_moves, @max_width)
     @rows.each do |row_str|
-      game_state = GameState.new(@rules, row_str, @num_moves, @max_width)
+      game_state = GameState.new(@rules, row_str, @max_width)
       if @solver.find_solution(game_state).empty?
         raise("Row #{row_str} is not solvable")
       end

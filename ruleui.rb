@@ -27,7 +27,7 @@ class SingleRule
 
     # add colors for rules and replacements
     set_rule_source_cells(from_str)
-    set_replacement_cells(replacement_strs)
+    set_replacement_cells(from_str, replacement_strs)
   end
 
 
@@ -70,6 +70,7 @@ class SingleRule
 
   def index_of_repl(repl_str)
     idx = 0
+    puts ("Searching for #{repl_str} in one of #{@replacement_strs}")
     @replacement_strs.each do |repl|
       return idx if repl == repl_str
       idx += 1
@@ -103,26 +104,34 @@ class SingleRule
   def set_rule_source_cells(from_str)
     row = 0
     col = 0
+    num_wild = 0
+    total_wild = from_str.count(".")
     from_str.each_char do |ch|
       if ch == '.'
-        @rule_grid.set_cell_object(row, col, WildcardWigit.new)
+        num_to_show = total_wild > 1 ? num_wild : nil
+        num_wild += 1
+        wigit = WildcardWigit.new(num_to_show)
+        @rule_grid.set_cell_object(row, col, wigit)
       else
-        @rule_grid.set_cell_color(row, col, @color_map[ch])
+        color = @color_map[ch]
       end
-
+      @rule_grid.set_cell_color(row, col, color)
       @rule_grid.show_cell(row, col)
       col += 1
     end
   end
 
-  def set_replacement_cells(replacement_strs)
+  def set_replacement_cells(from_str, replacement_strs)
     row = 2
     col = 0
+    num_wildcards = from_str.count(".")
     replacement_strs.each do |repl_str|
       if not repl_str.empty?
         repl_str.each_char do |ch|
           if SPECIAL_REPL_CHARS.include?(ch)
-            @rule_grid.set_cell_object(row, col, WildcardWigit.new)
+            wc_num = num_wildcards > 1 ? ch.ord - ?1.ord : nil
+            wigit = WildcardWigit.new(wc_num)
+            @rule_grid.set_cell_object(row, col, wigit)
           else
             @rule_grid.set_cell_color(row, col, @color_map[ch])
           end

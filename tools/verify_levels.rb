@@ -1,6 +1,7 @@
 
 require_relative '../gamestate.rb'
 require_relative '../solve2.rb'
+require_relative 'utils.rb'
 
 $verbose = false
 
@@ -52,7 +53,6 @@ def solve_level(level, level_num)
     gamestate = GameState.new(
       rules,
       line,
-      num_moves,
       max_width,
       goal)
     gamestate.max_depth = max_depth
@@ -66,14 +66,6 @@ def solve_level(level, level_num)
     row_num += 1
   end
   return solutions
-end
-
-def longest_common_array(a, b, &comp)
-  rows = Array.new(b.size + 1) do |rownum|
-    Array.new(a.size + 1, 0)
-  end
-
-  puts rows
 end
 
 def analyze_level_solutions(level, solutions)
@@ -105,7 +97,9 @@ def analyze_level_solutions(level, solutions)
 
   stats = []
   solutions.combination(2).each do |a, b|
-    lca = longest_common_array(a, b)
+    lca = greatest_common_sequence(a, b) do |lhs_move, rhs_move|
+      lhs_move[GS_PLAY_RESULT] == rhs_move[GS_PLAY_RESULT]
+    end
   end
 
 end

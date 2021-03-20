@@ -121,46 +121,57 @@ class Grid
     return result
   end
 
-  def xcoord(col)
-    (col.floor * @cell_width + @x1).floor
+  def xcoord(colnum)
+    (colnum.floor * @cell_width + @x1).floor
   end
 
-  def ycoord(row)
-    (row.floor * @cell_height + @y1).floor
+  def ycoord(rownum)
+    (rownum.floor * @cell_height + @y1).floor
   end
 
-  def set_cell_color(row, col, color)
-    cell = @rows[row][col]
+  def set_cell_color(rownum, colnum, color)
+    cell = @rows[rownum][colnum]
     cell.color = color
     return cell
   end
 
-  def set_cell_opacity(row, col, opacity)
-    cell = @rows[row][col]
-    cell.opacity = opacity
-    return cell
+  def set_cell_opacity(rownum, colnum, opacity)
+    if rownum < num_rows
+      cell = @rows[rownum][colnum]
+      cell.opacity = opacity
+      return cell
+    end
+    return nil
   end
 
-  def show_cell(row, col)
-    @rows[row][col].add
+  def show_cell(rownum, colnum)
+    if rownum < num_rows
+      return @rows[rownum][colnum].add
+    end
+    return nil
   end
 
-  def hide_cell(row, col)
-    @rows[row][col].remove
+  def hide_cell(rownum, colnum)
+    if rownum < num_rows
+      return @rows[rownum][colnum].remove
+    end
+    return nil
   end
 
-  def select_row(row, color='yellow', width=5)
-    select_cells(row, 0, @num_cols-1, color, width)
+  def select_row(rownum, color='yellow', width=5)
+    if rownum < num_rows
+      select_cells(rownum, 0, @num_cols-1, color, width)
+    end
   end
 
-  def select_cells(row, col1, col2, color='yellow', width=5)
-    @selected_row = row
-    @selected_col1 = col1
-    @selected_col2 = col2
+  def select_cells(rownum, colnum1, colnum2, color='yellow', width=5)
+    @selected_row = rownum
+    @selected_col1 = colnum1
+    @selected_col2 = colnum2
 
-    x = xcoord(col1) + @gap_px
-    x2 = xcoord(col2) 
-    y = ycoord(row) + @vert_gap_px
+    x = xcoord(colnum1) + @gap_px
+    x2 = xcoord(colnum2)
+    y = ycoord(rownum) + @vert_gap_px
 
     # top horiz
     @selectionbox[0].x1 = x

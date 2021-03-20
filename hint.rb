@@ -67,6 +67,7 @@ class Hint
   def repl_hint(cur_level)
     repl = @next_move[GS_PLAY_REPL]
     idx = @rule.index_of_repl(repl)
+    raise "could not find index of repl #{repl}" if idx == nil
     @rule.show_repl_hint(repl)
     @hint_strength += 1
     @input.select_replacement(idx + FIRST_REPL_ROW, 0, 0)

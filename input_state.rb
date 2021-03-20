@@ -35,7 +35,7 @@ class InputState
 
   def no_more_moves
     if @cur_level.game_state.solved?
-      Text.new("You Win", size: 80, color: "white", z:20)
+      Text.new("You Win", size: 80, color: "white", y: 30, z:20)
     else
       @game_over_state = GameOverState.new
     end

@@ -13,11 +13,9 @@ class GameStatTest < Test::Unit::TestCase
         "d"   => ["dd"]   # +d
       },
       "", # initial_str
-      10, # num_moves
       10  # max_width of board
     )
   end
-
 
   def test_constructor
     rules = {
@@ -28,13 +26,11 @@ class GameStatTest < Test::Unit::TestCase
     gs = GameState.new(
       rules,
       "a",
-      num_moves = 8,
       max_width = 9
     )
     assert_equal(rules, gs.rules)
     assert_equal("", gs.goal)
     assert_equal("a", gs.cur_row)
-    assert_equal(num_moves, gs.num_moves)
     assert_equal(max_width, gs.max_width)
 
     gs2 = gs.clone_from_cur_position
@@ -43,7 +39,6 @@ class GameStatTest < Test::Unit::TestCase
     assert_equal(rules, gs2.rules)
     assert_equal("", gs2.goal)
     assert_equal("a", gs2.cur_row)
-    assert_equal(num_moves, gs2.num_moves)
     assert_equal(max_width, gs2.max_width)
   end
 
@@ -56,21 +51,18 @@ class GameStatTest < Test::Unit::TestCase
     gs = GameState.new(
       rules,
       "a",
-      num_moves = 8,
       max_width = 9
     )
     gs.cur_row = "aaaa" # <<<<<<<<< modified
     assert_equal(rules, gs.rules)
     assert_equal("", gs.goal)
     assert_equal("aaaa", gs.cur_row)
-    assert_equal(num_moves, gs.num_moves)
     assert_equal(max_width, gs.max_width)
 
     gs.reset
     assert_equal(rules, gs.rules)
     assert_equal("", gs.goal)
     assert_equal("a", gs.cur_row) # <<<<< orig
-    assert_equal(num_moves, gs.num_moves)
     assert_equal(max_width, gs.max_width)
   end
 
@@ -107,7 +99,6 @@ class GameStatTest < Test::Unit::TestCase
         "b.b"  => ["11"],
       },
       "", # initial_str
-      10, # num_moves
       10  # max_width of board
     )
 
@@ -139,7 +130,6 @@ class GameStatTest < Test::Unit::TestCase
         "b.b"  => ["11"],
       },
       "", # initial_str
-      10, # num_moves
       10  # max_width of board
     )
 
@@ -188,44 +178,43 @@ class GameStatTest < Test::Unit::TestCase
     assert_equal(c.goal, @state.goal)
     assert_equal(c.max_width, @state.max_width)
     assert_equal(c.max_depth, @state.max_depth)
-    assert_equal(c.moves_remaining, @state.moves_remaining)
   end
 
   def test_make_moves1()
     @state.cur_row = "abccc"
-    assert_equal(10, @state.moves_remaining)
+    assert_equal(0, @state.cur_move_number)
     assert_equal("abccc", @state.cur_row)
     assert_equal([], @state.prev_rows)
 
     move = make_move(0, "ab", "bb")
     assert_equal("bbccc", move)
     assert_equal(move, @state.cur_row)
-    assert_equal(9, @state.moves_remaining)
+    assert_equal(1, @state.cur_move_number)
     assert_equal(["abccc"], @state.prev_rows)
 
     move = make_move(1, "bc", "c")
     assert_equal("bccc", move)
     assert_equal(move, @state.cur_row)
-    assert_equal(8, @state.moves_remaining)
+    assert_equal(2, @state.cur_move_number)
     assert_equal(["abccc", "bbccc"], @state.prev_rows)
 
     move = make_move(0, "bc", "c")
     assert_equal("ccc", move)
     assert_equal(move, @state.cur_row)
-    assert_equal(7, @state.moves_remaining)
+    assert_equal(3, @state.cur_move_number)
     assert_equal(["abccc", "bbccc", "bccc"], @state.prev_rows)
 
     move = make_move(0, "ccc", "")
     assert_equal("", move)
     assert_equal(move, @state.cur_row)
-    assert_equal(6, @state.moves_remaining)
+    assert_equal(4, @state.cur_move_number)
     assert_equal(["abccc", "bbccc", "bccc", "ccc"], @state.prev_rows)
   end
 
   def test_make_moves_fail()
     @state.cur_row = "abccc"
     assert_equal("abccc", @state.cur_row)
-    assert_equal(10, @state.moves_remaining)
+    assert_equal(0, @state.cur_move_number)
 
     begin
       move = make_move(0, "ccc", "")
@@ -242,18 +231,18 @@ class GameStatTest < Test::Unit::TestCase
 
   def test_undo()
     @state.cur_row = "abccc"
-    assert_equal(10, @state.moves_remaining)
+    assert_equal(0, @state.cur_move_number)
     assert_equal("abccc", @state.cur_row)
 
     move = make_move(2, "ccc", "")
     assert_equal(move, @state.cur_row)
     assert_equal("ab", move)
-    assert_equal(9, @state.moves_remaining)
+    assert_equal(1, @state.cur_move_number)
     assert_equal(["abccc"], @state.prev_rows)
 
     @state.undo_move
     assert_equal("abccc", @state.cur_row)
-    assert_equal(10, @state.moves_remaining)
+    assert_equal(0, @state.cur_move_number)
     assert_equal([], @state.prev_rows)
 
     move = make_move(0, "ab", "bb")
@@ -262,27 +251,28 @@ class GameStatTest < Test::Unit::TestCase
     move = make_move(0, "ccc", "")
 
     assert_equal("", @state.cur_row)
-    assert_equal(6, @state.moves_remaining)
+    assert_equal(4, @state.cur_move_number)
     assert_equal(["abccc", "bbccc", "bccc", "ccc"], @state.prev_rows)
 
     @state.undo_move
     assert_equal("ccc", @state.cur_row)
-    assert_equal(7, @state.moves_remaining)
+    assert_equal(3, @state.cur_move_number)
     assert_equal(["abccc", "bbccc", "bccc"], @state.prev_rows)
 
     @state.undo_move
     assert_equal("bccc", @state.cur_row)
-    assert_equal(8, @state.moves_remaining)
+    assert_equal(2, @state.cur_move_number)
     assert_equal(["abccc", "bbccc"], @state.prev_rows)
 
     @state.undo_move
     assert_equal("bbccc", @state.cur_row)
-    assert_equal(9, @state.moves_remaining)
+    assert_equal(1, @state.cur_move_number)
     assert_equal(["abccc"], @state.prev_rows)
 
     @state.undo_move
     assert_equal("abccc", @state.cur_row)
-    assert_equal(10, @state.moves_remaining)
+
+    assert_equal(0, @state.cur_move_number)
     assert_equal([], @state.prev_rows)
     assert_nil(@state.undo_move)
   end
@@ -420,6 +410,54 @@ class GameStatTest < Test::Unit::TestCase
     assert_equal(false, wc_equals("aba", "abaa"))
     assert_equal(false, wc_equals("aba", "ab"))
     assert_equal(false, wc_equals("aba", ""))
+  end
+
+  def test_rotating_cells
+
+    @state = GameState.new(
+      {
+        "a" => [""],
+        "_overrides" => {
+          "x" => {
+            "type" => "rotating",
+            "cycle_chars" => "abc"
+          }
+        }
+      },
+      "axaa", # initial_str
+      9  # max_width of board
+    )
+
+    # initial, x -> a
+    assert_equal("aaaa", @state.cur_row)
+    #              ^
+    #              x
+
+    # 1st 'a' is removed, x turns into b
+    make_move(0, "a", "")
+    assert_equal("baa", @state.cur_row)
+
+    # last 'a' is removed, x turns into c
+    make_move(2, "a", "")
+    assert_equal("ca", @state.cur_row)
+
+    # remove last 'a', and x wraps around and turns into 'a'
+    make_move(1, "a", "")
+    assert_equal("a", @state.cur_row)
+
+    # solved
+    make_move(0, "a", "")
+    assert_equal("", @state.cur_row)
+
+    # --------- UNDO
+    @state.undo_move
+    assert_equal("a", @state.cur_row)
+    @state.undo_move
+    assert_equal("ca", @state.cur_row)
+    @state.undo_move
+    assert_equal("baa", @state.cur_row)
+    @state.undo_move
+    assert_equal("aaaa", @state.cur_row)
   end
 
 end

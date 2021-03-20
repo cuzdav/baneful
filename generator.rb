@@ -70,7 +70,7 @@ solver = Solver.new(rules, 20, 7)
 rows = generate(rules, 4)
 annotated_rows = []
 rows.each do |depth, row|
-  gs = GameState.new(rules, row, 15)
+  gs = GameState.new(rules, row)
   solution = solver.find_solution(gs)
   annotated_rows << [solution.size, depth, row]
 end

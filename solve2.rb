@@ -216,7 +216,7 @@ def main()
   moves = 10
   width = 7
   solver = Solver.new(rules, moves, width)
-  game_state = GameState.new(rules, rows[0], 10, 15)
+  game_state = GameState.new(rules, rows[0], width)
   solution = solver.find_solution(game_state)
 
   if solution != nil

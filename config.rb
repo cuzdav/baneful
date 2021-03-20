@@ -39,7 +39,6 @@ LEVELS =[
   ##    "abc",
   ##  ]
   ##},
-
   {
     name: "hello",
     rules: {
@@ -277,18 +276,18 @@ LEVELS =[
     ]
   },
 
-## This level works but is not visibly displayed in a useful way yet
-##{
-##  name: "reverse 3",
-##  rules: {
-##    "cba" => [""],
-##    "..." => ["321"],
-##  },
-##  rows: [
-##    "abc",
-##  ]
-##},
-##
+  # This level works but is not visibly displayed in a useful way yet
+  {
+    name: "reverse 3",
+    rules: {
+      "cba" => [""],
+      "..." => ["321"]
+    },
+    rows: [
+      "abc",
+    ]
+  },
+
   {
     name: "wild!",
     rules: {

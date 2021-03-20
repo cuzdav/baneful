@@ -28,7 +28,7 @@ class TestSolver < Test::Unit::TestCase
 
   def assert_solution(rules, init_position, expected_solution)
     solver = Solver.new(rules, @max_moves, @max_width)
-    game_state = GameState.new(rules, init_position, @max_moves, @max_width)
+    game_state = GameState.new(rules, init_position, @max_width)
     validate_solution(game_state, expected_solution)
 
     solution = solver.find_solution(game_state)
