@@ -42,7 +42,10 @@ class Hint
 
   def rule_hint(cur_level)
     game_state = cur_level.game_state
+
+    # find the next move to make...
     @solution = @solver.find_solution(game_state)
+
     if not @solution.empty?
       @next_move = @solution[0]
       rpat, rrepl = game_state.get_raw_rule_and_repl_for_move(@next_move)

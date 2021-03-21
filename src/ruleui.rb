@@ -81,6 +81,7 @@ class SingleRule
   def show_pattern_hint
     pat_hint = get_hintbox
     pat_hint.y = @rule_grid.y1
+    pat_hint.z = 1
     pat_hint.add
   end
 
@@ -91,6 +92,7 @@ class SingleRule
 
     repl_hint = get_hintbox
     repl_hint.y = @rule_grid.ycoord(idx + 2)
+    repl_hint.z = 0
     repl_hint.add
   end
 
@@ -155,6 +157,7 @@ class SingleRule
     hintbox.x = (@rule_grid.x1 - @parent.gap_px / 2).floor
     hintbox.width = @rule_grid.x2 - @rule_grid.x1 + @parent.gap_px
     hintbox.height = @parent.cell_height + @parent.gap_px / 2
+    hintbox.z = 0
     return hintbox
   end
 

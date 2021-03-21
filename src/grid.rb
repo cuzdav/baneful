@@ -25,7 +25,7 @@ class Grid
     (0...@num_rows).each do|y|
       @rows << []
       (0...@num_cols).each do |x|
-        @rows[y] << Rectangle.new(:z => 10)
+        @rows[y] << Rectangle.new()
       end
     end
 
@@ -61,12 +61,16 @@ class Grid
   def set_cell_object(row, col, obj)
     @rows[row][col].remove
     @rows[row][col] = obj
+    update_cell(obj, row, col, nil)
   end
 
   def get_cell_object(row, col)
     return @rows[row][col]
   end
 
+  def refresh()
+    resizing_move_to(@x1, @y1, @x2, @y2)
+  end
 
   # move grid and all contents
   def resizing_move_to(x1, y1, x2, y2, color=nil)
@@ -84,11 +88,7 @@ class Grid
     @cell_height = (y2 - y1).abs / @num_rows
 
     foreach_rect_with_index do |rect, row, col|
-      rect.x = xcoord(col) + @gap_px
-      rect.width = @cell_width - @gap_px
-      rect.y = ycoord(row) + @vert_gap_px
-      rect.height = @cell_height - @vert_gap_px
-      rect.color = color if color != nil
+      update_cell(rect, row, col, color)
     end
 
     if @selected_row != nil
@@ -217,5 +217,15 @@ class Grid
     @selected_row = nil
     @selected_col1 = nil
     @selected_col2 = nil
+  end
+
+  private
+
+  def update_cell(rect, row, col, color)
+    rect.x = xcoord(col) + @gap_px
+    rect.width = @cell_width - @gap_px
+    rect.y = ycoord(row) + @vert_gap_px
+    rect.height = @cell_height - @vert_gap_px
+    rect.color = color if color != nil
   end
 end

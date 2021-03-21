@@ -19,6 +19,7 @@ RED = Color.new('red')
 BLUE = Color.new('blue')
 GREEN = Color.new('green')
 
+
 class TestCustomWigits < Test::Unit::TestCase
 
   @move_number = 0
@@ -42,6 +43,9 @@ class TestCustomWigits < Test::Unit::TestCase
   end
 
   def test_rotating_colors()
+
+    assert_true(@rot_rb.instance_variable_get("needs_update"))
+
     assert_equal(RED, @rot_rb.color)
     assert_equal(RED, @rot_rbg.color)
     assert_equal(RED, @rot_rbb.color)

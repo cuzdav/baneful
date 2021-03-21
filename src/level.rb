@@ -4,6 +4,62 @@ require_relative 'gamestate.rb'
 require_relative 'ruleui.rb'
 require_relative 'solve2.rb'
 
+class CellFactory
+  def initialize(level_cfg, color_map, move_number_provider)
+    @color_map = color_map
+    @type_map = {}
+    @init_args_map = {}
+    @color_map.keys.each do |ch|
+      @type_map[ch] = Rectangle
+      @init_args_map[ch] = []
+    end
+
+    type_overrides = level_cfg[:type_overrides]
+    if type_overrides != nil
+      init_type_overrides(type_overrides, move_number_provider)
+    end
+  end
+
+  def get_type_for_char(ch)
+    return @type_map[ch]
+  end
+
+  def create(ch)
+    args = @init_args_map[ch]
+    return get_type_for_char(ch).new(*args)
+  end
+
+  private
+
+  def init_type_overrides(type_overrides, move_num_provider)
+    type_overrides.each do |override_ch, override_ch_config|
+      typename = override_ch_config["type"]
+      type =
+        case (typename)
+        when "RotatingColors"
+          cycle_chars = override_ch_config["cycle_chars"]
+          if cycle_chars == nil
+            raise "Missing 'cycle_chars' from type_override for " +
+                  "#{override_ch} in level: #{level_cfg[:name]}\n\t==>#{override_ch_config}"
+          end
+          args = [move_num_provider]
+          cycle_chars.each_char do |ch|
+            args << @color_map[ch]
+          end
+          @init_args_map[override_ch] = args
+          RotatingColorsWigit
+        when "Rectangle"
+          Rectangle
+        else
+          raise "Unhandled type #{typename}"
+        end
+      puts ("Setting type of '#{override_ch}' to #{type}")
+      @type_map[override_ch] = type
+    end
+  end
+end
+
+
 class Level
   attr_reader :ruleui
   attr_reader :grid
@@ -19,12 +75,14 @@ class Level
     @cur_row = 0
     @rules = level[:rules]
     @rows = level[:rows]
+    @type_overrides = level[:type_overrides]
     @num_moves = num_moves
     @max_width = maxwidth
     @eff_col = 0
     @name = level[:name] || ""
 
     @color_map = make_color_map(level)
+    @cell_factory = CellFactory.new(level, @color_map, self)
     make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
     make_rules()
     next_gamestate()
@@ -32,7 +90,8 @@ class Level
 
   def next_gamestate()
     row_str = @cur_row >= 0 ? @rows[@cur_row] : ""
-    @game_state = GameState.new(@rules, row_str, @max_width)
+    @game_state = GameState.new(
+      @rules, row_str, @type_overrides, @max_width)
   end
 
   # grid index of pixel coord
@@ -55,26 +114,33 @@ class Level
     return @grid.ycoord(@cur_row) + @grid.cell_height
   end
 
+  def cur_move_number()
+    return @game_state ? @game_state.cur_move_number : 0
+  end
+
   def update_after_modification
-    update_grid_row(@cur_row, @game_state.cur_row)
+    @needs_modify_callback = update_grid_row(@cur_row, @game_state.cur_raw_row)
     if @game_state.solved?
       @cur_row -= 1
       if @cur_row < 0
         next_level()
       end
       next_gamestate
-      update_grid_row(@cur_row, @game_state.cur_row)
+      @needs_modify_callback = update_grid_row(@cur_row, @game_state.cur_raw_row)
+    end
+    @needs_modify_callback.each do |cell|
+      cell.modified
     end
   end
 
   def reset_cur_level
     @game_state.reset
-    update_grid_row(@cur_row, @game_state.cur_row)
+    update_after_modification
   end
 
   def undo_move
     @game_state.undo_move
-    update_grid_row(@cur_row, @game_state.cur_row)
+    update_after_modification
   end
 
   private
@@ -129,7 +195,8 @@ class Level
     # add each row to this level
     opacity = 0.6
     level[:rows].each do |row|
-      update_grid_row(@cur_row, row, opacity)
+      needs_update = update_grid_row(@cur_row, row, opacity)
+      @needs_update_callback = needs_update
       @cur_row += 1
     end
     @cur_row -= 1
@@ -138,24 +205,50 @@ class Level
       @grid.set_cell_opacity(@cur_row, col, 1) # reset playing level opacity to 1
     end
 
+    @grid.refresh()
+
   end
 
   # initialize or update after a modification the given logical rownum
   # with row string.
-  def update_grid_row(rownum, row_str, opacity=1)
-    effrow = rownum
-
+  def update_grid_row(effrow, row_str, opacity=1)
     # center on grid
     effcol = @numcols/2 - row_str.size / 2
     @eff_col = effcol
 
-    hide_cells_in_row(rownum, 0, @eff_col) # leading empty cells
+    hide_cells_in_row(effrow, 0, effcol) # leading empty cells
+
+    needs_modify_callback = []
     row_str.each_char do |ch|
-      @grid.set_cell_color(effrow, effcol, @color_map[ch]).add
-      @grid.set_cell_opacity(effrow, effcol, opacity)
+      cell_object = init_grid_cell(ch, effrow, effcol, opacity)
+      if cell_object.needs_modified_callback
+        needs_modify_callback << cell_object
+      end
       effcol += 1
     end
-    hide_cells_in_row(rownum, effcol, @numcols) # trailing empty cells
+    hide_cells_in_row(effrow, effcol, @numcols) # trailing empty cells
+
+    return needs_modify_callback
+  end
+
+  #
+  # For each playarea cell.  Complication now that there are custom
+  # wigits in the playarea.  Abstracted to a factory.
+  #
+  def init_grid_cell(ch, effrow, effcol, opacity)
+    # see if object is already the type we expect
+    type = @cell_factory.get_type_for_char(ch)
+    cell_object = @grid.get_cell_object(effrow, effcol)
+    if cell_object.class != type
+      # nope, must create
+      cell_object = @cell_factory.create(ch)
+    end
+    @grid.set_cell_object(effrow, effcol, cell_object)
+    @grid.set_cell_color(effrow, effcol, @color_map[ch])
+    @grid.set_cell_opacity(effrow, effcol, opacity)
+    cell_object.z = 10
+
+    return cell_object
   end
 
   def hide_cells_in_row(rownum, from, to)
@@ -188,15 +281,12 @@ class Level
     y1 = window_height - rulearea_height - VERT_RULE_OFFSET_PX
     y2 = y1 + rulearea_height
     @ruleui.resizing_move_to(x1, y1, x2, y2)
-
-    puts("height=#{rulearea_height}, actual=#{y2-y1}")
-
   end
 
   def verify_rows()
     @solver = Solver.new(@rules, @num_moves, @max_width)
     @rows.each do |row_str|
-      game_state = GameState.new(@rules, row_str, @max_width)
+      game_state = GameState.new(@rules, row_str, @type_overrides, @max_width)
       if @solver.find_solution(game_state).empty?
         raise("Row #{row_str} is not solvable")
       end

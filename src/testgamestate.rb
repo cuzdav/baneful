@@ -12,8 +12,9 @@ class GameStatTest < Test::Unit::TestCase
         "bc"  => ["c"],
         "d"   => ["dd"]   # +d
       },
-      "", # initial_str
-      10  # max_width of board
+      "",  # initial_str
+      nil, # type_overrides
+      10   # max_width of board
     )
   end
 
@@ -26,6 +27,7 @@ class GameStatTest < Test::Unit::TestCase
     gs = GameState.new(
       rules,
       "a",
+      nil, # type_overrides
       max_width = 9
     )
     assert_equal(rules, gs.rules)
@@ -51,6 +53,7 @@ class GameStatTest < Test::Unit::TestCase
     gs = GameState.new(
       rules,
       "a",
+      nil, # type_overrides
       max_width = 9
     )
     gs.cur_row = "aaaa" # <<<<<<<<< modified
@@ -109,6 +112,7 @@ class GameStatTest < Test::Unit::TestCase
         "b.b"  => ["11"],
       },
       "", # initial_str
+      nil, # type_overrides
       10  # max_width of board
     )
 
@@ -140,6 +144,7 @@ class GameStatTest < Test::Unit::TestCase
         "b.b"  => ["11"],
       },
       "", # initial_str
+      nil, # type_overrides
       10  # max_width of board
     )
 
@@ -434,17 +439,19 @@ class GameStatTest < Test::Unit::TestCase
 
   def test_rotating_cells
 
+    type_overrides = {
+      "x" => {
+        "type" => "RotatingColors",
+        "cycle_chars" => "abc"
+      }
+    }
+
     @state = GameState.new(
       {
         "a" => [""],
-        "_overrides" => {
-          "x" => {
-            "type" => "rotating",
-            "cycle_chars" => "abc"
-          }
-        }
       },
       "axaa", # initial_str
+      type_overrides,
       9  # max_width of board
     )
 

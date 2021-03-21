@@ -28,17 +28,30 @@ MUSIC = [
 # You should be able to quickly match each set of rules/rows to in-game screens and
 # can add your own.
 
+# type_overrides is optional, only necessary to change the default Rectangle
+# with unique-per-letter assigned color
+
+test = {
+    name: "test",
+    rules: {
+      "aaa" => [""],
+      "a" => ["a"],
+      "b" => ["a"],
+      "c" => ["a"],
+    },
+    rows: [
+      "dbc",
+    ],
+    type_overrides: {
+      "d" => {
+        "type" => "RotatingColors",
+        "cycle_chars" => "ab",
+      }
+    }
+  }
+
+
 LEVELS =[
-  ## for testing...
-  ##{
-  ##  rules: {
-  ##    "cba" => [""],
-  ##    "..." => ["321"],
-  ##  },
-  ##  rows: [
-  ##    "abc",
-  ##  ]
-  ##},
   {
     name: "hello",
     rules: {

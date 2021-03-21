@@ -103,6 +103,7 @@ class GameState
   attr_accessor :rules
   attr_accessor :max_depth
   attr_reader :cur_row
+  attr_reader :cur_raw_row
   attr_reader :goal
   attr_reader :max_width
   attr_reader :prev_rows
@@ -118,8 +119,9 @@ class GameState
   # max_width = limit to how wide row can grow when applying constructive rules
   # goal = win condition
 
-  def initialize(rules, initial_row_str, max_width = 9, goal = "")
+  def initialize(rules, initial_row_str, type_overrides=nil, max_width = 9, goal = "")
     @verbose = false
+    @type_overrides = type_overrides || {}
     @rules = rules
     @goal = goal
     @cur_raw_row = initial_row_str.dup
@@ -128,14 +130,22 @@ class GameState
     @max_depth = 99
     @prev_rows = []
     @played_moves = []
-    @played_moves.size
+
+    if @type_overrides.class != Hash
+      raise("Logic error, passed #{@type_overrides.class} for type_overrides, expecting hash")
+    end
 
     @cur_row = compute_cur_row(@cur_raw_row)
     raise "Invalid max_width" if max_width == nil
   end
 
   def clone_from_cur_position()
-    return GameState.new(@rules, @cur_row, @max_width, @goal)
+    return GameState.new(
+             @rules,
+             @cur_row,
+             @type_overrides,
+             @max_width,
+             @goal)
   end
 
   def cur_move_number()
@@ -161,7 +171,7 @@ class GameState
   end
 
   def reset
-    initialize(@rules, @initial_row, @max_width, @goal)
+    initialize(@rules, @initial_row, @type_overrides, @max_width, @goal)
   end
 
   # move_hash: same fields returned from each elt of possible_plays
@@ -177,21 +187,26 @@ class GameState
     to = move[GS_PLAY_REPL]
 
     if @cur_row.index(from, offset) != offset
+      dump_plays
       raise "invalid replacement: cur_row=#{@cur_row}, from=#{from}, offset=#{offset}"
     end
     if @cur_row.size - from.size + to.size > max_width
       raise "too wide: maxwidth= #{@max_width}"
     end
 
-    cached_row = @cur_row.dup
     cached_move = move.dup
-    cached_move[GS_PLAY_RESULT] = cached_row
 
     cached_raw_row = @cur_raw_row.dup
     @prev_rows.push(cached_raw_row)
     @played_moves.push(cached_move)
     @cur_raw_row[offset...offset+from.size] = to
     @cur_row = compute_cur_row(@cur_raw_row)
+
+    cached_row = @cur_row.dup
+    cached_move[GS_PLAY_RESULT] = cached_row
+
+    dump_plays
+
     return @cur_row
   end
 
@@ -252,10 +267,9 @@ class GameState
   #    fields: "cycle_chars": "abc" (string)
   #    Requires: cycle_chars.size == 2 or 3
   def compute_cur_row(cur_raw_row)
-    overrides = @rules["_overrides"]
-    return cur_raw_row if overrides == nil
+    return cur_raw_row if @type_overrides == nil
 
-    charmap = make_charmap(overrides)
+    charmap = make_charmap()
     cur_row = ""
     cur_raw_row.each_char do |char|
       translated  = charmap[char]
@@ -268,20 +282,19 @@ class GameState
   # special cell char must map to ... SOMETHING
   # so build a map to pre-resolve those transformations
   # (They may be different each turn.)
-  def make_charmap(overrides)
+  def make_charmap()
     charmap = {}
-    overrides.each do |char, char_override|
+    @type_overrides.each do |char, char_override|
       type = char_override["type"]
       case type
       # cycle through the string of chars in cycle_chars
-      when "rotating"
+      when "RotatingColors"
         cycle_chars = char_override["cycle_chars"]
         if cycle_chars == nil
-          raise "Invalid 'cycle_chars' attribute of 'rotating' colors override"
+          raise "Invalid/missing 'cycle_chars' attribute of 'RotatingColors' type_override"
         end
         idx = cur_move_number % cycle_chars.size
         charmap[char] = cycle_chars[idx]
-
       else
         raise "Unhandled override type '#{type}'"
       end
@@ -341,6 +354,23 @@ class GameState
     end
 
     return cur_pat, cur_repl
+  end
+
+  def dump_plays
+    puts("[Moves Played - initial state: #{@initial_row}]")
+
+    move_num = 0
+
+    #GS_PLAY_ARRAY
+    @played_moves.each do |idx, pat, repl, rawrepl, captures, result, _|
+      repl_str = repl.empty? ? "EMPTY" : repl
+      raw_str = rawrepl != repl ? "(raw:#{rawrepl})" : ""
+      captures = (captures.nil? or captures.empty?) ? "" : ", captures:#{captures})"
+      puts("[#{move_num}]: [idx:#{idx} from:#{pat} " +
+           "repl:#{repl_str} #{raw_str}#{captures} " +
+           "RESULT:#{result}")
+      move_num += 1
+    end
   end
 
 end

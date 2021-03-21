@@ -1,9 +1,22 @@
 #require 'ruby2d'
 
+class Rectangle
+  def needs_modified_callback
+    return false
+  end
+end
+
 class CustomCellBase
   attr_accessor :x, :y, :width, :height
 
-  def update() raise("Not implemented") end
+  def needs_modified_callback
+    return true
+  end
+
+  def modified
+    raise "'modified' must be overridden"
+  end
+
   def each_wigit() raise("Not implemented") end
 
   def initialize()
@@ -45,22 +58,22 @@ class CustomCellBase
 
   def x=(val)
     @x = val
-    update
+    modified
   end
 
   def y=(val)
     @y = val
-    update
+    modified
   end
 
   def width=(w)
     @width = w
-    update
+    modified
   end
 
   def height=(h)
     @height = h
-    update
+    modified
   end
 end
 
@@ -82,7 +95,7 @@ class EmptyReplacementWigit < CustomCellBase
     block.yield @line
   end
 
-  def update()
+  def modified()
     min_hw = [@height, @width].min / 2 - 1
     mid_x = @x + @width / 2
     mid_y = @y + @height / 2
@@ -125,7 +138,7 @@ class WildcardWigit < CustomCellBase
     block.yield @circ2
   end
 
-  def update()
+  def modified()
     @rect.height = height
     @rect.width = width
     @rect.x = @x
@@ -153,7 +166,7 @@ end
 
 #
 # Receives an index source, which when queried will state which index
-# should be drawn (externally updated)
+# should be drawn (externally modifiedd)
 # Also, passed 2..3 colors, that it will cycle through
 #
 class RotatingColorsWigit < CustomCellBase
@@ -167,21 +180,24 @@ class RotatingColorsWigit < CustomCellBase
     @move_number_provider = move_number_provider
     @colors = colors.dup
 
+    puts("*** RotatingColorsWigit colors: #{@colors}")
+
     @circle_colors  = colors.map{ |color| Circle.new(color: color) }
     @outline_colors = colors.map{ |color| Circle.new(color: 'black') }
     @rect = Rectangle.new(z: 10)
     @n = @outline_colors.size
-    update
+    modified
   end
 
   def z=(z)
+    puts("*** Rotate: setting z to #{z}")
     each_wigit do |wigit|
       wigit.z = z
     end
     cur_idx = get_cur_index()
     @outline_colors[cur_idx].z += 1
     @circle_colors[cur_idx].z += 2
-    @rectangle.z = z
+    @rect.z = z
   end
 
   def get_cur_index()
@@ -206,7 +222,9 @@ class RotatingColorsWigit < CustomCellBase
     block.yield @rect
   end
 
-  def update()
+  def modified()
+    puts("***** @x:#{@x}, @y:#{@y}, @height:#{@height}, @width:#{@width}")
+
     idx = get_cur_index()
 
     @rect.height = @height

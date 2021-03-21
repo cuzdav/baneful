@@ -34,8 +34,8 @@ $rot_colors2.width = 80
 
 Window.on :key_up do |event|
   $movenum.next()
-  $rot_colors2.update
-  $rot_colors3.update
+  $rot_colors2.modified
+  $rot_colors3.modified
 end
 
 show
