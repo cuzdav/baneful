@@ -63,6 +63,11 @@ class Grid
     @rows[row][col] = obj
   end
 
+  def get_cell_object(row, col)
+    return @rows[row][col]
+  end
+
+
   # move grid and all contents
   def resizing_move_to(x1, y1, x2, y2, color=nil)
     @x1 = x1.to_i

@@ -171,6 +171,7 @@ class RotatingColorsWigit < CustomCellBase
     @outline_colors = colors.map{ |color| Circle.new(color: 'black') }
     @rect = Rectangle.new(z: 10)
     @n = @outline_colors.size
+    update
   end
 
   def z=(z)
@@ -188,7 +189,11 @@ class RotatingColorsWigit < CustomCellBase
   end
 
   def color=(color)
-    raise "cannot set color on rotating color wigit (logic bug?)"
+    # ignore
+  end
+
+  def color()
+    return @rect.color
   end
 
   def each_wigit(&block)
