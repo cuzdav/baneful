@@ -1,5 +1,5 @@
 # baneful
-block removing logic game
+block removing logic game via patterns and replacements
 
 Installation
 ------------

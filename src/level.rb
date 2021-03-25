@@ -148,25 +148,21 @@ class Level
   def make_color_map(level_cfg)
     color_map = {}
     color_idx = -1
+
     # build mapping from char -> color
+    chrs = ""
     level_cfg[:rules].each do |from, tolist|
-      from.each_char do|c|
-        if not SPECIAL_PATTERN_CHARS.include?(c)
-          color_map[c] ||= COLORS[color_idx += 1]
-        end
-      end
-      tolist.each do|to|
-        to.each_char do |c|
-          if not SPECIAL_REPL_CHARS.include?(c)
-            color_map[c] ||= COLORS[color_idx += 1]
-          end
-        end
-      end
+	chrs += from
+	chrs += tolist.join
     end
     level_cfg[:rows].each do |row|
-      row.each_char do |c|
-        color_map[c] ||= COLORS[color_idx += 1]
-      end
+	chrs += row
+    end
+
+    chrs.chars.sort.uniq.each do |ch|
+        if not SPECIAL_PATTERN_CHARS.include?(ch)
+          color_map[ch] ||= COLORS[color_idx += 1]
+        end
     end
 
     return color_map

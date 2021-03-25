@@ -223,8 +223,6 @@ class RotatingColorsWigit < CustomCellBase
   end
 
   def modified()
-    puts("***** @x:#{@x}, @y:#{@y}, @height:#{@height}, @width:#{@width}")
-
     idx = get_cur_index()
 
     @rect.height = @height
@@ -239,13 +237,13 @@ class RotatingColorsWigit < CustomCellBase
       outline = @outline_colors[i]
       outline.x = x
       outline.y = @y + (@height / 2)
-      outline.radius = height / 2 - 3
+      outline.radius = height / 2 - 1
 
       circle = @circle_colors[i]
       circle.x = x
       circle.y = @y + (@height / 2)
       circle.color = @colors[i]
-      circle.radius = height / 2 - 6
+      circle.radius = height / 2 - 4
 
       zd = i == idx ? 3 : 0
       outline.color = i == idx ? 'white' : 'black'

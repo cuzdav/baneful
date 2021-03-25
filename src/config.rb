@@ -40,18 +40,25 @@ test = {
       "c" => ["a"],
     },
     rows: [
-      "dbc",
+      "dae",
     ],
     type_overrides: {
       "d" => {
         "type" => "RotatingColors",
-        "cycle_chars" => "ab",
-      }
+        "cycle_chars" => "aba",
+      },
+      "e" => {
+        "type" => "RotatingColors",
+        "cycle_chars" => "bac",
+      },
     }
   }
 
 
 LEVELS =[
+
+  #test,
+
   {
     name: "hello",
     rules: {
@@ -319,6 +326,31 @@ LEVELS =[
     },
     rows: [
       "aabaa",
+    ]
+  },
+
+  {
+    name: "swap2",
+    rules: {
+      "ba" => [""],
+      "dc" => [""],
+      ".." => ["21"],
+    },
+    rows: [
+      "cadbcd",
+      "abcd",
+    ]
+  },
+
+  {
+    name: "redshift",
+    rules: {
+      "b" => [""],
+      ".b" => ["b"],
+      ".b." => ["12b"],
+    },
+    rows: [
+      "abcac",
     ]
   },
 

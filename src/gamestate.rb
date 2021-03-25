@@ -201,12 +201,8 @@ class GameState
     @played_moves.push(cached_move)
     @cur_raw_row[offset...offset+from.size] = to
     @cur_row = compute_cur_row(@cur_raw_row)
-
     cached_row = @cur_row.dup
     cached_move[GS_PLAY_RESULT] = cached_row
-
-    dump_plays
-
     return @cur_row
   end
 

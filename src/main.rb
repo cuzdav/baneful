@@ -20,17 +20,18 @@ $curlevel = nil       # ui game objects for cur level
 
 charmap = {}
 
-MAX_ROWS = 6
+MAX_ROWS = 5
 MAX_WIDTH = 9
 
 VERT_RULE_OFFSET_PX = 30
 HORIZ_RULE_OFFSET_PX = 5
 
 COLORS = [
-  "aqua", "red", "lime", "yellow", "purple", "gray",
+  "aqua", "red", "lime", "silver",
+  "purple", "gray", "yellow", 
   "olive",  "blue", "green",
   "orange","brown", "maroon",
-  "navy", "white", "silver", "black", "teal", "fuchsia"]
+  "navy", "white",  "black", "teal", "fuchsia"]
 
 def playarea_height()
   return Window.get(:height) / 3
