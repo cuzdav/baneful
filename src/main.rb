@@ -26,12 +26,31 @@ MAX_WIDTH = 9
 VERT_RULE_OFFSET_PX = 30
 HORIZ_RULE_OFFSET_PX = 5
 
-COLORS = [
-  "aqua", "red", "lime", "silver",
-  "purple", "gray", "yellow", 
+XCOLORS = [
+  "aqua", "red", "lime", "fuchsia",
+  "silver", "purple", "gray", "yellow",
   "olive",  "blue", "green",
   "orange","brown", "maroon",
-  "navy", "white",  "black", "teal", "fuchsia"]
+  "navy", "white",  "black", "teal",]
+
+ELECTRIC_BLUE   = Color.new('#A0FFFF')
+FERRARI_RED     = Color.new('#F15015')
+MALACHITE_GREEN = Color.new('#19FF40')
+HARVEST_GOLD    = Color.new('#EEBBAA')
+BRIGHT_LAVENDER = Color.new('#BB99FF')
+PASTEL_YELLOW   = Color.new('#FFFF80')
+
+COLORS = [
+  ELECTRIC_BLUE,
+  FERRARI_RED,
+  MALACHITE_GREEN,
+  HARVEST_GOLD,
+  BRIGHT_LAVENDER,
+  PASTEL_YELLOW
+]
+
+
+
 
 def playarea_height()
   return Window.get(:height) / 3

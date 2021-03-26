@@ -34,15 +34,16 @@ MUSIC = [
 test = {
     name: "test",
     rules: {
+      "abcdef" => ["aaa"],
       "aaa" => [""],
       "a" => ["a"],
       "b" => ["a"],
       "c" => ["a"],
     },
     rows: [
-      "dae",
+      "abcdef",
     ],
-    type_overrides: {
+    xtype_overrides: {
       "d" => {
         "type" => "RotatingColors",
         "cycle_chars" => "aba",
@@ -57,7 +58,7 @@ test = {
 
 LEVELS =[
 
-  #test,
+  test,
 
   {
     name: "hello",

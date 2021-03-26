@@ -71,6 +71,10 @@ class Level
   attr_reader :solver
   attr_reader :name
 
+  #
+  # (x1, y1)...(x2,y2) defines the area of screen where the playarea rows
+  # shall go
+  #
   def initialize(level, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
     @cur_row = 0
     @rules = level[:rules]
@@ -83,7 +87,7 @@ class Level
 
     @color_map = make_color_map(level)
     @cell_factory = CellFactory.new(level, @color_map, self)
-    make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
+    make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2 + 50)
     make_rules()
     next_gamestate()
   end
@@ -183,6 +187,7 @@ class Level
 
     @numcols = maxwidth
     @grid = Grid.new(@numrows, maxwidth, x1, eff_y1, x2, eff_y2)
+    puts("*** playarea grid created, with cell size of: #{@grid.cell_height}")
     @grid.remove_all()
 
     @grid.highlight_background
@@ -265,7 +270,7 @@ class Level
     ].min
 
     # adjustable height, try to keep same top unless necessary to move up
-    cell_height = @grid.cell_height + @grid.vert_gap_px
+    cell_height = @grid.cell_height #+ @grid.vert_gap_px
     rulearea_height = [
       rulearea_max_height(),
       cell_height * @ruleui.num_rows
@@ -277,6 +282,7 @@ class Level
     y1 = window_height - rulearea_height - VERT_RULE_OFFSET_PX
     y2 = y1 + rulearea_height
     @ruleui.resizing_move_to(x1, y1, x2, y2)
+    puts("*** ruleui created, with cell size of: #{@ruleui.cell_height}")
   end
 
   def verify_rows()
