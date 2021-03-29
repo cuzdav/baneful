@@ -20,6 +20,8 @@ $curlevel = nil       # ui game objects for cur level
 
 charmap = {}
 
+Window.set({:width => 1024, :height => 768})
+
 MAX_ROWS = 5
 MAX_WIDTH = 9
 

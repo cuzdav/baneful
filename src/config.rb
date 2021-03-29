@@ -36,14 +36,14 @@ test = {
     rules: {
       "abcdef" => ["aaa"],
       "aaa" => [""],
-      "a" => ["a"],
-      "b" => ["a"],
+      "a" => ["d"],
+      "b" => ["e"],
       "c" => ["a"],
     },
     rows: [
       "abcdef",
     ],
-    xtype_overrides: {
+    type_overrides: {
       "d" => {
         "type" => "RotatingColors",
         "cycle_chars" => "aba",
@@ -57,8 +57,6 @@ test = {
 
 
 LEVELS =[
-
-  test,
 
   {
     name: "hello",

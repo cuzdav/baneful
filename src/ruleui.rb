@@ -14,7 +14,7 @@ class SingleRule
 
   # from_str is a string representing the "from" pattern
   # replacement_strs is an array of strings representing the "to" patterns
-  def initialize(parent, color_map, from_str, replacement_strs)
+  def initialize(parent, color_map, from_str, replacement_strs, cell_factory)
     @parent = parent
     @from_str = from_str
     @replacement_strs = replacement_strs
@@ -26,8 +26,8 @@ class SingleRule
     @color_map = color_map
 
     # add colors for rules and replacements
-    set_rule_source_cells(from_str)
-    set_replacement_cells(from_str, replacement_strs)
+    set_rule_source_cells(from_str, cell_factory)
+    set_replacement_cells(from_str, replacement_strs, cell_factory)
   end
 
 
@@ -103,7 +103,8 @@ class SingleRule
   private
 
   # given a string pattern, enable and colorize the cells in the grid
-  def set_rule_source_cells(from_str)
+  def set_rule_source_cells(from_str, cell_factory)
+    #TODO: use cell_factory
     row = 0
     col = 0
     num_wild = 0
@@ -123,7 +124,7 @@ class SingleRule
     end
   end
 
-  def set_replacement_cells(from_str, replacement_strs)
+  def set_replacement_cells(from_str, replacement_strs, cell_factory)
     row = 2
     col = 0
     num_wildcards = from_str.count(".")
@@ -135,7 +136,11 @@ class SingleRule
             wigit = WildcardWigit.new(wc_num)
             @rule_grid.set_cell_object(row, col, wigit)
           else
-            @rule_grid.set_cell_color(row, col, @color_map[ch])
+            cell_obj = cell_factory.create(ch)
+            @rule_grid.set_cell_object(row, col, cell_obj)
+            if cell_obj.needs_modified_callback
+              @parent.cells_needing_updates << cell_obj
+            end
           end
           @rule_grid.show_cell(row, col)
           col += 1
@@ -160,8 +165,6 @@ class SingleRule
     hintbox.z = 0
     return hintbox
   end
-
-
 end
 
 
@@ -170,7 +173,7 @@ end
 #
 class RuleUI
   attr_accessor :gap_px
-  attr_accessor :rules
+  attr_accessor :single_rules
   attr_reader :hintbox
   attr_reader :x1
   attr_reader :y1
@@ -181,10 +184,13 @@ class RuleUI
   attr_reader :border_lines
   attr_reader :cell_width
   attr_reader :cell_height
+  attr_reader :cells_needing_updates
 
-  def initialize(color_map, rules)
+  def initialize(color_map, level_cfg, move_number_provider)
+    @cells_needing_updates = []
+    @move_number_provider = move_number_provider
     @gap_px = 10
-    @rules = []
+    @single_rules = []
     @vlines = [make_line]
     @num_rows = 0
     @num_cols = 0
@@ -197,12 +203,14 @@ class RuleUI
     @hintbox.remove
     @border_lines.each {|line| line.remove}
 
+    rules = level_cfg[:rules]
     rule_count = rules.size
 
+    cell_factory = CellFactory.new(level_cfg, color_map, self)
     rules.each do |from, to|
-      rule = SingleRule.new(self, color_map, from, to)
+      rule = SingleRule.new(self, color_map, from, to, cell_factory)
       @vlines << make_line
-      @rules << rule
+      @single_rules << rule
       @num_cols += rule.num_cols
 
       # num_rows in grid is 1 for "from", a "blank", and n replacements
@@ -212,8 +220,18 @@ class RuleUI
     @sep_hline = make_line
   end
 
+  def cur_move_number
+    # this is "lying" slightly, reporting the next move instead of cur move, so
+    # the rules display that state that the cell _is going to be in_ if inserted now.
+    # Purpose: For some cells that change based on turn number, what is shown
+    # in the rule is the state it should be if it's played into the playarea row.
+    # If the rule shows the current move state, then when a play occurs, the cell
+    # may look different by showing the _next_ state.
+    return @move_number_provider.cur_move_number + 1
+  end
+
   def clear
-    @rules.each do |rule|
+    @single_rules.each do |rule|
       if rule == nil
         puts("************ RULE IS NIL")
       end
@@ -234,14 +252,14 @@ class RuleUI
     @x2 = x2
     @y2 = y2
 
-    width = (x1-x2).abs - (@gap_px * @rules.size)
+    width = (x1-x2).abs - (@gap_px * @single_rules.size)
     height = (y1-y2).abs
     @cell_width = width / @num_cols
     @cell_height = height / @num_rows
 
     x = x1 + @gap_px / 2
     rule_num = 0
-    @rules.each do |rule|
+    @single_rules.each do |rule|
       rule_width = @cell_width * rule.num_cols
       eff_y2 = y1 + @cell_height * rule.num_rows
       rule.resizing_move_to(x, y1, x + rule_width, eff_y2)
@@ -263,7 +281,7 @@ class RuleUI
   end
 
   def get_rule_for_pat_and_repl(raw_pat_str, raw_repl_str)
-    @rules.each do |rule|
+    @single_rules.each do |rule|
       if rule.from_str == raw_pat_str
         rule.replacement_strs.each do |repl|
           if repl == raw_repl_str
@@ -276,7 +294,7 @@ class RuleUI
   end
 
   def get_rule_at(x, y)
-    @rules.each do |rule|
+    @single_rules.each do |rule|
       if rule.x1 <= x && rule.x2 >= x && rule.y1 <= y && rule.y2 >= y
         return rule
       end

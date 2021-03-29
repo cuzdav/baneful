@@ -1,63 +1,9 @@
 require 'ruby2d'
+require_relative 'cell_factory.rb'
 require_relative 'grid.rb'
 require_relative 'gamestate.rb'
 require_relative 'ruleui.rb'
 require_relative 'solve2.rb'
-
-class CellFactory
-  def initialize(level_cfg, color_map, move_number_provider)
-    @color_map = color_map
-    @type_map = {}
-    @init_args_map = {}
-    @color_map.keys.each do |ch|
-      @type_map[ch] = Rectangle
-      @init_args_map[ch] = []
-    end
-
-    type_overrides = level_cfg[:type_overrides]
-    if type_overrides != nil
-      init_type_overrides(type_overrides, move_number_provider)
-    end
-  end
-
-  def get_type_for_char(ch)
-    return @type_map[ch]
-  end
-
-  def create(ch)
-    args = @init_args_map[ch]
-    return get_type_for_char(ch).new(*args)
-  end
-
-  private
-
-  def init_type_overrides(type_overrides, move_num_provider)
-    type_overrides.each do |override_ch, override_ch_config|
-      typename = override_ch_config["type"]
-      type =
-        case (typename)
-        when "RotatingColors"
-          cycle_chars = override_ch_config["cycle_chars"]
-          if cycle_chars == nil
-            raise "Missing 'cycle_chars' from type_override for " +
-                  "#{override_ch} in level: #{level_cfg[:name]}\n\t==>#{override_ch_config}"
-          end
-          args = [move_num_provider]
-          cycle_chars.each_char do |ch|
-            args << @color_map[ch]
-          end
-          @init_args_map[override_ch] = args
-          RotatingColorsWigit
-        when "Rectangle"
-          Rectangle
-        else
-          raise "Unhandled type #{typename}"
-        end
-      puts ("Setting type of '#{override_ch}' to #{type}")
-      @type_map[override_ch] = type
-    end
-  end
-end
 
 
 class Level
@@ -75,19 +21,20 @@ class Level
   # (x1, y1)...(x2,y2) defines the area of screen where the playarea rows
   # shall go
   #
-  def initialize(level, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
+  def initialize(level_cfg, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
     @cur_row = 0
-    @rules = level[:rules]
-    @rows = level[:rows]
-    @type_overrides = level[:type_overrides]
+    @level_cfg = level_cfg
+    @rules = level_cfg[:rules]
+    @rows = level_cfg[:rows]
+    @type_overrides = level_cfg[:type_overrides]
     @num_moves = num_moves
     @max_width = maxwidth
     @eff_col = 0
-    @name = level[:name] || ""
+    @name = level_cfg[:name] || ""
 
-    @color_map = make_color_map(level)
-    @cell_factory = CellFactory.new(level, @color_map, self)
-    make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2 + 50)
+    @color_map = make_color_map(level_cfg)
+    @cell_factory = CellFactory.new(level_cfg, @color_map, self)
+    make_playarea_rows(level_cfg, maxrows, maxwidth, x1, y1, x2, y2 + 50)
     make_rules()
     next_gamestate()
   end
@@ -118,6 +65,7 @@ class Level
     return @grid.ycoord(@cur_row) + @grid.cell_height
   end
 
+  # for: MoveNumberProvider requirement
   def cur_move_number()
     return @game_state ? @game_state.cur_move_number : 0
   end
@@ -132,7 +80,7 @@ class Level
       next_gamestate
       @needs_modify_callback = update_grid_row(@cur_row, @game_state.cur_raw_row)
     end
-    @needs_modify_callback.each do |cell|
+    (@needs_modify_callback + @ruleui.cells_needing_updates).each do |cell|
       cell.modified
     end
   end
@@ -219,24 +167,21 @@ class Level
 
     hide_cells_in_row(effrow, 0, effcol) # leading empty cells
 
-    needs_modify_callback = []
+    needs_modify_cb = []
     row_str.each_char do |ch|
-      cell_object = init_grid_cell(ch, effrow, effcol, opacity)
-      if cell_object.needs_modified_callback
-        needs_modify_callback << cell_object
-      end
+      cell_object = init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
       effcol += 1
     end
     hide_cells_in_row(effrow, effcol, @numcols) # trailing empty cells
 
-    return needs_modify_callback
+    return needs_modify_cb
   end
 
   #
   # For each playarea cell.  Complication now that there are custom
   # wigits in the playarea.  Abstracted to a factory.
   #
-  def init_grid_cell(ch, effrow, effcol, opacity)
+  def init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
     # see if object is already the type we expect
     type = @cell_factory.get_type_for_char(ch)
     cell_object = @grid.get_cell_object(effrow, effcol)
@@ -244,6 +189,10 @@ class Level
       # nope, must create
       cell_object = @cell_factory.create(ch)
     end
+    if cell_object.needs_modified_callback
+      needs_modify_cb << cell_object
+    end
+
     @grid.set_cell_object(effrow, effcol, cell_object)
     @grid.set_cell_color(effrow, effcol, @color_map[ch])
     @grid.set_cell_opacity(effrow, effcol, opacity)
@@ -259,7 +208,7 @@ class Level
   end
 
   def make_rules()
-    @ruleui = RuleUI.new(@color_map, @rules)
+    @ruleui = RuleUI.new(@color_map, @level_cfg, self)
 
     window_width = Window.get(:width)
     window_height = Window.get(:height)

@@ -74,7 +74,7 @@ class InputState
     #
     # Build up rep for current state of each rule
     #
-    @ruleui.rules.each do |rule|
+    @ruleui.single_rules.each do |rule|
       rule_x1 = rule.x1 - rule_gap / 2
       rule_y1 = rule.y1
       rule_x2 = rule.x2 + rule_gap / 2

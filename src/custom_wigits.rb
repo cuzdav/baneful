@@ -22,6 +22,7 @@ class CustomCellBase
   def initialize()
     @x=0
     @y=0
+    @z=10
     @width=0
     @height=0
   end
@@ -66,6 +67,11 @@ class CustomCellBase
     modified
   end
 
+  def z=(val)
+    @z = val
+    modified
+  end
+
   def width=(w)
     @width = w
     modified
@@ -85,9 +91,9 @@ class EmptyReplacementWigit < CustomCellBase
     super()
     @circle = Circle.new(
       color: color,
-      z: 10,
+      z: @z,
     )
-    @line = Line.new(:z => 10)
+    @line = Line.new(:z => @z)
   end
 
   def each_wigit(&block)
@@ -99,14 +105,17 @@ class EmptyReplacementWigit < CustomCellBase
     min_hw = [@height, @width].min / 2 - 1
     mid_x = @x + @width / 2
     mid_y = @y + @height / 2
+    mid_z = @z
     @circle.x = mid_x
     @circle.y = mid_y
+    @circle.z = @z
     @circle.radius = min_hw
 
     @line.x1 = mid_x + min_hw
     @line.y1 = mid_y - min_hw
     @line.x2 = mid_x - min_hw
     @line.y2 = mid_y + min_hw
+    @line.z = @z
   end
 end
 
@@ -143,12 +152,15 @@ class WildcardWigit < CustomCellBase
     @rect.width = width
     @rect.x = @x
     @rect.y = @y
+    @rect.z = @z
 
     @circ.x = @x + @width / 2
     @circ.y = @y + @height / 2
+    @circ.z = @z
     @circ.radius = @height / 2
     @circ2.x = @x + @width / 2
     @circ2.y = @y + @height / 2
+    @circ2.z = @z
     @circ2.radius = @height / 2 - 3
 
     @text.remove if @text
@@ -157,7 +169,7 @@ class WildcardWigit < CustomCellBase
       size:@height * 0.80,
       x:@x + @width / 2 - 6,
       y:@y,
-      z:10,
+      z:@z,
     )
     @text.size = 100
   end
@@ -169,6 +181,9 @@ end
 # should be drawn (externally modifiedd)
 # Also, passed 2..3 colors, that it will cycle through
 #
+# Requires: move_number_provider: any class that has a "cur_move_number" method
+# that returns a number
+
 class RotatingColorsWigit < CustomCellBase
 
   def initialize(move_number_provider, *colors)
@@ -184,20 +199,9 @@ class RotatingColorsWigit < CustomCellBase
 
     @circle_colors  = colors.map{ |color| Circle.new(color: color) }
     @outline_colors = colors.map{ |color| Circle.new(color: 'black') }
-    @rect = Rectangle.new(z: 10)
+    @rect = Rectangle.new(z: @z)
     @n = @outline_colors.size
     modified
-  end
-
-  def z=(z)
-    puts("*** Rotate: setting z to #{z}")
-    each_wigit do |wigit|
-      wigit.z = z
-    end
-    cur_idx = get_cur_index()
-    @outline_colors[cur_idx].z += 1
-    @circle_colors[cur_idx].z += 2
-    @rect.z = z
   end
 
   def get_cur_index()
@@ -224,11 +228,11 @@ class RotatingColorsWigit < CustomCellBase
 
   def modified()
     idx = get_cur_index()
-
     @rect.height = @height
     @rect.width = @width
     @rect.x = @x
     @rect.y = @y
+    @rect.z = @z
     @rect.color = @colors[idx]
 
     dx = @width / (@n+1)
@@ -237,18 +241,20 @@ class RotatingColorsWigit < CustomCellBase
       outline = @outline_colors[i]
       outline.x = x
       outline.y = @y + (@height / 2)
-      outline.radius = height / 2 - 1
+      outline.radius = height / 2 - 6
 
       circle = @circle_colors[i]
       circle.x = x
       circle.y = @y + (@height / 2)
       circle.color = @colors[i]
-      circle.radius = height / 2 - 4
+      circle.radius = height / 2 - 10
 
-      zd = i == idx ? 3 : 0
+      zd = i == idx ? 10 : 0
       outline.color = i == idx ? 'white' : 'black'
-      outline.z = 11 + zd
-      circle.z = 12 + zd
+
+      z = @z + @n + zd + (i < idx ? +i : -i)
+      outline.z = z
+      circle.z = z
       x += dx
     end
   end
