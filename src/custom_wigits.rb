@@ -124,16 +124,14 @@ class WildcardWigit < CustomCellBase
   #wc_num is (wildcard) number 1-9 or nil
   def initialize(wc_num)
     super()
-    idx = wc_num ? wc_num + 1: 0
-
-    @rect = Rectangle.new(color: get_color(wc_num))
+    @rect = Rectangle.new(color: get_color())
     @circ = Circle.new(color: "red")
     @circ2 = Circle.new(color: "black")
     @text_data = wc_num ? idx : '?'
     @text = Text.new(@text_data)
   end
 
-  def get_color(wc_num)
+  def get_color()
       return ['red', 'blue', 'lime', 'yellow']
   end
 
@@ -167,8 +165,8 @@ class WildcardWigit < CustomCellBase
     @text = Text.new(
       @text_data,
       size:@height * 0.80,
-      x:@x + @width / 2 - 6,
-      y:@y,
+      x:@x + @width / 2 - 11,
+      y:@y + 2,
       z:@z,
     )
     @text.size = 100

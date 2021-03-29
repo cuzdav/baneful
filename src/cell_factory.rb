@@ -9,7 +9,7 @@ class CellFactory
     @init_args_map = {}
     @color_map.keys.each do |ch|
       @type_map[ch] = Rectangle
-      @init_args_map[ch] = []
+      @init_args_map[ch] = [color: color_map[ch]]
     end
 
     type_overrides = level_cfg[:type_overrides]
@@ -24,7 +24,11 @@ class CellFactory
 
   def create(ch)
     args = @init_args_map[ch]
-    return get_type_for_char(ch).new(*args)
+    klass = get_type_for_char(ch)
+    if klass == nil
+      raise("unknown char in level: #{ch}")
+    end
+    return klass.new(*args)
   end
 
   private

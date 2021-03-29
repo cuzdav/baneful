@@ -107,19 +107,22 @@ class SingleRule
     #TODO: use cell_factory
     row = 0
     col = 0
-    num_wild = 0
-    total_wild = from_str.count(".")
     from_str.each_char do |ch|
       if ch == '.'
-        num_to_show = total_wild > 1 ? num_wild : nil
-        num_wild += 1
-        wigit = WildcardWigit.new(num_to_show)
-        @rule_grid.set_cell_object(row, col, wigit)
+        cell_obj = WildcardWigit.new(nil)
+      elsif (ch.ord >= ?1.ord and ch.ord <= ?9.ord)
+        cell_obj = WildcardWigit.new(ch.ord - ?0.ord)
       else
+        cell_obj = cell_factory.create(ch)
         color = @color_map[ch]
       end
+      @rule_grid.set_cell_object(row, col, cell_obj)
       @rule_grid.set_cell_color(row, col, color)
       @rule_grid.show_cell(row, col)
+
+      if cell_obj.needs_modified_callback
+        @parent.cells_needing_updates << cell_obj
+      end
       col += 1
     end
   end
@@ -132,9 +135,9 @@ class SingleRule
       if not repl_str.empty?
         repl_str.each_char do |ch|
           if SPECIAL_REPL_CHARS.include?(ch)
-            wc_num = num_wildcards > 1 ? ch.ord - ?1.ord : nil
-            wigit = WildcardWigit.new(wc_num)
-            @rule_grid.set_cell_object(row, col, wigit)
+            wc_num = num_wildcards > 1 ? ch.ord - ?0.ord : nil
+            cell_obj = WildcardWigit.new(wc_num)
+            @rule_grid.set_cell_object(row, col, cell_obj)
           else
             cell_obj = cell_factory.create(ch)
             @rule_grid.set_cell_object(row, col, cell_obj)
@@ -232,9 +235,6 @@ class RuleUI
 
   def clear
     @single_rules.each do |rule|
-      if rule == nil
-        puts("************ RULE IS NIL")
-      end
       rule.clear
     end
     @vlines.each {|line| line.remove}

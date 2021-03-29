@@ -13,7 +13,7 @@ class Grid
   attr_reader :y1
   attr_reader :y2
 
-  def initialize(num_rows, num_cols, x1, y1, x2, y2)
+  def initialize(num_rows, num_cols, x1, y1, x2, y2, center_rows=false)
     @num_rows = num_rows
     @num_cols = num_cols
     @rows = []
@@ -21,12 +21,13 @@ class Grid
     @vert_gap_px = 5
     @background = Rectangle.new(:z => 1, :color => [1, 1, 1, 0.4])
     @background.remove
+    @center_rows = center_rows
 
     (0...@num_rows).each do|y|
       @rows << []
-      (0...@num_cols).each do |x|
-        @rows[y] << Rectangle.new()
-      end
+  #    (0...@num_cols).each do |x|
+  #      @rows[y] << Rectangle.new()
+  #    end
     end
 
     resizing_move_to(x1, y1, x2, y2)
@@ -59,7 +60,8 @@ class Grid
   # allow some other object to replace a rect, as long as it implements
   # the Rectangle interface
   def set_cell_object(row, col, obj)
-    @rows[row][col].remove
+    cell = @rows[row][col]
+    cell.remove if cell
     @rows[row][col] = obj
     update_cell(obj, row, col, nil)
   end
@@ -99,7 +101,8 @@ class Grid
   def foreach_rect(&block)
     (0...@num_rows).each do |r|
       (0...@num_cols).each do |c|
-        block.call(@rows[r][c])
+        cell = @rows[r][c]
+        block.call(cell) if cell
       end
     end
   end
@@ -107,7 +110,8 @@ class Grid
   def foreach_rect_with_index(&block)
     (0...@num_rows).each do |r|
       (0...@num_cols).each do |c|
-        block.call(@rows[r][c], r, c)
+        cell = @rows[r][c]
+        block.call(cell, r, c) if cell
       end
     end
   end
@@ -143,7 +147,7 @@ class Grid
   def set_cell_opacity(rownum, colnum, opacity)
     if rownum < num_rows
       cell = @rows[rownum][colnum]
-      cell.opacity = opacity
+      cell.opacity = opacity if cell
       return cell
     end
     return nil
@@ -151,14 +155,18 @@ class Grid
 
   def show_cell(rownum, colnum)
     if rownum < num_rows
-      return @rows[rownum][colnum].add
+      cell = @rows[rownum][colnum]
+      cell.add if cell
+      return cell
     end
     return nil
   end
 
   def hide_cell(rownum, colnum)
     if rownum < num_rows
-      return @rows[rownum][colnum].remove
+      cell = @rows[rownum][colnum]
+      cell.remove if cell
+      return cell
     end
     return nil
   end
@@ -222,6 +230,7 @@ class Grid
   private
 
   def update_cell(rect, row, col, color)
+    return if rect == nil
     rect.x = xcoord(col) + @gap_px
     rect.width = @cell_width - @gap_px
     rect.y = ycoord(row) + @vert_gap_px

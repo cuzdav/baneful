@@ -11,7 +11,7 @@ GS_PLAY_RESULT = 5 # result of applying move to current row (opt)
 GS_PLAY_NUM_MOVES = 6 # number of moves from the solution (opt)
 
 
-SPECIAL_PATTERN_CHARS = ".123456789"
+SPECIAL_PATTERN_CHARS = "?123456789"
 SPECIAL_REPL_CHARS = "123456789"
 
 def create_reverse_mapping(rules)
@@ -221,15 +221,14 @@ class GameState
   # [offset, from-str, to-str]
   # special characters in rule strings affect options:
   # pattern:
-  #   .  matches any single char
+  #   ?  matches any single char
   # replacement:
-  #   1 2 3, ..., 9  : placeholder for whatever char matched nth '.' in pattern
-  def possible_plays(only_wildcards=false)
+  #   1 2 3, ..., 9  : placeholder for whatever char matched corresponding N in pattern
+  def possible_plays()
     results = []
     # pat: string, repls: array of replacements
     rulenum = -1
     rules.each do |pat, repls|
-      next if only_wildcards and not pat.include?('.')
       rulenum += 1
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
