@@ -7,8 +7,8 @@ $verbose = false
 
 require_relative("../config.rb")
 
-row_num = 0
-level_num = 0
+$row_num = 0
+$level_num = 0
 all = true
 levels = LEVELS
 
@@ -40,12 +40,13 @@ def solve_level(level, level_num)
   num_moves = level[:num_moves] || 99
   max_width = level[:max_width] || 9
   max_depth = level[:max_depth] || 15
+  type_overrides = level[:type_overrides]
   goal = level[:goal] || ""
 
   puts("*** Level #{level_num}") if $verbose
   puts("    RULES: #{rules}") if $verbose
   solver = Solver.new(rules, num_moves, max_width)
-  row_num = 0
+  $row_num = 0
   solutions = []
   rows.each do |line|
     puts("  Row: #{line}") if $verbose
@@ -53,6 +54,7 @@ def solve_level(level, level_num)
     gamestate = GameState.new(
       rules,
       line,
+      type_overrides,
       max_width,
       goal)
     gamestate.max_depth = max_depth
@@ -60,16 +62,17 @@ def solve_level(level, level_num)
     solution = solver.find_solution(gamestate)
     solutions << solution
     if solution == nil
-      puts("\nFailed to find solution for level num #{level_num}: line=\"#{line}\", row=#{row_num}, rules:\n#{rules}\n")
+      puts("\nFailed to find solution for level num #{level_num}: line=\"#{line}\", " + 
+	   "row=#{$row_num}, rules:\n#{rules}\n")
       $failed += 1
     end
-    row_num += 1
+    $row_num += 1
   end
   return solutions
 end
 
 def analyze_level_solutions(level, solutions)
-
+  # total work in progress
   # let's find some basic comparison metrics for each row in a level:
   # * total num of positions that are the same in both solutions
   # * % overlap of positions in both solutions
@@ -106,9 +109,9 @@ end
 
 def process_level(level)
   level_begin_time = Time.now
-  solutions = solve_level(level, level_num)
+  solutions = solve_level(level, $level_num)
   analyze_level_solutions(level, solutions)
-  level_num += 1
+  $level_num += 1
   level_end_time = Time.now
   puts("Processing level took #{level_end_time - level_begin_time}")
 end
@@ -122,6 +125,7 @@ end
 
 $tested = 0
 $failed = 0
+test_all_levels(levels)
 puts("Done: total: #{$tested}, failed: #{$failed}")
 
 
