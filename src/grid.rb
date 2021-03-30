@@ -25,9 +25,6 @@ class Grid
 
     (0...@num_rows).each do|y|
       @rows << []
-  #    (0...@num_cols).each do |x|
-  #      @rows[y] << Rectangle.new()
-  #    end
     end
 
     resizing_move_to(x1, y1, x2, y2)

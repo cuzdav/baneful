@@ -11,7 +11,7 @@ GS_PLAY_RESULT = 5 # result of applying move to current row (opt)
 GS_PLAY_NUM_MOVES = 6 # number of moves from the solution (opt)
 
 
-SPECIAL_PATTERN_CHARS = "?123456789"
+SPECIAL_PATTERN_CHARS = ".123456789"
 SPECIAL_REPL_CHARS = "123456789"
 
 def create_reverse_mapping(rules)

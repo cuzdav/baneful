@@ -127,7 +127,7 @@ class WildcardWigit < CustomCellBase
     @rect = Rectangle.new(color: get_color())
     @circ = Circle.new(color: "red")
     @circ2 = Circle.new(color: "black")
-    @text_data = wc_num ? idx : '?'
+    @text_data = wc_num ? wc_num : '?'
     @text = Text.new(@text_data)
   end
 
