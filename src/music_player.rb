@@ -66,7 +66,7 @@ class MusicPlayer
     #verify
     @music_playlist.map! do |file, duration|
       dir = File.dirname($0)
-      song = "#{dir}/../resource/" + file
+      song = "#{dir}/../resource/music/" + file
       if not File.exists?(song)
         raise "Music File Not Found #{song}"
       end
