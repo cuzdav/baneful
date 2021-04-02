@@ -135,8 +135,6 @@ class Level
 
     @numcols = maxwidth
     @grid = Grid.new(@numrows, maxwidth, x1, eff_y1, x2, eff_y2)
-    puts("*** playarea grid created, with cell size of: #{@grid.cell_height}")
-    @grid.remove_all()
 
     @grid.highlight_background
     @grid.set_background_color(Color.new([10, 10, 10, 0.15]))
