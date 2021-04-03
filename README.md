@@ -6,6 +6,12 @@ Installation
 see install-ubuntu.sh or install-mac.sh
 
 
+Launch
+------
+invoke './baneful' at the top level directory
+Or, in src directory, run "ruby main.rb" but it is a bit noisier
+on the console with internal state dumps.  Some is even interesting.
+
 Play
 ----
 An idea that has floated in my head for a while, but finally decided

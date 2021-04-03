@@ -2,12 +2,6 @@ require 'ruby2d'
 require_relative 'input_state.rb'
 require_relative 'level.rb'
 require_relative 'music_player.rb'
-
-# <levels> is an array of <LEVEL>
-# where <LEVEL> is [<RULES>, <ROWS>]
-# and <RULES> is hash <from> => [<REPLACEMENTS>]
-# and <ROWS> is array of starting strings
-
 require_relative 'config.rb'
 
 # index int <levels> described above
@@ -20,6 +14,7 @@ $curlevel = nil       # ui game objects for cur level
 
 charmap = {}
 
+Window.set title: "Baneful"
 Window.set({:width => 1024, :height => 768})
 
 MAX_ROWS = 5
@@ -51,9 +46,6 @@ COLORS = [
   PASTEL_YELLOW
 ]
 
-
-
-
 def playarea_height()
   return Window.get(:height) / 3
 end
@@ -62,8 +54,16 @@ def rulearea_max_height()
   return Window.get(:height) / 2
 end
 
-$music = MusicPlayer.new(MUSIC)
+initial_level = nil
+ARGV.each do |arg|
+  if arg =~ /--level=(.*)/
+    initial_level = $1
+  end
+end
 
+current_directory = File.dirname($0)
+$music = MusicPlayer.new(current_directory, MUSIC)
+$level_manager = LevelManager.new(current_directory, initial_level)
 $input_state = InputState.new($music)
 
 Window.on :mouse_move do |event|
@@ -82,66 +82,9 @@ Window.on :key_down do |event|
   $input_state.on_key_down(event)
 end
 
-
-def next_level()
-  puts ("***** NEW LEVEL *****")
-  $curlevel_config = LEVELS[$level_num]
-  if $curlevel_config != nil
-    puts("LEVEL NOW: #{$level_num}: #{$curlevel_config[:name]}")
-    $level_num += 1
-    $row_num = 0
-
-    if $curlevel != nil
-      $curlevel.ruleui.clear
-      $curlevel.grid.unhighlight_background
-    end
-
-    $curlevel = Level.new(
-      $curlevel_config,
-      99999, #num moves
-      MAX_ROWS,
-      MAX_WIDTH,
-      20, 20, #playarea_height() - $curlevel_config[:rows].size * 50,
-      Window.get(:width)-20, playarea_height() #x2, y2
-    )
-    $input_state.prepare_next_level(
-      $curlevel.ruleui,
-      $curlevel, $curlevel.solver)
-  end
-end
-
-ARGV.each do |arg|
-  if arg =~ /--level=([\d]+)/
-    $level_num = $1.to_i
-    if $level_num >= LEVELS.size
-      puts("Max level is #{LEVELS.size}")
-      exit 1
-    end
-    puts("Starting on level #{$level_num}")
-  elsif arg =~ /--level=(.*)/
-    pat = Regexp.new("^#{$1}$")
-    idx = 0
-    LEVELS.each do |lvl|
-      break if lvl[:name] =~ pat
-      idx += 1
-    end
-    if idx == LEVELS.size
-      puts("Max level is #{LEVELS.size}")
-      exit 1
-    end
-    $level_num = idx
-  end
-  puts("Starting on level #{$level_num}")
-end
-
-next_level()
-
-puts("******* LEVELS: #{LEVELS.size}")
+$level_manager.start
 
 tick = 0
-
-set title: "Baneful"
-
 update do
   tick += 1
   if tick == 60

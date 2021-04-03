@@ -2,6 +2,7 @@ require 'ruby2d'
 require_relative 'cell_factory.rb'
 require_relative 'grid.rb'
 require_relative 'gamestate.rb'
+require_relative 'level_manager.rb'
 require_relative 'ruleui.rb'
 require_relative 'solve2.rb'
 
@@ -21,20 +22,21 @@ class Level
   # (x1, y1)...(x2,y2) defines the area of screen where the playarea rows
   # shall go
   #
-  def initialize(level_cfg, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
+  def initialize(level_manager, num_moves, maxrows, maxwidth, x1, y1, x2, y2)
     @cur_row = 0
-    @level_cfg = level_cfg
-    @rules = level_cfg[:rules]
-    @rows = level_cfg[:rows]
-    @type_overrides = level_cfg[:type_overrides]
+    @level_manager = level_manager
+    @level_cfg = @level_manager.curlevel_config
+    @rules = @level_cfg[LEVEL_KEY_RULES]
+    @rows = @level_cfg[LEVEL_KEY_ROWS]
+    @type_overrides = @level_cfg[LEVEL_KEY_TYPE_OVERRIDES]
     @num_moves = num_moves
     @max_width = maxwidth
     @eff_col = 0
-    @name = level_cfg[:name] || ""
+    @name = @level_cfg[LEVEL_KEY_NAME] || ""
 
-    @color_map = make_color_map(level_cfg)
-    @cell_factory = CellFactory.new(level_cfg, @color_map, self)
-    make_playarea_rows(level_cfg, maxrows, maxwidth, x1, y1, x2, y2 + 50)
+    @color_map = make_color_map(@level_cfg)
+    @cell_factory = CellFactory.new(@level_cfg, @color_map, self)
+    make_playarea_rows(@level_cfg, maxrows, maxwidth, x1, y1, x2, y2 + 50)
     make_rules()
     next_gamestate()
   end
@@ -75,7 +77,7 @@ class Level
     if @game_state.solved?
       @cur_row -= 1
       if @cur_row < 0
-        next_level()
+        @level_manager.next_level()
       end
       next_gamestate
       @needs_modify_callback = update_grid_row(@cur_row, @game_state.cur_raw_row)
@@ -103,12 +105,12 @@ class Level
 
     # build mapping from char -> color
     chrs = ""
-    level_cfg[:rules].each do |from, tolist|
-	chrs += from
-	chrs += tolist.join
+    level_cfg[LEVEL_KEY_RULES].each do |from, tolist|
+        chrs += from
+        chrs += tolist.join
     end
-    level_cfg[:rows].each do |row|
-	chrs += row
+    level_cfg[LEVEL_KEY_ROWS].each do |row|
+        chrs += row
     end
 
     chrs.chars.sort.uniq.each do |ch|
@@ -122,7 +124,7 @@ class Level
 
   def make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
     verify_rows
-    @numrows = level[:rows].size
+    @numrows = level[LEVEL_KEY_ROWS].size
     height = (y2 - y1).abs
     max_cell_height = height / maxrows
 
@@ -141,7 +143,7 @@ class Level
 
     # add each row to this level
     opacity = 0.6
-    level[:rows].each do |row|
+    level[LEVEL_KEY_ROWS].each do |row|
       needs_update = update_grid_row(@cur_row, row, opacity)
       @needs_update_callback = needs_update
       @cur_row += 1

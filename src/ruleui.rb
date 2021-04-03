@@ -207,7 +207,7 @@ class RuleUI
     @hintbox.remove
     @border_lines.each {|line| line.remove}
 
-    rules = level_cfg[:rules]
+    rules = level_cfg[LEVEL_KEY_RULES]
     rule_count = rules.size
 
     cell_factory = CellFactory.new(level_cfg, color_map, self)

@@ -58,15 +58,14 @@ class MusicPlayer
     @music.stop
   end
 
-  def initialize(music_playlist)
+  def initialize(current_directory, music_playlist)
     @music_playlist = music_playlist
     @volume = 60
     @index = 0
 
     #verify
     @music_playlist.map! do |file, duration|
-      dir = File.dirname($0)
-      song = "#{dir}/../resource/music/" + file
+      song = "#{current_directory}/../resource/music/" + file
       if not File.exists?(song)
         raise "Music File Not Found #{song}"
       end

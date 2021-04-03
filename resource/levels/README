@@ -1,0 +1,132 @@
+Levels for the game are provided in json files in this directory.
+Each file is one collection of levels for the game.  A single level
+is "one screen" of rows and rules.
+
+The format:
+
+Outermost object:
+
+{
+  "levels": [
+    ....
+  ]
+}
+
+More metadata may be added later.
+
+Each element in the "levels" array is a dictionary representing one level.
+
+The basic format for an individual level is as follows, with the following
+required fields
+
+# each element of "levels" array:
+{
+   "name": "<levelname>",
+   "rows": [....],
+   "rules: {....},
+   "type_overrides": {} # optional
+}
+
+* "name" denotes a string value, which is displayed when the level is played. It
+can also be the starting level if launched with --level=<levelname> arg
+
+* "rows" denotes an array of the rows, corresponding to each playable row at
+the top of the screen.  These are the goals to clear.  The array must be
+5 or fewer in size, and each string must be <= 9.
+
+* "rules" denotes a hash of "from" string -> [array of string replacements]"
+Because a pattern may be replaced by one or more replacements, this dictionary
+shows all the from/to relationships.
+
+* "type_overrides" are described below under Special Cells
+
+A level can specify one or more rows of blocks to be cleared, and some rules
+forming a "grammar" to be applied to clear them.
+
+Colored cells (aka "blocks") in the game are represented by single letters as
+text:
+
+   [a-o] Normal colored blocks (valid range may shrink, as 15 seems too high)
+
+   .     Wildcard.  In a pattern, it will match "any block"
+
+   [1-9] Placeholder: back reference to the nth wildcard.   For example,
+         if rule is .b. then there are 2 wildcards, and 1 refers to whatever
+         the first . matched, and 2 refers to whatever the 2nd . matched.
+         For a rule like ".b.": ["2b1"] it would effectively swap the two
+         characters surrounding a letter 'b'.
+         If there is more than one wildcard/placeholder pair, the cells will
+         be displayed with numbers showing which ones are related.
+
+   ""    Empty string - for a replacement, the matched pattern goes away
+         This is represented as a red circle with a line through it, like the
+         "empty set" symbol.  Sort of.
+
+The game will verify that a level is solvable before anyone can play it.
+Therefore, if no solution exists, the level is in error.
+
+SPECIAL CELLS
+There is some ability to add new types of cells to the game.
+
+They are accessed by "overriding" the meaning of one or more basic block
+letters. For example, normally a "d" would be a basic colored block, but if it
+was overridden it could mean something else.
+
+EXAMPLE:
+    "type_overrides": {
+      "d": {
+        "type": "<special-cell-type-name>"
+        ... <additional cell-specific config>
+      },
+
+This would change "d" to have whatever meaning associated with the given type,
+and configured by the rest of the dictionary.
+
+The following are available "type_overrides"
+
+RotatingColors
+--------------
+
+It has behavior where it is created with multiple colors, and cycles through
+them, cycling from one to the next until the list is exhausted, and then starts
+over at the beginning. It changes _after each turn is played._ This adds some
+timing issue of using the block as the proper color at the moment it's needed.
+To soon or too late, and you may miss a chance to play.
+
+It is displayed as a solid color (the current color) plus a series of circles,
+each filled with a color. The circles show the color pattern it will cycle
+through, and the current color circle is front and center, with a highlighted
+ring around it.  This allows one to see what color(s) it will be on future turns.
+
+This makes all 'd' characters in rules and rows cycle between three states: a,
+b, c
+   and makes "e" cycle between "a" and "b"
+
+If a and b are basic colors, when it is in the "a" state, it will behave as if
+it was a color block corresponding to "a", and if it's in the b state will
+behave as if it was a color block corresponding to "b".
+
+    "type_overrides": {
+      "d": {
+        "type": "RotatingColors",
+        "cycle_chars": "abc",
+      },
+      "e": {
+        "type": "RotatingColors",
+        "cycle_chars": "ab",
+      },
+    }
+
+In the above cases, once the d or e cells in the rows are replaced with a color,
+thye stop cycling.
+
+If the cycling block (d or e in this example) are in a replacement string of a
+rule, then the cycling block will be _inserted_ into the play area if that rule
+is applied, and it will continue cycling.
+
+NOTE: cycling blocks shown in the replacements are "one step" ahead of the play
+area, showing the exact state it will be in if it was part of the played move
+this turn.
+
+---- end of special cells ---
+(hopefully more to come!)
