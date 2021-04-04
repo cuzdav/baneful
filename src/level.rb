@@ -26,13 +26,13 @@ class Level
     @cur_row = 0
     @level_manager = level_manager
     @level_cfg = @level_manager.curlevel_config
-    @rules = @level_cfg[LEVEL_KEY_RULES]
-    @rows = @level_cfg[LEVEL_KEY_ROWS]
-    @type_overrides = @level_cfg[LEVEL_KEY_TYPE_OVERRIDES]
+    @rules = @level_cfg[LEVEL_RULES]
+    @rows = @level_cfg[LEVEL_ROWS]
+    @type_overrides = @level_cfg[LEVEL_TYPE_OVERRIDES]
     @num_moves = num_moves
     @max_width = maxwidth
     @eff_col = 0
-    @name = @level_cfg[LEVEL_KEY_NAME] || ""
+    @name = @level_cfg[LEVEL_NAME] || ""
 
     @color_map = make_color_map(@level_cfg)
     @cell_factory = CellFactory.new(@level_cfg, @color_map, self)
@@ -105,11 +105,11 @@ class Level
 
     # build mapping from char -> color
     chrs = ""
-    level_cfg[LEVEL_KEY_RULES].each do |from, tolist|
+    level_cfg[LEVEL_RULES].each do |from, tolist|
         chrs += from
         chrs += tolist.join
     end
-    level_cfg[LEVEL_KEY_ROWS].each do |row|
+    level_cfg[LEVEL_ROWS].each do |row|
         chrs += row
     end
 
@@ -124,7 +124,7 @@ class Level
 
   def make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
     verify_rows
-    @numrows = level[LEVEL_KEY_ROWS].size
+    @numrows = level[LEVEL_ROWS].size
     height = (y2 - y1).abs
     max_cell_height = height / maxrows
 
@@ -143,7 +143,7 @@ class Level
 
     # add each row to this level
     opacity = 0.6
-    level[LEVEL_KEY_ROWS].each do |row|
+    level[LEVEL_ROWS].each do |row|
       needs_update = update_grid_row(@cur_row, row, opacity)
       @needs_update_callback = needs_update
       @cur_row += 1

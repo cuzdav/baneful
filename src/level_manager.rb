@@ -3,10 +3,10 @@ require_relative 'input_state.rb'
 require_relative 'level.rb'
 require_relative 'ruleui.rb'
 
-LEVEL_KEY_NAME = "name"
-LEVEL_KEY_RULES = "rules"
-LEVEL_KEY_ROWS = "rows"
-LEVEL_KEY_TYPE_OVERRIDES = "type_overrides"
+LEVEL_NAME = "name"
+LEVEL_RULES = "rules"
+LEVEL_ROWS = "rows"
+LEVEL_TYPE_OVERRIDES = "type_overrides"
 
 
 # responsible for dealing with filesystm and loading level files,
@@ -31,7 +31,7 @@ class LevelManager
   def next_level()
     puts ("***** NEW LEVEL *****")
     @curlevel_config = @current_levels[@level_num]
-    @level_name = @curlevel_config[LEVEL_KEY_NAME]
+    @level_name = @curlevel_config[LEVEL_NAME]
     if @curlevel_config != nil
       puts("LEVEL NOW: #{@level_num}: #{@level_name}")
       @level_num += 1

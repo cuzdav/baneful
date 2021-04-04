@@ -12,7 +12,7 @@ class CellFactory
       @init_args_map[ch] = [color: color_map[ch]]
     end
 
-    type_overrides = level_cfg[LEVEL_KEY_TYPE_OVERRIDES]
+    type_overrides = level_cfg[LEVEL_TYPE_OVERRIDES]
     if type_overrides != nil
       init_type_overrides(type_overrides, move_number_provider)
     end
@@ -45,7 +45,7 @@ class CellFactory
           cycle_chars = override_ch_config["cycle_chars"]
           if cycle_chars == nil
             raise "Missing 'cycle_chars' from type_override for " +
-                  "#{override_ch} in level: #{@level_cfg[LEVEL_KEY_NAME]}\n\t==>#{override_ch_config}"
+                  "#{override_ch} in level: #{@level_cfg[LEVEL_NAME]}\n\t==>#{override_ch_config}"
           end
           # provide the move provider and all the colors it should cycle through
           args = [move_num_provider]
