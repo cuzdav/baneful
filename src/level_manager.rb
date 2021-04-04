@@ -59,8 +59,20 @@ class LevelManager
   private
 
   def resolve_first_level
-    #TODO; search for level matching initial level
-    return 0
+    n = 0
+    if @initial_level =~ /^(\d+)$/
+      n = @initial_level.to_i
+    else
+      @current_levels.each do |level_cfg|
+        name = level_cfg["name"]
+        if name == @initial_level or name =~ /#{@initial_level}/
+          break
+        end
+        n += 1
+      end
+    end
+
+    return n
   end
 
   def open_level_file(filename)
