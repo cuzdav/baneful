@@ -1,5 +1,5 @@
 require "test/unit"
-require_relative "gamestate.rb"
+require_relative "game_data.rb"
 
 
 class GameStatTest < Test::Unit::TestCase

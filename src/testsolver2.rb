@@ -14,25 +14,25 @@ class TestSolver < Test::Unit::TestCase
     @max_moves = 4
   end
 
-  def validate_solution(game_state, solution)
+  def validate_solution(game_data, solution)
     return if solution.empty?
     begin
       solution.each do |move|
-        game_state.make_move(move)
+        game_data.make_move(move)
       end
-      assert_true game_state.solved?
+      assert_true game_data.solved?
     ensure
-      game_state.reset
+      game_data.reset
     end
   end
 
   def assert_solution(rules, init_position, expected_solution, type_overrides=nil)
     solver = Solver.new(rules, @max_moves, @max_width)
-    game_state = GameState.new(rules, init_position, type_overrides, @max_width)
-    validate_solution(game_state, expected_solution)
+    game_data = GameState.new(rules, init_position, type_overrides, @max_width)
+    validate_solution(game_data, expected_solution)
 
-    solution = solver.find_solution(game_state)
-    validate_solution(game_state, solution)
+    solution = solver.find_solution(game_data)
+    validate_solution(game_data, solution)
 
     if solution != nil
       # convert hash back into a small array for comparison

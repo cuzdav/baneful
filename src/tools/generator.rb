@@ -1,4 +1,4 @@
-require_relative "gamestate.rb"
+require_relative "game_data.rb"
 require_relative "solve2.rb"
 
 

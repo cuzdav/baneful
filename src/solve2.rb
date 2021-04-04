@@ -1,4 +1,4 @@
-require_relative 'gamestate'
+require_relative 'game_data'
 
 # Has two separate algorithms that work together. 1) a top-down
 # brute force search, starting at the game position this is the
@@ -33,10 +33,10 @@ class Solver
     puts("Preprocessing took: #{t2 - t1}")
   end
 
-  def find_solution(game_state)
+  def find_solution(game_data)
     @best_solution = []
-    @game_state = game_state.clone_from_cur_position()
-    move_data = @positions[game_state.cur_row]
+    @game_data = game_data.clone_from_cur_position()
+    move_data = @positions[game_data.cur_row]
     if move_data
       result = build_solution_path(move_data)
     else
@@ -61,29 +61,29 @@ class Solver
   # may still be found.
   #
   def find_solution_dynamic()
-    if @game_state.solved?
+    if @game_data.solved?
       update_best_maybe(nil)
       return
     end
 
-    prev_move_num = @visited[@game_state.cur_row]
+    prev_move_num = @visited[@game_data.cur_row]
     if prev_move_num != nil and prev_move_num <= @move_number
       return
     end
-    @visited[@game_state.cur_row] = @move_number
+    @visited[@game_data.cur_row] = @move_number
 
-    moves = @game_state.possible_plays()
+    moves = @game_data.possible_plays()
     moves.each do |move|
-      if @game_state.make_move(move)
-        raw_pat, raw_repl = @game_state.get_raw_rule_and_repl_for_move(move)
+      if @game_data.make_move(move)
+        raw_pat, raw_repl = @game_data.get_raw_rule_and_repl_for_move(move)
 
         if raw_pat.include?('.')
-          cur_pos = @game_state.cur_row.dup
+          cur_pos = @game_data.cur_row.dup
           # replace the replaced chars with the raw (wildcard) pattern
           # this makes it able to hook into the set of pre-computed positions.
           cur_pos[move[GS_PLAY_IDX]...raw_repl.size] = raw_pat
         else
-          cur_pos = @game_state.cur_row.dup
+          cur_pos = @game_data.cur_row.dup
         end
 
         # did our two solver techniques connect? (Brute force ran into a
@@ -99,7 +99,7 @@ class Solver
         @move_number += 1
         find_solution_dynamic()
         @move_number -= 1
-        @game_state.undo_move()
+        @game_data.undo_move()
       end
     end
     return
@@ -122,7 +122,7 @@ class Solver
   end
 
   def update_best_maybe(move_data)
-    moves = @game_state.played_moves
+    moves = @game_data.played_moves
     total_moves = moves.size + (move_data ? move_data[GS_PLAY_NUM_MOVES] : 0)
     if @best_solution.empty? or total_moves < @best_solution.size
       static_solution = build_solution_path(move_data)
@@ -135,7 +135,7 @@ class Solver
         static_solution = static_solution[1..-1]
       end
       @best_solution = moves.clone + static_solution
-      @game_state.max_depth = total_moves
+      @game_data.max_depth = total_moves
     end
   end
 
@@ -255,8 +255,8 @@ def main()
   moves = 10
   width = 7
   solver = Solver.new(rules, moves, width)
-  game_state = GameState.new(rules, rows[0], width)
-  solution = solver.find_solution(game_state)
+  game_data = GameState.new(rules, rows[0], width)
+  solution = solver.find_solution(game_data)
 
   if solution != nil
     solution.each do |move|

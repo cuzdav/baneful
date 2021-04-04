@@ -1,7 +1,7 @@
 require 'ruby2d'
 require_relative 'cell_factory.rb'
 require_relative 'grid.rb'
-require_relative 'gamestate.rb'
+require_relative 'game_data.rb'
 require_relative 'level_manager.rb'
 require_relative 'ruleui.rb'
 require_relative 'solve2.rb'
@@ -10,7 +10,7 @@ require_relative 'solve2.rb'
 class Level
   attr_reader :ruleui
   attr_reader :grid
-  attr_reader :game_state
+  attr_reader :game_data
   attr_reader :rows
   attr_reader :eff_col
   attr_reader :cur_row
@@ -38,12 +38,12 @@ class Level
     @cell_factory = CellFactory.new(@level_cfg, @color_map, self)
     make_playarea_rows(@level_cfg, maxrows, maxwidth, x1, y1, x2, y2 + 50)
     make_rules()
-    next_gamestate()
+    next_game_data()
   end
 
-  def next_gamestate()
+  def next_game_data()
     row_str = @cur_row >= 0 ? @rows[@cur_row] : ""
-    @game_state = GameState.new(
+    @game_data = GameState.new(
       @rules, row_str, @type_overrides, @max_width)
   end
 
@@ -69,18 +69,18 @@ class Level
 
   # for: MoveNumberProvider requirement
   def cur_move_number()
-    return @game_state ? @game_state.cur_move_number : 0
+    return @game_data ? @game_data.cur_move_number : 0
   end
 
   def update_after_modification
-    @needs_modify_callback = update_grid_row(@cur_row, @game_state.cur_raw_row)
-    if @game_state.solved?
+    @needs_modify_callback = update_grid_row(@cur_row, @game_data.cur_raw_row)
+    if @game_data.solved?
       @cur_row -= 1
       if @cur_row < 0
         @level_manager.next_level()
       end
-      next_gamestate
-      @needs_modify_callback = update_grid_row(@cur_row, @game_state.cur_raw_row)
+      next_game_data
+      @needs_modify_callback = update_grid_row(@cur_row, @game_data.cur_raw_row)
     end
     (@needs_modify_callback + @ruleui.cells_needing_updates).each do |cell|
       cell.modified
@@ -88,12 +88,12 @@ class Level
   end
 
   def reset_cur_level
-    @game_state.reset
+    @game_data.reset
     update_after_modification
   end
 
   def undo_move
-    @game_state.undo_move
+    @game_data.undo_move
     update_after_modification
   end
 
@@ -243,8 +243,8 @@ class Level
   def verify_rows()
     @solver = Solver.new(@rules, @num_moves, @max_width)
     @rows.each do |row_str|
-      game_state = GameState.new(@rules, row_str, @type_overrides, @max_width)
-      if @solver.find_solution(game_state).empty?
+      game_data = GameState.new(@rules, row_str, @type_overrides, @max_width)
+      if @solver.find_solution(game_data).empty?
         raise("Row #{row_str} is not solvable")
       end
     end

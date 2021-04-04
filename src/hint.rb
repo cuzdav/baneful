@@ -1,7 +1,7 @@
 require 'ruby2d'
 require_relative 'solve2.rb'
 require_relative 'ruleui.rb'
-require_relative 'gamestate.rb'
+require_relative 'game_data.rb'
 require_relative 'level.rb'
 
 class Hint
@@ -41,14 +41,14 @@ class Hint
   private
 
   def rule_hint(cur_level)
-    game_state = cur_level.game_state
+    game_data = cur_level.game_data
 
     # find the next move to make...
-    @solution = @solver.find_solution(game_state)
+    @solution = @solver.find_solution(game_data)
 
     if not @solution.empty?
       @next_move = @solution[0]
-      rpat, rrepl = game_state.get_raw_rule_and_repl_for_move(@next_move)
+      rpat, rrepl = game_data.get_raw_rule_and_repl_for_move(@next_move)
       @rule = cur_level.ruleui.get_rule_for_pat_and_repl(rpat, rrepl)
       if @rule != nil
         @input.select_rule(@rule)
@@ -81,7 +81,7 @@ class Hint
     # count unique targets (to-string and offset)
     # only one move, so show where it should go at once
     targets = {}
-    cur_level.game_state.possible_plays.each do |idx, from, to|
+    cur_level.game_data.possible_plays.each do |idx, from, to|
       targets[idx.to_s + from] = 1 if to == repl
     end
     if targets.size() == 1

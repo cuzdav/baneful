@@ -7,6 +7,29 @@ TGT_END_X = 1
 TGT_COL = 2
 TGT_MOVE = 3
 
+class StateImpl
+  def on_mouse_move(event)
+  end
+
+  def on_mouse_left_down(event)
+  end
+
+  def on_mouse_left_up(event)
+  end
+
+  def on_mouse_right_down(event)
+  end
+
+  def on_mouse_right_up(event)
+  end
+
+  def on_key_down(event, shiftdown, ctrldown)
+  end
+
+  def on_key_up(event, shiftdown, ctrldown)
+  end
+end
+
 
 class InputState
 
@@ -14,12 +37,100 @@ class InputState
 
   def initialize(bg_music)
     @bg_music = bg_music
+    @shiftdown = false
+    @ctrldown = false
+    @playing_state = PlayingState.new
+    @cur_state = @playing_state
+  end
+
+  def on_mouse_move(event)
+    @cur_state.on_mouse_move(event)
+  end
+
+  def on_mouse_down(event)
+    case event.button
+    when :left
+      @cur_state.on_mouse_left_down(event)
+    when :right
+      @cur_state.on_mouse_right_down(event)
+    end
+  end
+
+  def on_mouse_up(event)
+    case event.button
+    when :left
+      @cur_state.on_mouse_left_up(event)
+    when :right
+      @cur_state.on_mouse_right_up(event)
+    end
+  end
+
+
+  def on_key_down(event)
+    case event.key
+    when "left shift", "right shift"
+      @shiftdown = true
+    when "left ctrl", "right ctrl"
+      @ctrldown = true
+    end
+    @cur_state.on_key_down(event, @shiftdown, @ctrldown)
+  end
+
+  def on_key_up(event)
+    case event.key
+    when "="
+      if @shiftdown
+        @bg_music.volume_up(5)
+      end
+    when "-"
+      @bg_music.volume_down(5)
+    when 'p'
+      toggle_music_paused
+    when 'q'
+      if @ctrldown
+        exit
+      end
+    when "]"
+      @bg_music.next_track
+
+    when "left shift", "right shift"
+      @shiftdown = false
+
+    when "left ctrl", "right ctrl"
+      @ctrldown = false
+    end
+    @cur_state.on_key_up(event, @shiftdown, @ctrldown)
+  end
+
+
+  def toggle_music_paused
+    if @music_paused
+      @bg_music.resume
+      @music_paused = false
+    else
+      @bg_music.pause
+      @music_paused = true
+    end
+  end
+
+  def update_from_game_data
+    @playing_state.update_from_game_data
+  end
+
+  def prepare_next_level(ruleui, cur_level, solver)
+    @playing_state.prepare_next_level(ruleui, cur_level, solver)
+  end
+
+end
+
+
+class PlayingState < StateImpl
+  def initialize()
     @ruleui = nil
     @cur_level = nil
     @selected_rule = nil
     @selected_repl = nil
     @selected_target_idx = nil
-    @mousedown = false
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
@@ -33,13 +144,93 @@ class InputState
     @rule_data = Hash.new()
   end
 
+  def on_mouse_left_down(event)
+    on_mouse_move(event)
+    @mousedown = true
+    if @selected_rule != nil
+      replacement_str = @ruleui.get_replacement_str_at(event.x, event.y)
+      if @selected_repl != nil and replacement_str != nil
+        @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5)
+      end
+    end
+  end
+
+
+  def on_mouse_left_up(event)
+    @mousedown = false
+    if @game_over_state != nil
+      restart()
+    elsif @selected_repl != @locked_repl
+      @locked_repl = @selected_repl
+      @locked_rule = @selected_rule
+    elsif @selected_target_idx != nil
+      apply_choice_maybe
+      @locked_repl = nil
+      @locked_rule = nil
+      unselect_playarea_grid
+      unselect_rule
+    end
+    on_mouse_move(event)
+  end
+
+
+  def on_mouse_right_down(event)
+    on_mouse_move(event)
+    unselect_replacement
+    unselect_playarea_grid
+    unselect_rule
+    @locked_repl = nil
+    @locked_rule = nil
+  end
+
+
+  def on_mouse_right_up(event)
+    on_mouse_move(event)
+  end
+
+  def on_key_up(event, shiftdown, ctrldown)
+    #    puts "KEYDOWN:"
+    #    p event
+    case event.key
+    when "escape"
+      unselect_replacement
+    when "h"
+      give_hint
+
+    when "r"
+      restart
+    when "u"
+      undo_move()
+    when '.'
+      @cur_level.game_data.cur_row = ""
+      if shiftdown
+        unselect_rule
+        @cur_level.update_after_modification
+        update_from_game_data
+      end
+    end
+  end
+
+
+  def on_mouse_move(event)
+    if @locked_repl != nil
+      mouse_targeting(event.x, event.y)
+    elsif event.y >= @ruleui.y1
+      mouse_over_rule(event)
+    elsif not @mousedown
+      unselect_rule
+    end
+  end
+
+
   def no_more_moves
-    if @cur_level.game_state.solved?
+    if @cur_level.game_data.solved?
       Text.new("You Win", size: 80, color: "white", y: 30, z:20)
     else
       @game_over_state = GameOverState.new
     end
   end
+
 
   def prepare_next_level(ruleui, cur_level, solver)
     @hint.clear if @hint != nil
@@ -47,14 +238,15 @@ class InputState
     @ruleui = ruleui
     @cur_level = cur_level
     @level_name_wigit.text = cur_level.name
-    update_from_game_state
+    update_from_game_data
   end
+
 
   #
   # precompute all possible moves for current position, build "spotlights" to
-  # the targets. Should be called after the gamestate changes
-  def update_from_game_state
-    @possible_plays = @cur_level.game_state.possible_plays || []
+  # the targets. Should be called after the game_data changes
+  def update_from_game_data
+    @possible_plays = @cur_level.game_data.possible_plays || []
 
     puts("Possible plays: #{@possible_plays}")
 
@@ -166,115 +358,26 @@ class InputState
     end
   end
 
+
   def apply_move(move)
     # CHANGE OFFICIAL GAME STATE (attempt)
-    result = @cur_level.game_state.make_move(move)
+    result = @cur_level.game_data.make_move(move)
 
     if result == nil
-      puts("Curr game state: #{@cur_level.game_state.cur_row}xo")
+      puts("Curr game state: #{@cur_level.game_data.cur_row}xo")
       puts("MOVE: #{move}")
       puts("PROBLEM??? applying move failed!")
     end
 
     @cur_level.update_after_modification
-    update_from_game_state()
+    update_from_game_data()
   end
 
-  def on_mouse_down(event)
-    # If they double-click on a row, it unselects the row, then
-    # we have rule selected but not a selected_row, and it causes
-    # problems.  So this resets the selected state if the mouse
-    # is over a just-unselected box that should still be selected.
-    on_mouse_move(event)
-
-    case event.button
-    when :left
-      on_mouse_left_down(event)
-    when :right
-      on_mouse_right_down(event)
-    end
-  end
-
-  def on_mouse_left_down(event)
-    @mousedown = true
-    if @selected_rule != nil
-      replacement_str = @ruleui.get_replacement_str_at(event.x, event.y)
-      if @selected_repl != nil and replacement_str != nil
-        @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5)
-      end
-    end
-  end
-
-  def on_key_down(event)
-    case event.key
-    when "left shift", "right shift"
-      @shiftdown = true
-    when "left ctrl", "right ctrl"
-      @ctrldown = true
-    end
-  end
-
-  def on_key_up(event)
-#    puts "KEYDOWN:"
-#    p event
-    case event.key
-    when "escape"
-      unselect_replacement
-    when "h"
-      give_hint
-
-    when "r"
-      restart
-    when "u"
-      undo_move()
-    when "="
-      if @shiftdown
-        @bg_music.volume_up(5)
-      end
-    when "-"
-        @bg_music.volume_down(5)
-
-    when 'p'
-      toggle_music_paused
-
-    when 'q'
-      if @ctrldown
-        exit
-      end
-
-    when '.'
-      @cur_level.game_state.cur_row = ""
-      if @shiftdown
-        unselect_rule
-        @cur_level.update_after_modification
-        update_from_game_state
-      end
-
-    when "]"
-      @bg_music.next_track
-
-    when "left shift", "right shift"
-      @shiftdown = false
-
-    when "left ctrl", "right ctrl"
-      @ctrldown = false
-    end
-  end
-
-  def toggle_music_paused
-    if @music_paused
-      @bg_music.resume
-      @music_paused = false
-    else
-      @bg_music.pause
-      @music_paused = true
-    end
-  end
 
   def give_hint
     @hint.next_hint(@cur_level)
     if @hint.solution != nil
-      gs = @cur_level.game_state.clone_from_cur_position
+      gs = @cur_level.game_data.clone_from_cur_position
       puts("Start")
       puts gs.cur_row
       @hint.solution.each do |move|
@@ -284,31 +387,6 @@ class InputState
     end
   end
 
-  def on_mouse_up(event)
-    case event.button
-    when :left
-      on_mouse_left_up(event)
-    when :right
-      on_mouse_right_up(event)
-    end
-    on_mouse_move(event) # reset positioning
-  end
-
-  def on_mouse_left_up(event)
-    @mousedown = false
-    if @game_over_state != nil
-      restart()
-    elsif @selected_repl != @locked_repl
-      @locked_repl = @selected_repl
-      @locked_rule = @selected_rule
-    elsif @selected_target_idx != nil
-      apply_choice_maybe
-      @locked_repl = nil
-      @locked_rule = nil
-      unselect_playarea_grid
-      unselect_rule
-    end
-  end
 
   def apply_choice_maybe
     if @selected_rule != nil
@@ -322,16 +400,6 @@ class InputState
     unselect_rule
   end
 
-  def on_mouse_right_up(event)
-  end
-
-  def on_mouse_right_down(event)
-    unselect_replacement
-    unselect_playarea_grid
-    unselect_rule
-    @locked_repl = nil
-    @locked_rule = nil
-  end
 
   def undo_move
     @cur_level.undo_move
@@ -339,8 +407,9 @@ class InputState
       @game_over_state.clear
       @game_over_state = nil
     end
-    update_from_game_state()
+    update_from_game_data()
   end
+
 
   def restart
     @cur_level.reset_cur_level
@@ -356,17 +425,7 @@ class InputState
       @game_over_state = nil
     end
 
-    update_from_game_state()
-  end
-
-  def on_mouse_move(event)
-    if @locked_repl != nil
-      mouse_targeting(event.x, event.y)
-    elsif event.y >= @ruleui.y1
-      mouse_over_rule(event)
-    elsif not @mousedown
-      unselect_rule
-    end
+    update_from_game_data()
   end
 
   def mouse_targeting(mousex, mousey)
@@ -378,7 +437,7 @@ class InputState
     # note: cells in grid are drawn centered, so grid coords may not
     # have same index as "string" coords.  Example:
     # String: "XXY" and grid width is 5, grid may be [_XXY_]
-    # XXY string coords (in gamestate) are 0, but in grid are 1.
+    # XXY string coords (in game_data) are 0, but in grid are 1.
     # @target_row_info are grid-relative, not string relative.
     # This offset is @cur_level.eff_col
 

@@ -1,5 +1,5 @@
 
-require_relative '../gamestate.rb'
+require_relative '../game_data.rb'
 require_relative '../solve2.rb'
 require_relative 'utils.rb'
 
@@ -51,15 +51,15 @@ def solve_level(level, level_num)
   rows.each do |line|
     puts("  Row: #{line}") if $verbose
     $tested += 1
-    gamestate = GameState.new(
+    game_data = GameState.new(
       rules,
       line,
       type_overrides,
       max_width,
       goal)
-    gamestate.max_depth = max_depth
+    game_data.max_depth = max_depth
 
-    solution = solver.find_solution(gamestate)
+    solution = solver.find_solution(game_data)
     solutions << solution
     if solution == nil
       puts("\nFailed to find solution for level num #{level_num}: line=\"#{line}\", " + 
