@@ -17,14 +17,16 @@ class Grid
     @num_rows = num_rows
     @num_cols = num_cols
     @rows = []
+    @row_xoffsets = []
     @gap_px = 2
     @vert_gap_px = 5
-    @background = Rectangle.new(:z => 1, :color => [1, 1, 1, 0.4])
+    @background = Rectangle.new(:z => 0, :color => [1, 1, 1, 0.4])
     @background.remove
     @center_rows = center_rows
 
     (0...@num_rows).each do|y|
       @rows << []
+      @row_xoffsets << 0
     end
 
     resizing_move_to(x1, y1, x2, y2)
@@ -39,6 +41,11 @@ class Grid
       s.remove
     end
     @selected = []
+  end
+
+  # One use is for centering rows out-of-phase rows to grid width
+  def set_row_offset(row, offset)
+    @row_xoffsets[row] = offset
   end
 
   def set_background_color(color)
@@ -127,8 +134,8 @@ class Grid
     return result
   end
 
-  def xcoord(colnum)
-    (colnum.floor * @cell_width + @x1).floor
+  def xcoord(rownum, colnum)
+    (colnum.floor * @cell_width + @x1).floor + @row_xoffsets[rownum]
   end
 
   def ycoord(rownum)
@@ -179,8 +186,8 @@ class Grid
     @selected_col1 = colnum1
     @selected_col2 = colnum2
 
-    x = xcoord(colnum1) + @gap_px
-    x2 = xcoord(colnum2)
+    x = xcoord(rownum, colnum1) + @gap_px
+    x2 = xcoord(rownum, colnum2)
     y = ycoord(rownum) + @vert_gap_px
 
     # top horiz
@@ -228,7 +235,7 @@ class Grid
 
   def update_cell(rect, row, col, color)
     return if rect == nil
-    rect.x = xcoord(col) + @gap_px
+    rect.x = xcoord(row, col) + @gap_px
     rect.width = @cell_width - @gap_px
     rect.y = ycoord(row) + @vert_gap_px
     rect.height = @cell_height - @vert_gap_px

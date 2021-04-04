@@ -145,11 +145,6 @@ class WildcardWigit < CustomCellBase
     block.yield @circ2
   end
 
-  def remove
-    puts("************** Wildcard removing...")
-    super.remove
-  end
-
   def modified()
     @rect.height = height
     @rect.width = width

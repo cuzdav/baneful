@@ -49,12 +49,12 @@ class Level
 
   # grid index of pixel coord
   def active_x1_coord(col)
-    return @grid.xcoord(col)
+    return @grid.xcoord(@cur_row, col)
   end
 
   # grid index of pixel coord
   def active_x2_coord(col)
-    return @grid.xcoord(col) + @grid.cell_width
+    return @grid.xcoord(@cur_row, col) + @grid.cell_width
   end
 
   # grid index of pixel coord
@@ -168,6 +168,12 @@ class Level
     hide_cells_in_row(effrow, 0, effcol) # leading empty cells
 
     needs_modify_cb = []
+
+    # center rows if size is out of phase with width of table
+    needs_offset = (row_str.size % 2 != @numcols % 2) and row_str.size < @numcols
+    row_offset = needs_offset ? grid.cell_width / 2 : 0
+    @grid.set_row_offset(effrow, row_offset)
+
     row_str.each_char do |ch|
       cell_object = init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
       effcol += 1

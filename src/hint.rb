@@ -95,10 +95,10 @@ class Hint
     # grid-coord from string coord is offset by eff_col
     idx = @next_move[GS_PLAY_IDX] + cur_level.eff_col
     pat = @next_move[GS_PLAY_PAT]
-    end_idx = idx + pat.size
-    x = grid.xcoord(idx)
-    y = grid.ycoord(cur_level.cur_row)
-    width = grid.xcoord(end_idx) - x + grid.gap_px
+    end_idx = idx + pat.size - 1
+    x = cur_level.active_x1_coord(idx)
+    y = cur_level.active_y1_coord()
+    width = cur_level.active_x2_coord(end_idx) - x
     height = grid.cell_height + grid.vert_gap_px
 
     @target_hintbox.x = x

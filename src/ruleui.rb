@@ -123,6 +123,7 @@ class SingleRule
       end
       @rule_grid.set_cell_object(row, col, cell_obj)
       @rule_grid.set_cell_color(row, col, color)
+      @rule_grid.set_cell_opacity(row, col, 0)
       @rule_grid.show_cell(row, col)
       col += 1
     end
@@ -202,7 +203,7 @@ class RuleUI
     @hintbox = Rectangle.new(
       :color => "white",
       :z => 0,
-      :opacity => 0.8)
+      :opacity => 0.2)
 
     @hintbox.remove
     @border_lines.each {|line| line.remove}

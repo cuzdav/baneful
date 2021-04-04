@@ -31,8 +31,8 @@ class LevelManager
   def next_level()
     puts ("***** NEW LEVEL *****")
     @curlevel_config = @current_levels[@level_num]
-    @level_name = @curlevel_config[LEVEL_NAME]
     if @curlevel_config != nil
+      @level_name = @curlevel_config[LEVEL_NAME] 
       puts("LEVEL NOW: #{@level_num}: #{@level_name}")
       @level_num += 1
       @row_num = 0

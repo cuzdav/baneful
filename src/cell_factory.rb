@@ -28,7 +28,9 @@ class CellFactory
     if klass == nil
       raise("unknown char in level: #{ch}")
     end
-    return klass.new(*args)
+    cell = klass.new(*args)
+    cell.opacity = 1
+    return cell
   end
 
   private
