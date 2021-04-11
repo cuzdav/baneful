@@ -8,6 +8,23 @@ TGT_COL = 2
 TGT_MOVE = 3
 
 class StateImpl
+
+  # state becomes pushed to top of stack
+  def state_active
+  end
+
+  # another state has become the "top" of the stack
+  def state_paused
+  end
+
+  # stack was popped and now reveals this state again
+  def state_resumed
+  end
+
+  # state becomes inactive (popped from stack)
+  def state_deactivated
+  end
+
   def on_mouse_move(event)
   end
 
@@ -29,13 +46,15 @@ class StateImpl
   def on_key_up(event, shiftdown, ctrldown)
   end
 
+  # start next level
   def prepare_next_level(ruleui, cur_level, solver)
   end
 
+  # get ready for next move
   def update_from_game_data
   end
 
-  # called each 1/60 of a second.  Give or take.
+  # main event loop; called each 1/60 of a second.  Give or take.
   def update()
   end
 end
@@ -45,13 +64,42 @@ class InputState
 
   attr_accessor :selected_target_idx
 
-  def initialize(bg_music)
+  def initialize(bg_music, level_manager)
     @bg_music = bg_music
+    @level_manager = level_manager
     @shiftdown = false
     @ctrldown = false
     @title_screen_state = TitleScreenState.new
     @playing_state = PlayingState.new
-    @cur_state = @title_screen_state
+    @state_stack = []
+    push_state(@title_screen_state)
+  end
+
+  def push_state(newstate)
+    top = @state_stack[-1]
+    if top != nil
+      top.state_paused
+    end
+    @state_stack << newstate
+    @cur_state = newstate
+    @cur_state.state_active
+  end
+
+  def pop_state
+    oldtop = @state_stack.pop
+    oldtop.state_deactivated if oldtop != nil
+    @cur_state = @state_stack[-1]
+    @cur_state.state_resumed if @cur_state
+  end
+
+  def change_state(newstate)
+    pop_state
+    push_state(newstate)
+  end
+
+  #beginning of game
+  def startup()
+    @level_manager.start
   end
 
   def update()
@@ -263,12 +311,13 @@ class PlayingState < StateImpl
 
   #
   # pre-compute all possible moves for current position, build "spotlights" to
-  # the targets. Should be called after the game_data changes
+  # the targets. Called after the game_data changes (a move is played, or a
+  # new level is initialized)
+  #
   def update_from_game_data
     @possible_plays = @cur_level.game_data.possible_plays || []
 
     puts("Possible plays: #{@possible_plays}")
-
     @rule_data.each do |pat, data|
       data[:widgets].each do |widgets_per_row|
         if widgets_per_row != nil
@@ -604,12 +653,10 @@ class TitleScreenState < PlayingState
     @tick = 0
     @selected_rule_idx = 0
     @press_any_key = Text.new(
-      'Hello',
-      x: 150, y: 470,
-      font: 'vera.ttf',
-      size: 20,
-      color: 'blue',
-      rotate: 90,
+      '(Click to begin)',
+      x: 20, y: Window.get(:height) / 2,
+      size: 30,
+      color: 'white',
       z: 10
     )
   end
@@ -645,7 +692,7 @@ class TitleScreenState < PlayingState
 
   def on_mouse_left_up(event)
     start_game()
-  end
+  end 
 
   def on_mouse_right_up(event)
     start_game()

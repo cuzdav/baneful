@@ -25,7 +25,7 @@ class LevelManager
     @levels_dir = "#{current_directory}/../resource/levels"
   end
 
-  def start
+  def start(filename=nil)
     file_list = Dir.entries(@levels_dir).select {|file| file =~ /.*\.json/}
     puts "FILE LIST: #{file_list}"
     @current_levels = open_level_file(file_list[0])
@@ -36,31 +36,37 @@ class LevelManager
 
   def next_level()
     puts ("***** NEW LEVEL *****")
-    @curlevel_config = @current_levels[@level_num]
-    if @curlevel_config != nil
-      @level_name = @curlevel_config[LEVEL_NAME]
+    curlevel_config = @current_levels[@level_num]
+    if curlevel_config != nil
       puts("LEVEL NOW: #{@level_num}: #{@level_name}")
       @level_num += 1
-      @row_num = 0
-
-      if @curlevel != nil
-        @curlevel.ruleui.clear
-        @curlevel.grid.unhighlight_background
-      end
-
-      @curlevel = Level.new(
-        self,
-        @curlevel_config[LEVEL_NUM_MOVES] || 9999,
-        @curlevel_config[LEVEL_MAX_ROWS] || MAX_ROWS,
-        @curlevel_config[LEVEL_MAX_COLS] || MAX_COLS,
-        20, 20, #playarea_height() - @curlevel_config["rows"].size * 50,
-        Window.get(:width)-20, playarea_height() #x2, y2
-      )
-      $input_state.prepare_next_level(
-        @curlevel.ruleui,
-        @curlevel,
-        @curlevel.solver)
+      play_level(curlevel_config)
     end
+  end
+
+  def play_level(level_cfg)
+    raise "invalid cfg" if not level_cfg
+    @curlevel_config = level_cfg
+    @level_name = @curlevel_config[LEVEL_NAME]
+
+    @row_num = 0
+    if @curlevel != nil
+      @curlevel.ruleui.clear
+      @curlevel.grid.unhighlight_background
+    end
+
+    @curlevel = Level.new(
+      self,
+      curlevel_config[LEVEL_NUM_MOVES] || 9999,
+      curlevel_config[LEVEL_MAX_ROWS] || MAX_ROWS,
+      curlevel_config[LEVEL_MAX_COLS] || MAX_COLS,
+      20, 20,
+      Window.get(:width)-20, playarea_height() #x2, y2
+    )
+    $input_state.prepare_next_level(
+      @curlevel.ruleui,
+      @curlevel,
+      @curlevel.solver)
   end
 
   private
