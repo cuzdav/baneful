@@ -20,21 +20,18 @@ LEVEL_INACTIVE_ROW_OPACITY = "inactive_row_opacity"
 class LevelManager
   attr_reader :curlevel_config
 
-  def initialize(current_directory, initial_level)
-    @initial_level = initial_level
+  def initialize(current_directory)
     @levels_dir = "#{current_directory}/../resource/levels"
   end
 
-  def start(filename=nil)
-    file_list = Dir.entries(@levels_dir).select {|file| file =~ /.*\.json/}
-    puts "FILE LIST: #{file_list}"
-    @current_levels = open_level_file(file_list[0])
-    @level_num = resolve_first_level
-    next_level()
+  def open_level_group(filename, initial_level)
+    @current_levels = open_level_file(filename)
+    @level_num = resolve_first_level(initial_level)
+    prepare_next_level()
   end
 
 
-  def next_level()
+  def prepare_next_level()
     puts ("***** NEW LEVEL *****")
     curlevel_config = @current_levels[@level_num]
     if curlevel_config != nil
@@ -68,14 +65,14 @@ class LevelManager
 
   private
 
-  def resolve_first_level
+  def resolve_first_level(initial_level)
     n = 0
-    if @initial_level =~ /^(\d+)$/
-      n = @initial_level.to_i
+    if initial_level =~ /^(\d+)$/
+      n = initial_level.to_i
     else
       @current_levels.each do |level_cfg|
         name = level_cfg["name"]
-        if name == @initial_level or name =~ /#{@initial_level}/
+        if name == @initial_level or name =~ /#{initial_level}/
           break
         end
         n += 1

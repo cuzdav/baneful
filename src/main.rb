@@ -63,8 +63,8 @@ end
 
 current_directory = File.dirname($0)
 $music = MusicPlayer.new(current_directory, MUSIC)
-$level_manager = LevelManager.new(current_directory, initial_level)
-$input_state = InputState.new($music, $level_manager)
+$level_manager = LevelManager.new(current_directory)
+$input_state = InputState.new($music, $level_manager, initial_level)
 
 Window.on :mouse_move do |event|
   $input_state.on_mouse_move(event)
@@ -82,7 +82,7 @@ Window.on :key_down do |event|
   $input_state.on_key_down(event)
 end
 
-$input_state.startup
+$input_state.startup("title_screen.json")
 
 tick = 0
 update do

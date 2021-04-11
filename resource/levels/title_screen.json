@@ -1,0 +1,25 @@
+{
+    "levels": [
+        {
+            "name": "Game By Chris Uzdavinis",
+            "rows": [
+                "aabbbbbaabbbabbbabbaaaabbaaaabbabbbabbabbbb",
+                "ababbbabbabbabbbabbabbbbbabbbbbabbbabbabbbb",
+                "ababbbabbabbaabbabbabbbbbabbbbbabbbabbabbbb",
+                "aaaabbaaaabbabababbaabbbbaaaabbabbbabbabbbb",
+                "abbabbabbabbabbaabbabbbbbabbbbbabbbabbabbbb",
+                "abbabbabbabbabbbabbabbbbbabbbbbabbbabbabbbb",
+                "aaaabbabbabbabbbabbaaaabbabbbbbaaaaabbaaaaa"
+            ],
+            "rules": {
+                "a": ["c"],
+                "b": ["c"],
+                "c": [""]
+            },
+            "max_rows": 8,
+            "max_cols": 43,
+            "no_verify": true,
+            "inactive_row_opacity": 1.0
+        }
+    ]
+}

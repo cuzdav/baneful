@@ -77,7 +77,7 @@ class Level
     if @game_data.solved?
       @cur_row -= 1
       if @cur_row < 0
-        @level_manager.next_level()
+        @level_manager.prepare_next_level()
       end
       next_game_data
       @needs_modify_callback = update_grid_row(@cur_row, @game_data.cur_raw_row)

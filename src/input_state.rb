@@ -65,8 +65,10 @@ class InputState
   attr_accessor :selected_target_idx
   attr_reader :playing_state
   attr_reader :title_screen_state
+  attr_reader :initial_level # from cmdline
 
-  def initialize(bg_music, level_manager)
+  def initialize(bg_music, level_manager, initial_level)
+    @initial_level = initial_level
     @bg_music = bg_music
     @level_manager = level_manager
     @shiftdown = false
@@ -99,9 +101,14 @@ class InputState
     push_state(newstate)
   end
 
-  #beginning of game
-  def startup()
-    @level_manager.start
+  def startup(level_group_filename)
+    initial_level = ""
+    if @cur_state and @cur_state != @title_screen_state
+      initial_level = @initial_level
+      @initial_level = ""
+    end
+    puts("************* startup: initial_level: #{initial_level}")
+    @level_manager.open_level_group(level_group_filename, initial_level)
   end
 
   def update()
@@ -723,7 +730,7 @@ class TitleScreenState < PlayingState
     puts("START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     clear
     @owner.change_state(@owner.playing_state)
-    @owner.startup
+    @owner.startup("standard.json")
   end
 
   def state_deactivated
