@@ -603,6 +603,15 @@ class TitleScreenState < PlayingState
     super()
     @tick = 0
     @selected_rule_idx = 0
+    @press_any_key = Text.new(
+      'Hello',
+      x: 150, y: 470,
+      font: 'vera.ttf',
+      size: 20,
+      color: 'blue',
+      rotate: 90,
+      z: 10
+    )
   end
 
   def update()
