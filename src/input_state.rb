@@ -142,6 +142,7 @@ end
 class PlayingState < StateImpl
 
   attr_reader :ruleui
+  attr_reader :rule_data
 
   def initialize()
     @ruleui = nil
@@ -152,11 +153,11 @@ class PlayingState < StateImpl
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
-    @level_name_widgit = Text.new("", x:5, y:5, z:20, color:"white", size:18)
+    @level_name_widget = Text.new("", x:5, y:5, z:20, color:"white", size:18)
 
     # [rule_data]
     # rule pattern to data associated:
-    #  :widgits add to Window to indicate rule is active
+    #  :widgets add to Window to indicate rule is active
     #  :target_cell_info: when locked&loaded, these x-ranges will
     #      select the potential replacement cells in play area
     @rule_data = Hash.new()
@@ -255,7 +256,7 @@ class PlayingState < StateImpl
     @hint = Hint.new(self, solver)
     @ruleui = ruleui
     @cur_level = cur_level
-    @level_name_widgit.text = cur_level.name
+    @level_name_widget.text = cur_level.name
     update_from_game_data
   end
 
@@ -269,10 +270,10 @@ class PlayingState < StateImpl
     puts("Possible plays: #{@possible_plays}")
 
     @rule_data.each do |pat, data|
-      data[:widgits].each do |widgits_per_row|
-        if widgits_per_row != nil
-          widgits_per_row.each do |widgit|
-            widgit.remove
+      data[:widgets].each do |widgets_per_row|
+        if widgets_per_row != nil
+          widgets_per_row.each do |widget|
+            widget.remove
           end
         end
       end
@@ -290,13 +291,13 @@ class PlayingState < StateImpl
       rule_x2 = rule.x2 + rule_gap / 2
       rule_y2 = rule_y1
 
-      widgits_per_row = []
+      widgets_per_row = []
       target_cell_info_per_row = []
       row_has_moves = []
       has_moves = false
 
       rule_data = {
-        widgits: widgits_per_row,
+        widgets: widgets_per_row,
         has_moves: false,
         target_cell_info: target_cell_info_per_row,
         row_has_moves: row_has_moves,
@@ -307,7 +308,7 @@ class PlayingState < StateImpl
       rule.replacement_strs.each do |rep_str|
         quads = []
         row_info = []
-        widgits_per_row[row_idx] = quads
+        widgets_per_row[row_idx] = quads
         target_cell_info_per_row[row_idx] = row_info
 
         # filter all possible plays from the current rule to just those of
@@ -508,7 +509,7 @@ class PlayingState < StateImpl
         if @selected_repl != row || rule.replacement_strs.size == 1
           unselect_replacement
           if row != nil
-            select_replacement(row, x, y)
+            select_replacement(row)
           end
         end
       end
@@ -516,17 +517,22 @@ class PlayingState < StateImpl
   end
 
   def select_rule(rule)
+    result = false
     if rule != nil
       if rule != @selected_rule
         unselect_rule
       end
       @selected_rule = rule
       data = @rule_data[rule.from_str]
-      rule.rule_grid.highlight_background if data[:has_moves]
+      if data[:has_moves]
+        rule.rule_grid.highlight_background
+        result = true
+      end
     end
+    return result
   end
 
-  def select_replacement(row, mouse_x_unused, mouse_y_unused)
+  def select_replacement(row)
     data = @rule_data[@selected_rule.from_str]
     row_has_moves = data[:row_has_moves]
     maxrow = @selected_rule.replacement_strs.size + FIRST_REPL_ROW
@@ -534,15 +540,14 @@ class PlayingState < StateImpl
     if row != nil and row_has_moves[row]
       # weird, when compiled with mruby, this is a float, but interpreted it's an int
       row = row.floor
-
       repl_str = @selected_rule.get_replacement_str_for_row(row)
       @selected_repl = row
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
 
-      @target_row_info = data[:target_cell_info][row]
-      widgits = data[:widgits][row]
-      if widgits != nil
-        widgits.each do |quad|
+      @target_row_fo = data[:target_cell_info][row]
+      widgets = data[:widgets][row]
+      if widgets != nil
+        widgets.each do |quad|
           quad.add
         end
       end
@@ -550,7 +555,7 @@ class PlayingState < StateImpl
   end
 
   def unselect_replacement
-    unselect_widgits
+    unselect_widgets
     return if @selected_rule == nil
     @selected_rule.rule_grid.unselect if @selected_rule != nil
     @selected_repl = nil
@@ -568,20 +573,20 @@ class PlayingState < StateImpl
       @hint.clear
       @selected_rule.rule_grid.unhighlight_background
       unselect_replacement
-      unselect_widgits
+      unselect_widgets
       @selected_rule_has_moves = false
       @selected_rule.rule_grid.unselect
       @selected_rule = nil
     end
   end
 
-  def unselect_widgits
+  def unselect_widgets
     if @rule_data != nil and @selected_rule != nil
       data = @rule_data[@selected_rule.from_str]
       if data != nil
-        data[:widgits].each do |widgit_row|
-          if widgit_row != nil
-            widgit_row.each do |quad|
+        data[:widgets].each do |widget_row|
+          if widget_row != nil
+            widget_row.each do |quad|
               quad.remove
             end
           end
@@ -610,10 +615,14 @@ class TitleScreenState < PlayingState
 
   def next_selection
     rules = ruleui.single_rules
-    rule = rules[@selected_rule_idx]
-    select_rule(rule)
-    select_replacement(0, 0, 0)
-    @selected_rule_idx = (@selected_rule_idx + 1) % rules.size
+    # cycle between rules that have moves
+    # this selection causes the "spotlights" to oscillate on the title screen
+    loop do
+      @selected_rule_idx = (@selected_rule_idx + 1) % rules.size
+      rule = rules[@selected_rule_idx]
+      break if select_rule(rule)
+    end
+    select_replacement(FIRST_REPL_ROW)
   end
 
   def on_mouse_move(event)
@@ -633,16 +642,15 @@ class TitleScreenState < PlayingState
     start_game()
   end
 
-  def on_key_down(event)
+  def on_key_down(event, shiftdown, ctrldown)
   end
 
-  def on_key_up(event)
+  def on_key_up(event, shiftdown, ctrldown)
     start_game()
   end
 
   def start_game()
     puts("START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-      
   end
 
 end

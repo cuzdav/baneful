@@ -190,7 +190,7 @@ class Level
 
   #
   # For each playarea cell.  Complication now that there are custom
-  # wigits in the playarea.  Abstracted to a factory.
+  # widgets in the playarea.  Abstracted to a factory.
   #
   def init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
     # see if object is already the type we expect

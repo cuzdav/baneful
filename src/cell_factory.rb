@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative 'custom_wigits.rb'
+require_relative 'custom_widgets.rb'
 
 class CellFactory
   def initialize(level_cfg, color_map, move_number_provider)
@@ -55,7 +55,7 @@ class CellFactory
             args << @color_map[ch]
           end
           @init_args_map[override_ch] = args
-          RotatingColorsWigit
+          RotatingColorsWidget
 
         else
           raise "Unhandled type #{typename}"

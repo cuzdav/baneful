@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative 'custom_wigits.rb'
+require_relative 'custom_widgets.rb'
 
 FIRST_REPL_ROW = 2
 
@@ -113,10 +113,10 @@ class SingleRule
       if ch == '.'
         num_to_show = total_wild > 1 ? num_wild : nil
         num_wild += 1
-        cell_obj = WildcardWigit.new(num_to_show)
+        cell_obj = WildcardWidget.new(num_to_show)
       elsif (ch.ord >= ?0.ord and ch.ord <= ?9.ord)
         #TODO: make explicit placeholders ok too
-        cell_obj = WildcardWigit.new(ch)
+        cell_obj = WildcardWidget.new(ch)
       else
         cell_obj = cell_factory.create(ch)
         color = @color_map[ch]
@@ -138,7 +138,7 @@ class SingleRule
         repl_str.each_char do |ch|
           if SPECIAL_REPL_CHARS.include?(ch)
             wc_num = num_wildcards > 1 ? ch.ord - ?1.ord : nil
-            cell_obj = WildcardWigit.new(wc_num)
+            cell_obj = WildcardWidget.new(wc_num)
             @rule_grid.set_cell_object(row, col, cell_obj)
           else
             cell_obj = cell_factory.create(ch)
@@ -151,7 +151,7 @@ class SingleRule
           col += 1
         end
       else
-        empty_cell = EmptyReplacementWigit.new('red')
+        empty_cell = EmptyReplacementWidget.new('red')
         @rule_grid.set_cell_object(row, col, empty_cell)
         @rule_grid.show_cell(row, col)
       end

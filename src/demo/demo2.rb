@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative '../custom_wigits.rb'
+require_relative '../custom_widgets.rb'
 
 set title: "Hello Triangle"
 
@@ -19,13 +19,13 @@ end
 
 $movenum = MoveNumberProvider.new
 
-$rot_colors3 = RotatingColorsWigit.new($movenum, 'blue', 'green', 'red')
+$rot_colors3 = RotatingColorsWidget.new($movenum, 'blue', 'green', 'red')
 $rot_colors3.x = 100
 $rot_colors3.y = 200
 $rot_colors3.height = 30
 $rot_colors3.width = 80
 
-$rot_colors2 = RotatingColorsWigit.new($movenum, 'blue', 'green')
+$rot_colors2 = RotatingColorsWidget.new($movenum, 'blue', 'green')
 $rot_colors2.x = 300
 $rot_colors2.y = 200
 $rot_colors2.height = 30

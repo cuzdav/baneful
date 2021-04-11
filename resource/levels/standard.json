@@ -12,8 +12,9 @@
                 "aaaabbabbabbabbbabbaaaabbabbbbbaaaaabbaaaaa"
             ],
             "rules": {
-                "a": [""],
-                "b": [""]
+                "a": ["c"],
+                "b": ["c"],
+                "c": [""]
             },
             "max_rows": 8,
             "max_cols": 43,

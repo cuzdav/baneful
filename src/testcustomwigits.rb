@@ -1,6 +1,6 @@
 require 'ruby2d'
 require "test/unit"
-require_relative "custom_wigits.rb"
+require_relative "custom_widgets.rb"
 
 module ExtraColorMethod
   def ==(other)
@@ -20,15 +20,15 @@ BLUE = Color.new('blue')
 GREEN = Color.new('green')
 
 
-class TestCustomWigits < Test::Unit::TestCase
+class TestCustomWidgets < Test::Unit::TestCase
 
   @move_number = 0
 
   def setup()
     @move_number = 0
-    @rot_rb = RotatingColorsWigit.new(self, 'red', 'blue')
-    @rot_rbg = RotatingColorsWigit.new(self, 'red', 'blue', 'green')
-    @rot_rbb = RotatingColorsWigit.new(self, 'red', 'blue', 'blue')
+    @rot_rb = RotatingColorsWidget.new(self, 'red', 'blue')
+    @rot_rbg = RotatingColorsWidget.new(self, 'red', 'blue', 'green')
+    @rot_rbb = RotatingColorsWidget.new(self, 'red', 'blue', 'blue')
   end
 
   def cur_move_number
