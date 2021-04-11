@@ -63,6 +63,8 @@ end
 class InputState
 
   attr_accessor :selected_target_idx
+  attr_reader :playing_state
+  attr_reader :title_screen_state
 
   def initialize(bg_music, level_manager)
     @bg_music = bg_music
@@ -192,7 +194,8 @@ class PlayingState < StateImpl
   attr_reader :ruleui
   attr_reader :rule_data
 
-  def initialize()
+  def initialize(owner)
+    @owner = owner
     @ruleui = nil
     @cur_level = nil
     @selected_rule = nil
@@ -648,8 +651,9 @@ end
 
 class TitleScreenState < PlayingState
 
-  def initialize()
-    super()
+  def initialize(owner)
+    super(owner)
+    @owner = owner
     @tick = 0
     @selected_rule_idx = 0
     @press_any_key = Text.new(
@@ -707,6 +711,7 @@ class TitleScreenState < PlayingState
 
   def start_game()
     puts("START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    owner.change_state(owner.playing_state)
   end
 
 end
