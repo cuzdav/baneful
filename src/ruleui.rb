@@ -22,7 +22,7 @@ class SingleRule
     @num_rows = @num_replacements + FIRST_REPL_ROW
     @num_cols = [from_str.size, *replacement_strs.map {|str| str.size}].max
     @rule_grid = Grid.new(@num_replacements + FIRST_REPL_ROW, @num_cols, 0,0,0,0)
-    @rule_grid.remove_all
+    @rule_grid.clear
     @color_map = color_map
 
     # add colors for rules and replacements
@@ -32,7 +32,7 @@ class SingleRule
 
 
   def clear
-    @rule_grid.remove_all
+    @rule_grid.clear
     @parent.hintbox.remove
   end
 

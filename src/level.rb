@@ -97,6 +97,11 @@ class Level
     update_after_modification
   end
 
+  def clear()
+    ruleui.clear
+    grid.clear
+  end
+
   private
 
   def make_color_map(level_cfg)
@@ -138,7 +143,6 @@ class Level
       eff_y1 = 0
     end
 
-    puts("**** maxwidth: #{maxwidth}")
     @numcols = maxwidth
     @grid = Grid.new(@numrows, maxwidth, x1, eff_y1, x2, eff_y2)
 
@@ -179,7 +183,6 @@ class Level
     @grid.set_row_offset(effrow, row_offset)
 
     row_str.each_char do |ch|
-      puts("*** init cell: row=#{effrow}, col=#{effcol}")
       cell_object = init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
       effcol += 1
     end
@@ -220,7 +223,6 @@ class Level
 
   def make_rules()
     @ruleui = RuleUI.new(@color_map, @level_cfg, self)
-
     window_width = Window.get(:width)
     window_height = Window.get(:height)
 

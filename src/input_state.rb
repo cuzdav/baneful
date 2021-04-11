@@ -71,8 +71,8 @@ class InputState
     @level_manager = level_manager
     @shiftdown = false
     @ctrldown = false
-    @title_screen_state = TitleScreenState.new
-    @playing_state = PlayingState.new
+    @title_screen_state = TitleScreenState.new(self)
+    @playing_state = PlayingState.new(self)
     @state_stack = []
     push_state(@title_screen_state)
   end
@@ -302,12 +302,22 @@ class PlayingState < StateImpl
   end
 
 
-  def prepare_next_level(ruleui, cur_level, solver)
+  def clear
+    unselect_rule
+    unselect_widgets
     @hint.clear if @hint != nil
+    @level_name_widget.remove
+    @cur_level.clear if @cur_level
+  end
+
+
+  def prepare_next_level(ruleui, cur_level, solver)
+    clear
     @hint = Hint.new(self, solver)
     @ruleui = ruleui
     @cur_level = cur_level
     @level_name_widget.text = cur_level.name
+    @level_name_widget.add
     update_from_game_data
   end
 
@@ -596,7 +606,7 @@ class PlayingState < StateImpl
       @selected_repl = row
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
 
-      @target_row_fo = data[:target_cell_info][row]
+      @target_row_info = data[:target_cell_info][row]
       widgets = data[:widgets][row]
       if widgets != nil
         widgets.each do |quad|
@@ -696,7 +706,7 @@ class TitleScreenState < PlayingState
 
   def on_mouse_left_up(event)
     start_game()
-  end 
+  end
 
   def on_mouse_right_up(event)
     start_game()
@@ -711,8 +721,15 @@ class TitleScreenState < PlayingState
 
   def start_game()
     puts("START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    owner.change_state(owner.playing_state)
+    clear
+    @owner.change_state(@owner.playing_state)
+    @owner.startup
   end
+
+  def state_deactivated
+    @press_any_key.remove
+  end
+
 
 end
 

@@ -98,7 +98,10 @@ end
 
 
 # independent of any UI, this is the actual core representation of the game and
-# generates all possible moves according to the rules
+# for whatever the current position, can generate all possible moves according
+# to the rules that can be played "now"
+# The board is represented with strings, and rules are the same format as the
+# external json (but imported to ruby)
 class GameState
   attr_accessor :rules
   attr_accessor :max_depth

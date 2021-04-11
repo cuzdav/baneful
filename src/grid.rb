@@ -13,7 +13,7 @@ class Grid
   attr_reader :y1
   attr_reader :y2
 
-  def initialize(num_rows, num_cols, x1, y1, x2, y2, center_rows=false)
+  def initialize(num_rows, num_cols, x1, y1, x2, y2)
     @num_rows = num_rows
     @num_cols = num_cols
     @rows = []
@@ -22,8 +22,7 @@ class Grid
     @vert_gap_px = 5
     @background = Rectangle.new(:z => 0, :color => [1, 1, 1, 0.4])
     @background.remove
-    @center_rows = center_rows
-
+  
     (0...@num_rows).each do|y|
       @rows << []
       @row_xoffsets << 0
@@ -120,10 +119,12 @@ class Grid
     end
   end
 
-  def remove_all()
+  def clear()
     foreach_rect do |rect|
       rect.remove
     end
+    unhighlight_background
+    unselect
   end
 
   def rowcol_for_coord(x, y)

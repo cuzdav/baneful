@@ -50,10 +50,7 @@ class LevelManager
     @level_name = @curlevel_config[LEVEL_NAME]
 
     @row_num = 0
-    if @curlevel != nil
-      @curlevel.ruleui.clear
-      @curlevel.grid.unhighlight_background
-    end
+    @curlevel.clear if @curlevel != nil
 
     @curlevel = Level.new(
       self,
