@@ -1,6 +1,28 @@
 {
     "levels": [
         {
+            "name": "opening screen",
+            "rows": [
+                "aabbbbbaabbbabbbabbaaaabbaaaabbabbbabbabbbb",
+                "ababbbabbabbabbbabbabbbbbabbbbbabbbabbabbbb",
+                "ababbbabbabbaabbabbabbbbbabbbbbabbbabbabbbb",
+                "aaaabbaaaabbabababbaabbbbaaaabbabbbabbabbbb",
+                "abbabbabbabbabbaabbabbbbbabbbbbabbbabbabbbb",
+                "abbabbabbabbabbbabbabbbbbabbbbbabbbabbabbbb",
+                "aaaabbabbabbabbbabbaaaabbabbbbbaaaaabbaaaaa"
+            ],
+            "rules": {
+                "a": [""],
+                "b": [""]
+            },
+            "max_rows": 8,
+            "max_cols": 43,
+            "no_verify": true,
+            "inactive_row_opacity": 1.0
+        },
+
+
+        {
             "name": "hello",
             "rows": ["aaa", "a"],
             "rules": {

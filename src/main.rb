@@ -18,7 +18,7 @@ Window.set title: "Baneful"
 Window.set({:width => 1024, :height => 768})
 
 MAX_ROWS = 5
-MAX_WIDTH = 9
+MAX_COLS = 9
 
 VERT_RULE_OFFSET_PX = 30
 HORIZ_RULE_OFFSET_PX = 5
@@ -91,6 +91,7 @@ update do
     $music.update
     tick = 0
   end
+  $input_state.update()
 end
 
 show

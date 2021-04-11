@@ -28,6 +28,16 @@ class StateImpl
 
   def on_key_up(event, shiftdown, ctrldown)
   end
+
+  def prepare_next_level(ruleui, cur_level, solver)
+  end
+
+  def update_from_game_data
+  end
+
+  # called each 1/60 of a second.  Give or take.
+  def update()
+  end
 end
 
 
@@ -39,8 +49,13 @@ class InputState
     @bg_music = bg_music
     @shiftdown = false
     @ctrldown = false
+    @title_screen_state = TitleScreenState.new
     @playing_state = PlayingState.new
-    @cur_state = @playing_state
+    @cur_state = @title_screen_state
+  end
+
+  def update()
+    @cur_state.update()
   end
 
   def on_mouse_move(event)
@@ -114,17 +129,20 @@ class InputState
   end
 
   def update_from_game_data
-    @playing_state.update_from_game_data
+    @cur_state.update_from_game_data
   end
 
   def prepare_next_level(ruleui, cur_level, solver)
-    @playing_state.prepare_next_level(ruleui, cur_level, solver)
+    @cur_state.prepare_next_level(ruleui, cur_level, solver)
   end
 
 end
 
 
 class PlayingState < StateImpl
+
+  attr_reader :ruleui
+
   def initialize()
     @ruleui = nil
     @cur_level = nil
@@ -134,11 +152,11 @@ class PlayingState < StateImpl
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
-    @level_name_wigit = Text.new("", x:5, y:5, z:20, color:"white", size:18)
+    @level_name_widgit = Text.new("", x:5, y:5, z:20, color:"white", size:18)
 
     # [rule_data]
     # rule pattern to data associated:
-    #  :wigits add to Window to indicate rule is active
+    #  :widgits add to Window to indicate rule is active
     #  :target_cell_info: when locked&loaded, these x-ranges will
     #      select the potential replacement cells in play area
     @rule_data = Hash.new()
@@ -237,13 +255,13 @@ class PlayingState < StateImpl
     @hint = Hint.new(self, solver)
     @ruleui = ruleui
     @cur_level = cur_level
-    @level_name_wigit.text = cur_level.name
+    @level_name_widgit.text = cur_level.name
     update_from_game_data
   end
 
 
   #
-  # precompute all possible moves for current position, build "spotlights" to
+  # pre-compute all possible moves for current position, build "spotlights" to
   # the targets. Should be called after the game_data changes
   def update_from_game_data
     @possible_plays = @cur_level.game_data.possible_plays || []
@@ -251,10 +269,10 @@ class PlayingState < StateImpl
     puts("Possible plays: #{@possible_plays}")
 
     @rule_data.each do |pat, data|
-      data[:wigits].each do |wigits_per_row|
-        if wigits_per_row != nil
-          wigits_per_row.each do |wigit|
-            wigit.remove
+      data[:widgits].each do |widgits_per_row|
+        if widgits_per_row != nil
+          widgits_per_row.each do |widgit|
+            widgit.remove
           end
         end
       end
@@ -272,13 +290,13 @@ class PlayingState < StateImpl
       rule_x2 = rule.x2 + rule_gap / 2
       rule_y2 = rule_y1
 
-      wigits_per_row = []
+      widgits_per_row = []
       target_cell_info_per_row = []
       row_has_moves = []
       has_moves = false
 
       rule_data = {
-        wigits: wigits_per_row,
+        widgits: widgits_per_row,
         has_moves: false,
         target_cell_info: target_cell_info_per_row,
         row_has_moves: row_has_moves,
@@ -289,7 +307,7 @@ class PlayingState < StateImpl
       rule.replacement_strs.each do |rep_str|
         quads = []
         row_info = []
-        wigits_per_row[row_idx] = quads
+        widgits_per_row[row_idx] = quads
         target_cell_info_per_row[row_idx] = row_info
 
         # filter all possible plays from the current rule to just those of
@@ -508,7 +526,7 @@ class PlayingState < StateImpl
     end
   end
 
-  def select_replacement(row, mousex, mousey)
+  def select_replacement(row, mouse_x_unused, mouse_y_unused)
     data = @rule_data[@selected_rule.from_str]
     row_has_moves = data[:row_has_moves]
     maxrow = @selected_rule.replacement_strs.size + FIRST_REPL_ROW
@@ -522,9 +540,9 @@ class PlayingState < StateImpl
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
 
       @target_row_info = data[:target_cell_info][row]
-      wigits = data[:wigits][row]
-      if wigits != nil
-        wigits.each do |quad|
+      widgits = data[:widgits][row]
+      if widgits != nil
+        widgits.each do |quad|
           quad.add
         end
       end
@@ -532,7 +550,7 @@ class PlayingState < StateImpl
   end
 
   def unselect_replacement
-    unselect_wigits
+    unselect_widgits
     return if @selected_rule == nil
     @selected_rule.rule_grid.unselect if @selected_rule != nil
     @selected_repl = nil
@@ -550,20 +568,20 @@ class PlayingState < StateImpl
       @hint.clear
       @selected_rule.rule_grid.unhighlight_background
       unselect_replacement
-      unselect_wigits
+      unselect_widgits
       @selected_rule_has_moves = false
       @selected_rule.rule_grid.unselect
       @selected_rule = nil
     end
   end
 
-  def unselect_wigits
+  def unselect_widgits
     if @rule_data != nil and @selected_rule != nil
       data = @rule_data[@selected_rule.from_str]
       if data != nil
-        data[:wigits].each do |wigit_row|
-          if wigit_row != nil
-            wigit_row.each do |quad|
+        data[:widgits].each do |widgit_row|
+          if widgit_row != nil
+            widgit_row.each do |quad|
               quad.remove
             end
           end
@@ -572,3 +590,61 @@ class PlayingState < StateImpl
     end
   end
 end
+
+
+class TitleScreenState < PlayingState
+
+  def initialize()
+    super()
+    @tick = 0
+    @selected_rule_idx = 0
+  end
+
+  def update()
+    if @tick % 60 == 0
+      next_selection
+      @tick = 0
+    end
+    @tick += 1
+  end
+
+  def next_selection
+    rules = ruleui.single_rules
+    rule = rules[@selected_rule_idx]
+    select_rule(rule)
+    select_replacement(0, 0, 0)
+    @selected_rule_idx = (@selected_rule_idx + 1) % rules.size
+  end
+
+  def on_mouse_move(event)
+  end
+
+  def on_mouse_left_down(event)
+  end
+
+  def on_mouse_right_down(event)
+  end
+
+  def on_mouse_left_up(event)
+    start_game()
+  end
+
+  def on_mouse_right_up(event)
+    start_game()
+  end
+
+  def on_key_down(event)
+  end
+
+  def on_key_up(event)
+    start_game()
+  end
+
+  def start_game()
+    puts("START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+      
+  end
+
+end
+
+

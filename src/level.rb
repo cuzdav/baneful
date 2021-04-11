@@ -123,7 +123,10 @@ class Level
   end
 
   def make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
-    verify_rows
+
+    no_verify_rows = level[LEVEL_NO_VERIFY_ROWS]
+    verify_rows unless no_verify_rows == true
+
     @numrows = level[LEVEL_ROWS].size
     height = (y2 - y1).abs
     max_cell_height = height / maxrows
@@ -135,6 +138,7 @@ class Level
       eff_y1 = 0
     end
 
+    puts("**** maxwidth: #{maxwidth}")
     @numcols = maxwidth
     @grid = Grid.new(@numrows, maxwidth, x1, eff_y1, x2, eff_y2)
 
@@ -142,7 +146,7 @@ class Level
     @grid.set_background_color(Color.new([10, 10, 10, 0.15]))
 
     # add each row to this level
-    opacity = 0.6
+    opacity = level[LEVEL_INACTIVE_ROW_OPACITY] || 0.6
     level[LEVEL_ROWS].each do |row|
       needs_update = update_grid_row(@cur_row, row, opacity)
       @needs_update_callback = needs_update
@@ -162,7 +166,7 @@ class Level
   # with row string.
   def update_grid_row(effrow, row_str, opacity=1)
     # center on grid
-    effcol = @numcols/2 - row_str.size / 2
+    effcol = [0, @numcols/2 - row_str.size / 2].max
     @eff_col = effcol
 
     hide_cells_in_row(effrow, 0, effcol) # leading empty cells
@@ -175,6 +179,7 @@ class Level
     @grid.set_row_offset(effrow, row_offset)
 
     row_str.each_char do |ch|
+      puts("*** init cell: row=#{effrow}, col=#{effcol}")
       cell_object = init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
       effcol += 1
     end

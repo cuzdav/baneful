@@ -17,7 +17,7 @@ class CustomCellBase
     raise "'modified' must be overridden"
   end
 
-  def each_wigit() raise("Not implemented") end
+  def each_widgit() raise("Not implemented") end
 
   def initialize()
     @x=0
@@ -28,32 +28,32 @@ class CustomCellBase
   end
 
   def add()
-    each_wigit do |wigit|
-      wigit.add
+    each_widgit do |widgit|
+      widgit.add
     end
   end
 
   def remove()
-    each_wigit do |wigit|
-      wigit.remove
+    each_widgit do |widgit|
+      widgit.remove
     end
   end
 
   def color=(color)
-    each_wigit do |wigit|
-      wigit.color = color
+    each_widgit do |widgit|
+      widgit.color = color
     end
   end
 
   def opacity=(opacity)
-    each_wigit do |wigit|
-      wigit.opacity=opacity
+    each_widgit do |widgit|
+      widgit.opacity=opacity
     end
   end
 
   def z=(val)
-    each_wigit do |wigit|
-      wigit.z = val
+    each_widgit do |widgit|
+      widgit.z = val
     end
   end
 
@@ -86,7 +86,7 @@ end
 # draw this for rules that are replaced with "nothing"
 # Must implement Rect interface (aside from constructor)
 # (Red circle with line through it)
-class EmptyReplacementWigit < CustomCellBase
+class EmptyReplacementWidgit < CustomCellBase
   def initialize(color)
     super()
     @circle = Circle.new(
@@ -96,7 +96,7 @@ class EmptyReplacementWigit < CustomCellBase
     @line = Line.new(:z => @z)
   end
 
-  def each_wigit(&block)
+  def each_widgit(&block)
     block.yield @circle
     block.yield @line
   end
@@ -119,7 +119,7 @@ class EmptyReplacementWigit < CustomCellBase
   end
 end
 
-class WildcardWigit < CustomCellBase
+class WildcardWidgit < CustomCellBase
 
   #wc_num is (wildcard) number 1-9 or nil
   def initialize(wc_num)
@@ -138,7 +138,7 @@ class WildcardWigit < CustomCellBase
   def color=(color)
   end
 
-  def each_wigit(&block)
+  def each_widgit(&block)
     block.yield @rect
     block.yield @text
     block.yield @circ
@@ -182,7 +182,7 @@ end
 # Requires: move_number_provider: any class that has a "cur_move_number" method
 # that returns a number
 
-class RotatingColorsWigit < CustomCellBase
+class RotatingColorsWidgit < CustomCellBase
 
   def initialize(move_number_provider, *colors)
     super()
@@ -193,7 +193,7 @@ class RotatingColorsWigit < CustomCellBase
     @move_number_provider = move_number_provider
     @colors = colors.dup
 
-    puts("*** RotatingColorsWigit colors: #{@colors}")
+    puts("*** RotatingColorsWidgit colors: #{@colors}")
 
     @circle_colors  = colors.map{ |color| Circle.new(color: color) }
     @outline_colors = colors.map{ |color| Circle.new(color: 'black') }
@@ -214,7 +214,7 @@ class RotatingColorsWigit < CustomCellBase
     return @rect.color
   end
 
-  def each_wigit(&block)
+  def each_widgit(&block)
     @circle_colors.each do |circle|
       block.yield circle
     end

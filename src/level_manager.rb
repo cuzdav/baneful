@@ -3,14 +3,19 @@ require_relative 'input_state.rb'
 require_relative 'level.rb'
 require_relative 'ruleui.rb'
 
-LEVEL_NAME = "name"
-LEVEL_RULES = "rules"
-LEVEL_ROWS = "rows"
-LEVEL_TYPE_OVERRIDES = "type_overrides"
+LEVEL_NAME = "name"                     # string
+LEVEL_RULES = "rules"                   # hash <string> -> <array-of-string>
+LEVEL_ROWS = "rows"                     # <array-of-string>
+LEVEL_TYPE_OVERRIDES = "type_overrides" #<json - see README>
+LEVEL_NO_VERIFY_ROWS = "no_verify"      #true/false
+LEVEL_MAX_ROWS = "max_rows"
+LEVEL_MAX_COLS = "max_cols"
+LEVEL_NUM_MOVES = "num_moves"
+LEVEL_INACTIVE_ROW_OPACITY = "inactive_row_opacity"
 
+# responsible for dealing with filesystem and loading level files,
+# and picking next levels, etc.  Skeleton at the moment.
 
-# responsible for dealing with filesystm and loading level files,
-# and picking next levels, etc.
 
 class LevelManager
   attr_reader :curlevel_config
@@ -28,11 +33,12 @@ class LevelManager
     next_level()
   end
 
+
   def next_level()
     puts ("***** NEW LEVEL *****")
     @curlevel_config = @current_levels[@level_num]
     if @curlevel_config != nil
-      @level_name = @curlevel_config[LEVEL_NAME] 
+      @level_name = @curlevel_config[LEVEL_NAME]
       puts("LEVEL NOW: #{@level_num}: #{@level_name}")
       @level_num += 1
       @row_num = 0
@@ -44,15 +50,16 @@ class LevelManager
 
       @curlevel = Level.new(
         self,
-        @curlevel_config["num_moves"] || 9999,
-        MAX_ROWS,
-        @curlevel_config["max_width"] || MAX_WIDTH,
+        @curlevel_config[LEVEL_NUM_MOVES] || 9999,
+        @curlevel_config[LEVEL_MAX_ROWS] || MAX_ROWS,
+        @curlevel_config[LEVEL_MAX_COLS] || MAX_COLS,
         20, 20, #playarea_height() - @curlevel_config["rows"].size * 50,
         Window.get(:width)-20, playarea_height() #x2, y2
       )
       $input_state.prepare_next_level(
         @curlevel.ruleui,
-        @curlevel, @curlevel.solver)
+        @curlevel,
+        @curlevel.solver)
     end
   end
 
