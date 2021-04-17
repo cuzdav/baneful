@@ -1,6 +1,6 @@
 require 'ruby2d'
-require_relative 'gameover.rb'
-require_relative 'hint.rb'
+require_relative 'gameover'
+require_relative 'hint'
 
 TGT_START_X = 0
 TGT_END_X = 1
@@ -10,62 +10,45 @@ TGT_MOVE = 3
 class StateImpl
 
   # state becomes pushed to top of stack
-  def state_active
-  end
+  def state_active; end
 
   # another state has become the "top" of the stack
-  def state_paused
-  end
+  def state_paused; end
 
   # stack was popped and now reveals this state again
-  def state_resumed
-  end
+  def state_resumed; end
 
   # state becomes inactive (popped from stack)
-  def state_deactivated
-  end
+  def state_deactivated; end
 
-  def on_mouse_move(event)
-  end
+  def on_mouse_move(event); end
 
-  def on_mouse_left_down(event)
-  end
+  def on_mouse_left_down(event); end
 
-  def on_mouse_left_up(event)
-  end
+  def on_mouse_left_up(event); end
 
-  def on_mouse_right_down(event)
-  end
+  def on_mouse_right_down(event); end
 
-  def on_mouse_right_up(event)
-  end
+  def on_mouse_right_up(event); end
 
-  def on_key_down(event, shiftdown, ctrldown)
-  end
+  def on_key_down(event, shiftdown, ctrldown); end
 
-  def on_key_up(event, shiftdown, ctrldown)
-  end
+  def on_key_up(event, shiftdown, ctrldown); end
 
   # start next level
-  def prepare_next_level(ruleui, cur_level, solver)
-  end
+  def prepare_next_level(ruleui, cur_level, solver); end
 
   # get ready for next move
-  def update_from_game_data
-  end
+  def update_from_game_data; end
 
   # main event loop; called each 1/60 of a second.  Give or take.
-  def update()
-  end
+  def update; end
 end
-
 
 class InputState
 
   attr_accessor :selected_target_idx
-  attr_reader :playing_state
-  attr_reader :title_screen_state
-  attr_reader :initial_level # from cmdline
+  attr_reader :playing_state, :title_screen_state, :initial_level
 
   def initialize(bg_music, level_manager, initial_level)
     @initial_level = initial_level
@@ -81,9 +64,7 @@ class InputState
 
   def push_state(newstate)
     top = @state_stack[-1]
-    if top != nil
-      top.state_paused
-    end
+    top&.state_paused
     @state_stack << newstate
     @cur_state = newstate
     @cur_state.state_active
@@ -91,9 +72,9 @@ class InputState
 
   def pop_state
     oldtop = @state_stack.pop
-    oldtop.state_deactivated if oldtop != nil
+    oldtop&.state_deactivated
     @cur_state = @state_stack[-1]
-    @cur_state.state_resumed if @cur_state
+    @cur_state&.state_resumed
   end
 
   def change_state(newstate)
@@ -102,17 +83,17 @@ class InputState
   end
 
   def startup(level_group_filename)
-    initial_level = ""
-    if @cur_state and @cur_state != @title_screen_state
+    initial_level = ''
+    if @cur_state && (@cur_state != @title_screen_state)
       initial_level = @initial_level
-      @initial_level = ""
+      @initial_level = ''
     end
     puts("************* startup: initial_level: #{initial_level}")
     @level_manager.open_level_group(level_group_filename, initial_level)
   end
 
   def update()
-    @cur_state.update()
+    @cur_state.update
   end
 
   def on_mouse_move(event)
@@ -137,12 +118,11 @@ class InputState
     end
   end
 
-
   def on_key_down(event)
     case event.key
-    when "left shift", "right shift"
+    when 'left shift', 'right shift'
       @shiftdown = true
-    when "left ctrl", "right ctrl"
+    when 'left ctrl', 'right ctrl'
       @ctrldown = true
     end
     @cur_state.on_key_down(event, @shiftdown, @ctrldown)
@@ -150,30 +130,25 @@ class InputState
 
   def on_key_up(event)
     case event.key
-    when "="
-      if @shiftdown
-        @bg_music.volume_up(5)
-      end
-    when "-"
+    when '='
+      @bg_music.volume_up(5) if @shiftdown
+    when '-'
       @bg_music.volume_down(5)
     when 'p'
       toggle_music_paused
     when 'q'
-      if @ctrldown
-        exit
-      end
-    when "]"
+      exit if @ctrldown
+    when ']'
       @bg_music.next_track
 
-    when "left shift", "right shift"
+    when 'left shift', 'right shift'
       @shiftdown = false
 
-    when "left ctrl", "right ctrl"
+    when 'left ctrl', 'right ctrl'
       @ctrldown = false
     end
     @cur_state.on_key_up(event, @shiftdown, @ctrldown)
   end
-
 
   def toggle_music_paused
     if @music_paused
@@ -195,13 +170,12 @@ class InputState
 
 end
 
-
 class PlayingState < StateImpl
 
-  attr_reader :ruleui
-  attr_reader :rule_data
+  attr_reader :ruleui, :rule_data
 
   def initialize(owner)
+    super()
     @owner = owner
     @ruleui = nil
     @cur_level = nil
@@ -211,36 +185,33 @@ class PlayingState < StateImpl
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
-    @level_name_widget = Text.new("", x:5, y:5, z:20, color:"white", size:18)
+    @level_name_widget = Text.new('', x:5, y:5, z:20, color:'white', size:18)
 
     # [rule_data]
     # rule pattern to data associated:
     #  :widgets add to Window to indicate rule is active
     #  :target_cell_info: when locked&loaded, these x-ranges will
     #      select the potential replacement cells in play area
-    @rule_data = Hash.new()
+    @rule_data = Hash.new
   end
 
   def on_mouse_left_down(event)
     on_mouse_move(event)
     @mousedown = true
-    if @selected_rule != nil
+    unless @selected_rule.nil?
       replacement_str = @ruleui.get_replacement_str_at(event.x, event.y)
-      if @selected_repl != nil and replacement_str != nil
-        @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5)
-      end
+      @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5) if !@selected_repl.nil? && !replacement_str.nil?
     end
   end
 
-
   def on_mouse_left_up(event)
     @mousedown = false
-    if @game_over_state != nil
-      restart()
+    if !@game_over_state.nil?
+      restart
     elsif @selected_repl != @locked_repl
       @locked_repl = @selected_repl
       @locked_rule = @selected_rule
-    elsif @selected_target_idx != nil
+    elsif !@selected_target_idx.nil?
       apply_choice_maybe
       @locked_repl = nil
       @locked_rule = nil
@@ -249,7 +220,6 @@ class PlayingState < StateImpl
     end
     on_mouse_move(event)
   end
-
 
   def on_mouse_right_down(event)
     on_mouse_move(event)
@@ -260,26 +230,25 @@ class PlayingState < StateImpl
     @locked_rule = nil
   end
 
-
   def on_mouse_right_up(event)
     on_mouse_move(event)
   end
 
-  def on_key_up(event, shiftdown, ctrldown)
+  def on_key_up(event, shiftdown, _ctrldown)
     #    puts "KEYDOWN:"
     #    p event
     case event.key
-    when "escape"
+    when 'escape'
       unselect_replacement
-    when "h"
+    when 'h'
       give_hint
 
-    when "r"
+    when 'r'
       restart
-    when "u"
-      undo_move()
+    when 'u'
+      undo_move
     when '.'
-      @cur_level.game_data.cur_row = ""
+      @cur_level.game_data.cur_row = ''
       if shiftdown
         unselect_rule
         @cur_level.update_after_modification
@@ -288,35 +257,31 @@ class PlayingState < StateImpl
     end
   end
 
-
   def on_mouse_move(event)
-    if @locked_repl != nil
+    if !@locked_repl.nil?
       mouse_targeting(event.x, event.y)
     elsif event.y >= @ruleui.y1
       mouse_over_rule(event)
-    elsif not @mousedown
+    elsif !@mousedown
       unselect_rule
     end
   end
 
-
   def no_more_moves
     if @cur_level.game_data.solved?
-      Text.new("You Win", size: 80, color: "white", y: 30, z:20)
+      Text.new('You Win', size: 80, color: 'white', y: 30, z:20)
     else
       @game_over_state = GameOverState.new
     end
   end
 
-
   def clear
     unselect_rule
     unselect_widgets
-    @hint.clear if @hint != nil
+    @hint&.clear
     @level_name_widget.remove
-    @cur_level.clear if @cur_level
+    @cur_level&.clear
   end
-
 
   def prepare_next_level(ruleui, cur_level, solver)
     clear
@@ -328,7 +293,6 @@ class PlayingState < StateImpl
     update_from_game_data
   end
 
-
   #
   # pre-compute all possible moves for current position, build "spotlights" to
   # the targets. Called after the game_data changes (a move is played, or a
@@ -338,13 +302,9 @@ class PlayingState < StateImpl
     @possible_plays = @cur_level.game_data.possible_plays || []
 
     puts("Possible plays: #{@possible_plays}")
-    @rule_data.each do |pat, data|
+    @rule_data.each do |_pat, data|
       data[:widgets].each do |widgets_per_row|
-        if widgets_per_row != nil
-          widgets_per_row.each do |widget|
-            widget.remove
-          end
-        end
+        widgets_per_row&.each(&:remove)
       end
     end
     @rule_data.clear
@@ -396,12 +356,12 @@ class PlayingState < StateImpl
         # in per-row data, which is in the per-rule data
         #
         plays.each do |move|
-          #idx is 0-based, while we want it to be grid-based
+          # idx is 0-based, while we want it to be grid-based
           idx = move[GS_PLAY_IDX]
           pat = move[GS_PLAY_PAT]
           grid_idx = idx + @cur_level.eff_col
           pat_x1 = @cur_level.active_x1_coord(grid_idx)
-          pat_y1 = @cur_level.active_y2_coord() # bottom edge of row's y
+          pat_y1 = @cur_level.active_y2_coord # bottom edge of row's y
           pat_x2 = @cur_level.active_x1_coord(grid_idx + pat.size)
           pat_y2 = pat_y1
           move_data = [pat_x1, pat_x2, grid_idx, move]
@@ -417,7 +377,7 @@ class PlayingState < StateImpl
           quad.y2 = rule_y2
           quad.y3 = pat_y1
           quad.y4 = pat_y2
-          quad.color = "white"
+          quad.color = 'white'
           quad.opacity = 0.2
           quads << quad
         end
@@ -429,8 +389,8 @@ class PlayingState < StateImpl
       # (Pattern is playable if any replacement is playable.  Some replacements
       # are not playable because they might make the row too wide.)
       opacity = has_moves ? 1 : 0.6
-      rule.rule_grid.foreach_rect_with_index do |rect, row, col|
-        if row == 0
+      rule.rule_grid.foreach_rect_with_index do |rect, row, _col|
+        if row.zero?
           # pattern
           rect.opacity = opacity
         elsif row >= FIRST_REPL_ROW
@@ -441,63 +401,56 @@ class PlayingState < StateImpl
     end
 
     if @possible_plays.empty?
-      puts(">>>>>>>> No more moves <<<<<<<<")
+      puts('>>>>>>>> No more moves <<<<<<<<')
       no_more_moves
     end
   end
-
 
   def apply_move(move)
     # CHANGE OFFICIAL GAME STATE (attempt)
     result = @cur_level.game_data.make_move(move)
 
-    if result == nil
+    if result.nil?
       puts("Curr game state: #{@cur_level.game_data.cur_row}xo")
       puts("MOVE: #{move}")
-      puts("PROBLEM??? applying move failed!")
+      puts('PROBLEM??? applying move failed!')
     end
 
     @cur_level.update_after_modification
-    update_from_game_data()
+    update_from_game_data
   end
-
 
   def give_hint
     @hint.next_hint(@cur_level)
-    if @hint.solution != nil
-      gs = @cur_level.game_data.clone_from_cur_position
-      puts("Start")
-      puts gs.cur_row
-      @hint.solution.each do |move|
-        gs.make_move(move)
-        puts("#{move[GS_PLAY_IDX]}: #{move[GS_PLAY_PAT]}->#{move[GS_PLAY_REPL]}   ==> #{gs.cur_row} ")
-      end
+    return unless @hint.solution
+
+    gs = @cur_level.game_data.clone_from_cur_position
+    puts('Start')
+    puts gs.cur_row
+    @hint.solution.each do |move|
+      gs.make_move(move)
+      puts("#{move[GS_PLAY_IDX]}: #{move[GS_PLAY_PAT]}->#{move[GS_PLAY_REPL]}   ==> #{gs.cur_row} ")
     end
   end
 
-
   def apply_choice_maybe
-    if @selected_rule != nil
+    unless @selected_rule.nil?
       move = @selected_move
-      unselect_replacement()
+      unselect_replacement
       unselect_playarea_grid
-      if move != nil
-        apply_move(move)
-      end
+      apply_move(move) unless move.nil?
     end
     unselect_rule
   end
 
-
   def undo_move
     @cur_level.undo_move
-    if @game_over_state != nil
+    unless @game_over_state.nil?
       @game_over_state.clear
       @game_over_state = nil
     end
-    update_from_game_data()
+    update_from_game_data
   end
-
 
   def restart
     @cur_level.reset_cur_level
@@ -507,18 +460,15 @@ class PlayingState < StateImpl
     unselect_replacement
     unselect_playarea_grid
 
-
-    if @game_over_state != nil
+    unless @game_over_state.nil?
       @game_over_state.clear
       @game_over_state = nil
     end
 
-    update_from_game_data()
+    update_from_game_data
   end
 
-  def mouse_targeting(mousex, mousey)
-    start_col = nil
-
+  def mouse_targeting(mousex, _mousey)
     # go over all possible targets in the play area, find which, if any,
     # mouse is targeting.
 
@@ -531,7 +481,7 @@ class PlayingState < StateImpl
 
     # start by selecting the potential leftmost target, then
     # scan for better mouse-coord matches
-    if @locked_repl != nil and not @target_row_info.empty? and @selected_target_idx == nil
+    if !@locked_repl.nil? && !@target_row_info.empty? && @selected_target_idx.nil?
       first_target = @target_row_info[0]
       cur_move = first_target[TGT_MOVE]
       grid_col = first_target[TGT_COL]
@@ -539,58 +489,51 @@ class PlayingState < StateImpl
 
     # x1, x2 are mouse coord ranges, col is grid-relative index,
     # and move is hash from possible_plays, describing a move
+    grid_col = nil
+    cur_move = nil
     @target_row_info.each do |x1, x2, col, move|
-      if mousex > x1 and mousex < x2
+      if (mousex > x1) && (mousex < x2)
         grid_col = col
         cur_move = move
       end
     end
-    select_target(grid_col, cur_move)
+    select_target(grid_col, cur_move) if grid_col
   end
 
   def select_target(grid_col, move)
-    if grid_col != nil
-      if @selected_target_idx != grid_col
-        if @selected_target_idx != nil
-          @cur_level.grid.unselect
-        end
-        @selected_target_idx = grid_col
-        @selected_move = move
-        @cur_level.grid.select_cells(
-          @cur_level.cur_row,
-          grid_col,
-          grid_col + move[GS_PLAY_PAT].size - 1)
-      end
+    if !grid_col.nil? && (@selected_target_idx != grid_col)
+      @cur_level.grid.unselect unless @selected_target_idx.nil?
+      @selected_target_idx = grid_col
+      @selected_move = move
+      @cur_level.grid.select_cells(
+        @cur_level.cur_row,
+        grid_col,
+        grid_col + move[GS_PLAY_PAT].size - 1)
     end
-
   end
 
   def mouse_over_rule(event)
-    if not @mousedown
-      x = event.x
-      y = event.y
-      rule = @ruleui.get_rule_at(x, y)
+    return if @mousedown
 
-      select_rule(rule)
+    x = event.x
+    y = event.y
+    rule = @ruleui.get_rule_at(x, y)
 
-      if rule != nil
-        row, _ = rule.rowcol_for_coord(x, y)
-        if @selected_repl != row || rule.replacement_strs.size == 1
-          unselect_replacement
-          if row != nil
-            select_replacement(row)
-          end
-        end
+    select_rule(rule)
+
+    if rule
+      row, = rule.rowcol_for_coord(x, y)
+      if @selected_repl != row || rule.replacement_strs.size == 1
+        unselect_replacement
+        select_replacement(row) unless row.nil?
       end
     end
   end
 
   def select_rule(rule)
     result = false
-    if rule != nil
-      if rule != @selected_rule
-        unselect_rule
-      end
+    unless rule.nil?
+      unselect_rule if rule != @selected_rule
       @selected_rule = rule
       data = @rule_data[rule.from_str]
       if data[:has_moves]
@@ -598,35 +541,30 @@ class PlayingState < StateImpl
         result = true
       end
     end
-    return result
+    result
   end
 
   def select_replacement(row)
     data = @rule_data[@selected_rule.from_str]
     row_has_moves = data[:row_has_moves]
-    maxrow = @selected_rule.replacement_strs.size + FIRST_REPL_ROW
 
-    if row != nil and row_has_moves[row]
+    if row && row_has_moves[row]
       # weird, when compiled with mruby, this is a float, but interpreted it's an int
       row = row.floor
-      repl_str = @selected_rule.get_replacement_str_for_row(row)
       @selected_repl = row
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
 
       @target_row_info = data[:target_cell_info][row]
       widgets = data[:widgets][row]
-      if widgets != nil
-        widgets.each do |quad|
-          quad.add
-        end
-      end
+      widgets&.each(&:add)
     end
   end
 
   def unselect_replacement
     unselect_widgets
-    return if @selected_rule == nil
-    @selected_rule.rule_grid.unselect if @selected_rule != nil
+    return if @selected_rule.nil?
+
+    @selected_rule&.rule_grid&.unselect
     @selected_repl = nil
     unselect_playarea_grid
   end
@@ -638,33 +576,30 @@ class PlayingState < StateImpl
   end
 
   def unselect_rule
-    if @selected_rule != nil
-      @hint.clear
-      @selected_rule.rule_grid.unhighlight_background
-      unselect_replacement
-      unselect_widgets
-      @selected_rule_has_moves = false
-      @selected_rule.rule_grid.unselect
-      @selected_rule = nil
-    end
+    return if @selected_rule.nil?
+
+    @hint.clear
+    @selected_rule.rule_grid.unhighlight_background
+    unselect_replacement
+    unselect_widgets
+    @selected_rule_has_moves = false
+    @selected_rule.rule_grid.unselect
+    @selected_rule = nil
   end
 
   def unselect_widgets
-    if @rule_data != nil and @selected_rule != nil
-      data = @rule_data[@selected_rule.from_str]
-      if data != nil
-        data[:widgets].each do |widget_row|
-          if widget_row != nil
-            widget_row.each do |quad|
-              quad.remove
-            end
-          end
-        end
+    return if @rule_data.nil? || @selected_rule.nil?
+
+    data = @rule_data[@selected_rule.from_str]
+    return if data.nil?
+
+    data[:widgets].each do |widget_row|
+      widget_row&.each do |quad|
+        quad.remove
       end
     end
   end
 end
-
 
 class TitleScreenState < PlayingState
 
@@ -683,7 +618,7 @@ class TitleScreenState < PlayingState
   end
 
   def update()
-    if @tick % 60 == 0
+    if (@tick % 60).zero?
       next_selection
       @tick = 0
     end
@@ -702,41 +637,36 @@ class TitleScreenState < PlayingState
     select_replacement(FIRST_REPL_ROW)
   end
 
-  def on_mouse_move(event)
+  def on_mouse_move(event); end
+
+  def on_mouse_left_down(event); end
+
+  def on_mouse_right_down(event); end
+
+  def on_mouse_left_up(_event)
+    start_game
   end
 
-  def on_mouse_left_down(event)
+  def on_mouse_right_up(_event)
+    start_game
   end
 
-  def on_mouse_right_down(event)
+  def on_key_down(event, shiftdown, ctrldown); end
+
+  def on_key_up(_event, _shiftdown, _ctrldown)
+    start_game
   end
 
-  def on_mouse_left_up(event)
-    start_game()
-  end
-
-  def on_mouse_right_up(event)
-    start_game()
-  end
-
-  def on_key_down(event, shiftdown, ctrldown)
-  end
-
-  def on_key_up(event, shiftdown, ctrldown)
-    start_game()
-  end
-
-  def start_game()
-    puts("START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  def start_game
+    puts('START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     clear
     @owner.change_state(@owner.playing_state)
-    @owner.startup("standard.json")
+    @owner.startup('standard.json')
   end
 
   def state_deactivated
     @press_any_key.remove
   end
-
 
 end
 

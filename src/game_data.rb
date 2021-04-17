@@ -11,8 +11,8 @@ GS_PLAY_RESULT = 5 # result of applying move to current row (opt)
 GS_PLAY_NUM_MOVES = 6 # number of moves from the solution (opt)
 
 
-SPECIAL_PATTERN_CHARS = ".123456789"
-SPECIAL_REPL_CHARS = "123456789"
+SPECIAL_PATTERN_CHARS = '.123456789'
+SPECIAL_REPL_CHARS = '123456789'
 
 def create_reverse_mapping(rules)
   rev = {}
@@ -22,11 +22,11 @@ def create_reverse_mapping(rules)
       rev[to] << from
     end
   end
-  rev.values.each do |values|
+  rev.each_value do |values|
     values.sort!
     values.uniq!
   end
-  return rev
+  rev
 end
 
 # similar to String.index but treats '.' as wildcard that matches anything
@@ -38,7 +38,7 @@ def wc_index(str, pat, start_idx)
   size = str.size - pat.size
   while start_idx <= size
     ridx = start_idx
-    repls = ""
+    repls = ''
     pat.each_char do |ch|
       str_char = str[ridx]
       if str_char != ch
@@ -51,40 +51,43 @@ def wc_index(str, pat, start_idx)
       end
       ridx += 1
     end
-    return start_idx, repls if ridx != nil
+    return start_idx, repls unless ridx.nil?
+
     start_idx += 1
   end
-  return nil, ""
+  [nil, '']
 end
 
 def wc_replace(str, repl_chars)
   idx = 0
-  result = ""
+  result = ''
   str.each_char do |ch|
-    if (ch.ord >= ?1.ord and ch.ord <= ?9.ord)
-      ridx = ch.ord - ?1.ord
+    if ('1'..'9').include? ch
+      ridx = ch.ord - '1'.ord
       rep_ch = repl_chars[ridx]
-      raise "invalid substitution #{ridx}" if rep_ch == nil
+      raise "invalid substitution #{ridx}" if rep_ch.nil?
+
       result += rep_ch
     else
       result += ch
     end
     idx += 1
   end
-  return result
+  result
 end
-
 
 # Compare two strings.  Pat _may_ contain . as a wildcard char, which matches
 # any corresponding character in str at the same offset.
 def wc_equals(str, pat)
   return false if pat.size != str.size
+
   idx = 0
   pat.each_char do |ch|
-    return false if str[idx] != ch and ch != '.'
+    return false if (str[idx] != ch) && (ch != '.')
+
     idx += 1
   end
-  return true
+  true
 end
 
 # given a str, the pat may refer to captures represented in repl_chars
@@ -92,10 +95,10 @@ end
 # presumably, repl_chars was returned from wc_index.
 def wc_with_placeholder_equals(str, pat, repl_chars)
   return false if pat.size != str.size
-  fixed_pat = wc_replace(pat, repl_chars)
-  return wc_equals(str, fixed_pat)
-end
 
+  fixed_pat = wc_replace(pat, repl_chars)
+  wc_equals(str, fixed_pat)
+end
 
 # independent of any UI, this is the actual core representation of the game and
 # for whatever the current position, can generate all possible moves according
@@ -103,15 +106,8 @@ end
 # The board is represented with strings, and rules are the same format as the
 # external json (but imported to ruby)
 class GameState
-  attr_accessor :rules
-  attr_accessor :max_depth
-  attr_reader :cur_row
-  attr_reader :cur_raw_row
-  attr_reader :goal
-  attr_reader :max_width
-  attr_reader :prev_rows
-  attr_reader :played_moves
-  attr_accessor :verbose
+  attr_accessor :rules, :max_depth, :verbose
+  attr_reader :cur_row, :cur_raw_row, :goal, :max_width, :prev_rows, :played_moves
 
   def to_s
     "GameState:\n\trules:#{rules}\n\tcur_row: #{cur_row}"
@@ -122,7 +118,7 @@ class GameState
   # max_width = limit to how wide row can grow when applying constructive rules
   # goal = win condition
 
-  def initialize(rules, initial_row_str, type_overrides=nil, max_width = 9, goal = "")
+  def initialize(rules, initial_row_str, type_overrides=nil, max_width = 9, goal = '')
     @verbose = false
     @type_overrides = type_overrides || {}
     @rules = rules
@@ -139,20 +135,20 @@ class GameState
     end
 
     @cur_row = compute_cur_row(@cur_raw_row)
-    raise "Invalid max_width" if max_width == nil
+    raise 'Invalid max_width' if max_width.nil?
   end
 
-  def clone_from_cur_position()
-    return GameState.new(
-             @rules,
-             @cur_row,
-             @type_overrides,
-             @max_width,
-             @goal)
+  def clone_from_cur_position
+    GameState.new(
+      @rules,
+      @cur_row,
+      @type_overrides,
+      @max_width,
+      @goal)
   end
 
-  def cur_move_number()
-    return @played_moves.size
+  def cur_move_number
+    @played_moves.size
   end
 
   def cur_raw_row=(cur_raw_row)
@@ -166,9 +162,8 @@ class GameState
   # rules applied to update them, while cur_row is resolved, and loses
   # that metadata.)
   def cur_row=(cur_row)
-    if compute_cur_row(cur_row) != cur_row
-      raise("overrides detected; must use cur_raw_row= instead")
-    end
+    raise('overrides detected; must use cur_raw_row= instead') if compute_cur_row(cur_row) != cur_row
+
     @cur_raw_row = cur_row
     @cur_row = cur_row
   end
@@ -181,7 +176,7 @@ class GameState
   # all the gs_play_* fields from top of file
   def make_move(move)
     if @max_depth == @prev_rows.size
-      puts ("max_depth of #{@max_depth} reached") if @verbose
+      puts("max_depth of #{@max_depth} reached") if @verbose
       return nil
     end
 
@@ -193,31 +188,30 @@ class GameState
       dump_plays
       raise "invalid replacement: cur_row=#{@cur_row}, from=#{from}, offset=#{offset}"
     end
-    if @cur_row.size - from.size + to.size > max_width
-      raise "too wide: maxwidth= #{@max_width}"
-    end
+    raise "too wide: maxwidth= #{@max_width}" if @cur_row.size - from.size + to.size > max_width
 
     cached_move = move.dup
 
     cached_raw_row = @cur_raw_row.dup
     @prev_rows.push(cached_raw_row)
     @played_moves.push(cached_move)
-    @cur_raw_row[offset...offset+from.size] = to
+    @cur_raw_row[offset...offset + from.size] = to
     @cur_row = compute_cur_row(@cur_raw_row)
     cached_row = @cur_row.dup
     cached_move[GS_PLAY_RESULT] = cached_row
-    return @cur_row
+    @cur_row
   end
 
-  def undo_move()
+  def undo_move
     return nil if @prev_rows.empty?
+
     @played_moves.pop
     @cur_raw_row = @prev_rows.pop
     @cur_row = compute_cur_row(@cur_raw_row)
   end
 
-  def solved?()
-    return @cur_row == @goal
+  def solved?
+    @cur_row == @goal
   end
 
   # return an array of possible moves.  a move is represented as:
@@ -227,7 +221,7 @@ class GameState
   #   ?  matches any single char
   # replacement:
   #   1 2 3, ..., 9  : placeholder for whatever char matched corresponding N in pattern
-  def possible_plays()
+  def possible_plays
     results = []
     # pat: string, repls: array of replacements
     rulenum = -1
@@ -235,22 +229,23 @@ class GameState
       rulenum += 1
       base_len = @cur_row.size - pat.size
       repls.each do |replacement|
-        replacement = "" if replacement == nil
-        if base_len + replacement.size <= @max_width
-          idx = 0
-          loop do
-            idx, repl_chars = wc_index(@cur_row, pat, idx)
-            break if idx.nil?
-            cur_pat, cur_repl = fixup_wildcards(pat, replacement, repl_chars)
+        replacement = '' if replacement.nil?
+        next unless base_len + replacement.size <= @max_width
 
-            # Grepable key: GS_PLAY_ARRAY
-            results << [idx, cur_pat, cur_repl, replacement, repl_chars]
-            idx += 1
-          end
+        idx = 0
+        loop do
+          idx, repl_chars = wc_index(@cur_row, pat, idx)
+          break if idx.nil?
+
+          cur_pat, cur_repl = fixup_wildcards(pat, replacement, repl_chars)
+
+          # Grepable key: GS_PLAY_ARRAY
+          results << [idx, cur_pat, cur_repl, replacement, repl_chars]
+          idx += 1
         end
       end
     end
-    return results
+    results
   end
 
   # if the rule has an :_overrides key, then it should be of the form:
@@ -265,39 +260,38 @@ class GameState
   #    fields: "cycle_chars": "abc" (string)
   #    Requires: cycle_chars.size == 2 or 3
   def compute_cur_row(cur_raw_row)
-    return cur_raw_row if @type_overrides == nil
+    return cur_raw_row if @type_overrides.nil?
 
-    charmap = make_charmap()
-    cur_row = ""
+    charmap = make_charmap
+    cur_row = ''
     cur_raw_row.each_char do |char|
-      translated  = charmap[char]
-      cur_row += translated ? translated : char
+      translated = charmap[char]
+      cur_row += translated || char
     end
-    return cur_row
+    cur_row
   end
 
   # for the current turn in the current state, each
   # special cell char must map to ... SOMETHING
   # so build a map to pre-resolve those transformations
   # (They may be different each turn.)
-  def make_charmap()
+  def make_charmap
     charmap = {}
     @type_overrides.each do |char, char_override|
-      type = char_override["type"]
+      type = char_override['type']
       case type
       # cycle through the string of chars in cycle_chars
-      when "RotatingColors"
-        cycle_chars = char_override["cycle_chars"]
-        if cycle_chars == nil
-          raise "Invalid/missing 'cycle_chars' attribute of 'RotatingColors' type_override"
-        end
+      when 'RotatingColors'
+        cycle_chars = char_override['cycle_chars']
+        raise "Invalid/missing 'cycle_chars' attribute of 'RotatingColors' type_override" if cycle_chars.nil?
+
         idx = cur_move_number % cycle_chars.size
         charmap[char] = cycle_chars[idx]
       else
         raise "Unhandled override type '#{type}'"
       end
     end
-    return charmap
+    charmap
   end
 
   # find a rule that can produce the given move, matching the from (pat)
@@ -313,45 +307,42 @@ class GameState
 
     @rules.each do |raw_from_str, raw_repl_strs|
       idx, captures = wc_index(resolved_from_str, raw_from_str, 0)
-      if idx != nil and raw_from_str.size == resolved_from_str.size
-        # rule pattern matches, but does a repl also match? given wildcards,
-        # it's possible this rule matches the from_str pat, but has no
-        # replacement that matches. (Must be from a different rule, if it can
-        # match multiple rules.)
-        raw_repl_strs.each do |raw_repl|
-          if wc_with_placeholder_equals(resolved_to_str, raw_repl, captures)
-            return raw_from_str, raw_repl
-          end
-        end
+      next unless !idx.nil? && (raw_from_str.size == resolved_from_str.size)
+
+      # rule pattern matches, but does a repl also match? given wildcards,
+      # it's possible this rule matches the from_str pat, but has no
+      # replacement that matches. (Must be from a different rule, if it can
+      # match multiple rules.)
+      raw_repl_strs.each do |raw_repl|
+        return raw_from_str, raw_repl if wc_with_placeholder_equals(resolved_to_str, raw_repl, captures)
       end
     end
-    return nil, nil
+    [nil, nil]
   end
 
   def fixup_wildcards(pat, repl, repl_chars)
-    if repl_chars.size == 0
-      return pat, repl
-    end
+    return [pat, repl] if repl_chars.empty?
 
     pidx = 0
-    cur_pat = pat.dup.gsub(".") do |_|
+    cur_pat = pat.dup.gsub('.') do |_|
       pidx += 1
-      repl_chars[pidx-1]
+      repl_chars[pidx - 1]
     end
 
     cur_repl = repl.dup
     ridx = 0
-    placeholder = ?1
+    placeholder = '1'
     loop do
       ch = repl_chars[ridx]
-      break if ch == nil
+      break if ch.nil?
+
       cur_repl.gsub!(placeholder, repl_chars[ridx])
       ridx += 1
       placeholder = placeholder.next
       break if ridx == repl_chars.size
     end
 
-    return cur_pat, cur_repl
+    [cur_pat, cur_repl]
   end
 
   def dump_plays
@@ -359,13 +350,13 @@ class GameState
 
     move_num = 0
 
-    #GS_PLAY_ARRAY
+    # GS_PLAY_ARRAY
     @played_moves.each do |idx, pat, repl, rawrepl, captures, result, _|
-      repl_str = repl.empty? ? "EMPTY" : repl
-      raw_str = rawrepl != repl ? "(raw:#{rawrepl})" : ""
-      captures = (captures.nil? or captures.empty?) ? "" : ", captures:#{captures})"
-      puts("[#{move_num}]: [idx:#{idx} from:#{pat} " +
-           "repl:#{repl_str} #{raw_str}#{captures} " +
+      repl_str = repl.empty? ? 'EMPTY' : repl
+      raw_str = rawrepl != repl ? "(raw:#{rawrepl})" : ''
+      captures = captures.nil? || captures.empty? ? '' : ", captures:#{captures})"
+      puts("[#{move_num}]: [idx:#{idx} from:#{pat} " \
+           "repl:#{repl_str} #{raw_str}#{captures} " \
            "RESULT:#{result}")
       move_num += 1
     end

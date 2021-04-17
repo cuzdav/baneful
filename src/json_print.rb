@@ -8,21 +8,21 @@ class JsonPrint
 
   def encode(obj)
     @depth = 0
-    @out = ""
+    @out = ''
     jstr_object(obj)
-    return @out
+    @out
   end
 
-  def initialize()
+  def initialize
     @keywidth = 5
     @depth = 0
-    @out = ""
+    @out = ''
   end
 
   private
 
   def indent_str
-    "    " * @depth
+    '    ' * @depth
   end
 
   def indent
@@ -54,12 +54,12 @@ class JsonPrint
   end
 
   def jstr_string(str, width=0)
-    qstr = '"' + str.to_s + '"'
-    @out += ("%*s" % [width, qstr])
+    qstr = "\"#{str}\""
+    @out += ('%*s' % [width, qstr])
   end
 
   def jstr_hash(hash)
-    @out += "{"
+    @out += '{'
     @depth += 1
     needsep = false
     hash.keys.sort.each do |k|
@@ -77,7 +77,7 @@ class JsonPrint
     end
     @depth -= 1
     newline
-    iputs("}")
+    iputs('}')
   end
 
   def jstr_array(ary)
@@ -87,14 +87,14 @@ class JsonPrint
     if multi_line
       newline
       indent
-      sep = ",\n" + indent_str
+      sep = ",\n#{indent_str}"
     else
       sep = ', '
     end
 
     first = true
     ary.each do |elt|
-      @out += first ? "" : sep
+      @out += first ? '' : sep
       first = false
 
       jstr_object(elt)

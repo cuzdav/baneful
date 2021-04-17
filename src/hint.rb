@@ -1,8 +1,8 @@
 require 'ruby2d'
-require_relative 'solve2.rb'
-require_relative 'ruleui.rb'
-require_relative 'game_data.rb'
-require_relative 'level.rb'
+require_relative 'solve2'
+require_relative 'ruleui'
+require_relative 'game_data'
+require_relative 'level'
 
 class Hint
   attr_reader :solution
@@ -11,10 +11,10 @@ class Hint
     @input = input_state
     @solver = solver
     @target_hintbox = Rectangle.new(
-      :color => "white",
-      :z => 0,
-      :opacity => 0.8)
-    clear()
+      color: 'white',
+      z: 0,
+      opacity: 0.8)
+    clear
   end
 
   def next_hint(cur_level)
@@ -28,12 +28,14 @@ class Hint
       target_hint(cur_level)
     when 3
       @input.apply_choice_maybe
+    else
+      raise 'unreachable'
     end
   end
 
   def clear
     @solution = nil
-    @rule.unselect_hints if @rule != nil
+    @rule.unselect_hints unless @rule.nil?
     @target_hintbox.remove
     @hint_strength = 0
   end
@@ -46,11 +48,11 @@ class Hint
     # find the next move to make...
     @solution = @solver.find_solution(game_data)
 
-    if not @solution.empty?
+    if !@solution.empty?
       @next_move = @solution[0]
       rpat, rrepl = game_data.get_raw_rule_and_repl_for_move(@next_move)
       @rule = cur_level.ruleui.get_rule_for_pat_and_repl(rpat, rrepl)
-      if @rule != nil
+      if @rule
         @input.select_rule(@rule)
 
         # if rule has only one replacement, then skip the rule
@@ -63,7 +65,7 @@ class Hint
         @hint_strength += 1
       end
     else
-      puts("***** no @solution found *****")
+      puts('***** no @solution found *****')
     end
   end
 

@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative 'custom_widgets.rb'
+require_relative 'custom_widgets'
 
 FIRST_REPL_ROW = 2
 
@@ -20,7 +20,7 @@ class SingleRule
     @replacement_strs = replacement_strs
     @num_replacements = replacement_strs.size
     @num_rows = @num_replacements + FIRST_REPL_ROW
-    @num_cols = [from_str.size, *replacement_strs.map {|str| str.size}].max
+    @num_cols = [from_str.size, *replacement_strs.map(&:size)].max
     @rule_grid = Grid.new(@num_replacements + FIRST_REPL_ROW, @num_cols, 0,0,0,0)
     @rule_grid.clear
     @color_map = color_map
@@ -38,14 +38,13 @@ class SingleRule
 
   def get_replacement_str_for_row(row)
     # row 0 = pattern, row 1 is blank, row 2 is first replacement, etc
-    if row != nil and row >= FIRST_REPL_ROW
-      return @replacement_strs[row - FIRST_REPL_ROW]
-    end
+    return @replacement_strs[row - FIRST_REPL_ROW] if row && row >= FIRST_REPL_ROW
+
     nil
   end
 
   def rowcol_for_coord(x, y)
-    return @rule_grid.rowcol_for_coord(x, y)
+    @rule_grid.rowcol_for_coord(x, y)
   end
 
   def resizing_move_to(x1, y1, x2, y2)
@@ -70,9 +69,10 @@ class SingleRule
 
   def index_of_repl(repl_str)
     idx = 0
-    puts ("Searching for #{repl_str} in one of #{@replacement_strs}")
+    puts("Searching for #{repl_str} in one of #{@replacement_strs}")
     @replacement_strs.each do |repl|
       return idx if repl == repl_str
+
       idx += 1
     end
     nil
@@ -88,7 +88,7 @@ class SingleRule
   # row: 0 based, in terms of config list, not grid offset
   def show_repl_hint(repl_str)
     idx = index_of_repl(repl_str)
-    return if idx == nil
+    return if idx.nil?
 
     repl_hint = get_hintbox
     repl_hint.y = @rule_grid.ycoord(idx + 2)
@@ -108,14 +108,15 @@ class SingleRule
     row = 0
     col = 0
     num_wild = 0
-    total_wild = from_str.count(".")
+    total_wild = from_str.count('.')
+    color = nil
     from_str.each_char do |ch|
       if ch == '.'
         num_to_show = total_wild > 1 ? num_wild : nil
         num_wild += 1
         cell_obj = WildcardWidget.new(num_to_show)
-      elsif (ch.ord >= ?0.ord and ch.ord <= ?9.ord)
-        #TODO: make explicit placeholders ok too
+      elsif (ch.ord >= '0'.ord) && (ch.ord <= '9'.ord)
+        # TODO: make explicit placeholders ok too
         cell_obj = WildcardWidget.new(ch)
       else
         cell_obj = cell_factory.create(ch)
@@ -132,20 +133,18 @@ class SingleRule
   def set_replacement_cells(from_str, replacement_strs, cell_factory)
     row = 2
     col = 0
-    num_wildcards = from_str.count(".")
+    num_wildcards = from_str.count('.')
     replacement_strs.each do |repl_str|
-      if not repl_str.empty?
+      if !repl_str.empty?
         repl_str.each_char do |ch|
           if SPECIAL_REPL_CHARS.include?(ch)
-            wc_num = num_wildcards > 1 ? ch.ord - ?1.ord : nil
+            wc_num = num_wildcards > 1 ? ch.ord - '1'.ord : nil
             cell_obj = WildcardWidget.new(wc_num)
             @rule_grid.set_cell_object(row, col, cell_obj)
           else
             cell_obj = cell_factory.create(ch)
             @rule_grid.set_cell_object(row, col, cell_obj)
-            if cell_obj.needs_modified_callback
-              @parent.cells_needing_updates << cell_obj
-            end
+            @parent.cells_needing_updates << cell_obj if cell_obj.needs_modified_callback
           end
           @rule_grid.show_cell(row, col)
           col += 1
@@ -160,15 +159,13 @@ class SingleRule
     end
   end
 
-  private
-
   def get_hintbox
     hintbox = @parent.hintbox
     hintbox.x = (@rule_grid.x1 - @parent.gap_px / 2).floor
     hintbox.width = @rule_grid.x2 - @rule_grid.x1 + @parent.gap_px
     hintbox.height = @parent.cell_height + @parent.gap_px / 2
     hintbox.z = 0
-    return hintbox
+    hintbox
   end
 end
 
@@ -201,16 +198,15 @@ class RuleUI
     @num_cols = 0
     @border_lines = [Line.new, Line.new, Line.new, Line.new]
     @hintbox = Rectangle.new(
-      :color => "white",
-      :z => 0,
-      :opacity => 0.2)
+      color: 'white',
+      z: 0,
+      opacity: 0.2
+    )
 
     @hintbox.remove
-    @border_lines.each {|line| line.remove}
+    @border_lines.each(&:remove)
 
     rules = level_cfg[LEVEL_RULES]
-    rule_count = rules.size
-
     cell_factory = CellFactory.new(level_cfg, color_map, self)
     rules.each do |from, to|
       rule = SingleRule.new(self, color_map, from, to, cell_factory)
@@ -232,17 +228,15 @@ class RuleUI
     # in the rule is the state it should be if it's played into the playarea row.
     # If the rule shows the current move state, then when a play occurs, the cell
     # may look different by showing the _next_ state.
-    return @move_number_provider.cur_move_number + 1
+    @move_number_provider.cur_move_number + 1
   end
 
   def clear
     @single_rules.each do |rule|
-      if rule == nil
-        puts("************ RULE IS NIL")
-      end
-      rule.clear
+      puts('************ RULE IS NIL') if rule.nil?
+      rule&.clear
     end
-    @vlines.each {|line| line.remove}
+    @vlines.each(&:remove)
     @sep_hline.remove
     unselect_hints
   end
@@ -257,8 +251,8 @@ class RuleUI
     @x2 = x2
     @y2 = y2
 
-    width = (x1-x2).abs - (@gap_px * @single_rules.size)
-    height = (y1-y2).abs
+    width = (x1 - x2).abs - (@gap_px * @single_rules.size)
+    height = (y1 - y2).abs
     @cell_width = width / @num_cols
     @cell_height = height / @num_rows
 
@@ -278,21 +272,14 @@ class RuleUI
     @sep_hline.x2 = x2
     @sep_hline.y1 = y1 + @cell_height * 1.2
     @sep_hline.y2 = @sep_hline.y1
-
-    x = x1
-    rule_num = 0
-    @vlines.each do |vline|
-    end
   end
 
   def get_rule_for_pat_and_repl(raw_pat_str, raw_repl_str)
     @single_rules.each do |rule|
-      if rule.from_str == raw_pat_str
-        rule.replacement_strs.each do |repl|
-          if repl == raw_repl_str
-            return rule
-          end
-        end
+      next unless rule.from_str == raw_pat_str
+
+      rule.replacement_strs.each do |repl|
+        return rule if repl == raw_repl_str
       end
     end
     nil
@@ -300,9 +287,7 @@ class RuleUI
 
   def get_rule_at(x, y)
     @single_rules.each do |rule|
-      if rule.x1 <= x && rule.x2 >= x && rule.y1 <= y && rule.y2 >= y
-        return rule
-      end
+      return rule if rule.x1 <= x && rule.x2 >= x && rule.y1 <= y && rule.y2 >= y
     end
     nil
   end
@@ -311,10 +296,10 @@ class RuleUI
   # or nil if there isn't
   def get_replacement_str_at(x, y)
     rule = get_rule_at(x,y)
-    if rule != nil
-      row, _ = rule.rowcol_for_coord(x, y)
-      return rule.get_replacement_str_for_row(row)
-    end
+    return unless rule
+
+    row, = rule.rowcol_for_coord(x, y)
+    rule.get_replacement_str_for_row(row)
   end
 
   private
@@ -328,7 +313,7 @@ class RuleUI
   end
 
   def make_line
-    Line.new(:z => 10, :color => 'white')
+    Line.new(z: 10, color: 'white')
   end
 
 end

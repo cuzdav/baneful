@@ -1,42 +1,40 @@
-#require 'ruby2d'
+require 'ruby2d'
 
 class Rectangle
   def needs_modified_callback
-    return false
+    false
   end
 end
 
 class CustomCellBase
-  attr_accessor :x, :y, :width, :height
+  attr_reader :x, :y, :width, :height
 
   def needs_modified_callback
-    return true
+    true
   end
 
   def modified
-    raise "'modified' must be overridden"
+    raise '"modified" must be overridden'
   end
 
-  def each_widget() raise("Not implemented") end
-
-  def initialize()
-    @x=0
-    @y=0
-    @z=10
-    @width=0
-    @height=0
+  def each_widget 
+    raise '"each_widget" Not implemented' 
   end
 
-  def add()
-    each_widget do |widget|
-      widget.add
-    end
+  def initialize
+    @x = 0
+    @y = 0
+    @z = 10
+    @width = 0
+    @height = 0
   end
 
-  def remove()
-    each_widget do |widget|
-      widget.remove
-    end
+  def add
+    each_widget(&:add)
+  end
+
+  def remove
+    each_widget(&:remove)
   end
 
   def color=(color)
@@ -47,14 +45,13 @@ class CustomCellBase
 
   def opacity=(opacity)
     each_widget do |widget|
-      widget.opacity=opacity
+      widget.opacity = opacity
     end
   end
 
   def z=(val)
-    each_widget do |widget|
-      widget.z = val
-    end
+    @z = val
+    modified
   end
 
   def x=(val)
@@ -64,11 +61,6 @@ class CustomCellBase
 
   def y=(val)
     @y = val
-    modified
-  end
-
-  def z=(val)
-    @z = val
     modified
   end
 
@@ -101,11 +93,10 @@ class EmptyReplacementWidget < CustomCellBase
     block.yield @line
   end
 
-  def modified()
+  def modified
     min_hw = [@height, @width].min / 2 - 1
     mid_x = @x + @width / 2
     mid_y = @y + @height / 2
-    mid_z = @z
     @circle.x = mid_x
     @circle.y = mid_y
     @circle.z = @z
@@ -124,19 +115,18 @@ class WildcardWidget < CustomCellBase
   #wc_num is (wildcard) number 1-9 or nil
   def initialize(wc_num)
     super()
-    @rect = Rectangle.new(color: get_color())
-    @circ = Circle.new(color: "red")
-    @circ2 = Circle.new(color: "black")
-    @text_data = wc_num ? wc_num : '?'
+    @rect = Rectangle.new(color: get_color)
+    @circ = Circle.new(color: 'red')
+    @circ2 = Circle.new(color: 'black')
+    @text_data = wc_num || '?'
     @text = Text.new(@text_data)
   end
 
-  def get_color()
-      return ['red', 'blue', 'lime', 'yellow']
+  def get_color
+    %w[red blue lime yellow]
   end
 
-  def color=(color)
-  end
+  def color=(color); end
 
   def each_widget(&block)
     block.yield @rect
@@ -145,7 +135,7 @@ class WildcardWidget < CustomCellBase
     block.yield @circ2
   end
 
-  def modified()
+  def modified
     @rect.height = height
     @rect.width = width
     @rect.x = @x
@@ -161,18 +151,17 @@ class WildcardWidget < CustomCellBase
     @circ2.z = @z
     @circ2.radius = @height / 2 - 3
 
-    @text.remove if @text
+    @text&.remove
     @text = Text.new(
       @text_data,
-      size:@height * 0.80,
-      x:@x + @width / 2 - 11,
-      y:@y + 2,
-      z:@z,
+      size: @height * 0.80,
+      x: @x + @width / 2 - 11,
+      y: @y + 2,
+      z: @z
     )
     @text.size = 100
   end
 end
-
 
 #
 # Receives an index source, which when queried will state which index
@@ -183,35 +172,33 @@ end
 # that returns a number
 
 class RotatingColorsWidget < CustomCellBase
-
   def initialize(move_number_provider, *colors)
     super()
-    if colors.size < 2 or colors.size > 3
-      raise "Colors should be 2..3 provided.  Got #{colors.size}"
-    end
+    ok_color_count = (2..4).include? colors.size
+    raise "Colors should be 2..4 provided.  Got #{colors.size}" unless ok_color_count
 
     @move_number_provider = move_number_provider
     @colors = colors.dup
 
     puts("*** RotatingColorsWidget colors: #{@colors}")
 
-    @circle_colors  = colors.map{ |color| Circle.new(color: color) }
-    @outline_colors = colors.map{ |color| Circle.new(color: 'black') }
+    @circle_colors  = colors.map { |color| Circle.new(color: color) }
+    @outline_colors = colors.map { |_| Circle.new(color: 'black') }
     @rect = Rectangle.new(z: @z)
     @n = @outline_colors.size
     modified
   end
 
-  def get_cur_index()
-    return @move_number_provider.cur_move_number() % @n
+  def get_cur_index
+     @move_number_provider.cur_move_number % @n
   end
 
   def color=(color)
     # ignore
   end
 
-  def color()
-    return @rect.color
+  def color
+    @rect.color
   end
 
   def each_widget(&block)
@@ -224,8 +211,8 @@ class RotatingColorsWidget < CustomCellBase
     block.yield @rect
   end
 
-  def modified()
-    idx = get_cur_index()
+  def modified
+    idx = get_cur_index
     @rect.height = @height
     @rect.width = @width
     @rect.x = @x
@@ -233,7 +220,7 @@ class RotatingColorsWidget < CustomCellBase
     @rect.z = @z
     @rect.color = @colors[idx]
 
-    dx = @width / (@n+1)
+    dx = @width / (@n + 1)
     x = @x + dx
     (0...@n).each do |i|
       outline = @outline_colors[i]

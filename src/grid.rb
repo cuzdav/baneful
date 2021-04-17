@@ -1,17 +1,9 @@
+# frozen_string_literal: true
 require 'ruby2d'
 
 
 class Grid
-  attr_reader :gap_px
-  attr_reader :vert_gap_px
-  attr_reader :cell_width
-  attr_reader :cell_height
-  attr_reader :num_rows
-  attr_reader :num_cols
-  attr_reader :x1
-  attr_reader :x2
-  attr_reader :y1
-  attr_reader :y2
+  attr_reader :gap_px, :vert_gap_px, :cell_width, :cell_height, :num_rows, :num_cols, :x1, :x2, :y1, :y2
 
   def initialize(num_rows, num_cols, x1, y1, x2, y2)
     @num_rows = num_rows
@@ -20,10 +12,10 @@ class Grid
     @row_xoffsets = []
     @gap_px = 2
     @vert_gap_px = 5
-    @background = Rectangle.new(:z => 0, :color => [1, 1, 1, 0.4])
+    @background = Rectangle.new(z: 0, color: [1, 1, 1, 0.4])
     @background.remove
   
-    (0...@num_rows).each do|y|
+    (0...@num_rows).each do|_|
       @rows << []
       @row_xoffsets << 0
     end
@@ -36,9 +28,7 @@ class Grid
       Line.new(color: 'yellow', z: 20),
       Line.new(color: 'yellow', z: 20)
     ]
-    @selectionbox.each do |s|
-      s.remove
-    end
+    @selectionbox.each(&:remove)
     @selected = []
   end
 
@@ -58,27 +48,26 @@ class Grid
   def unhighlight_background
     @background.remove
   end
-
-
+  
   # allow some other object to replace a rect, as long as it implements
   # the Rectangle interface
   def set_cell_object(row, col, obj)
     cell = @rows[row][col]
-    cell.remove if cell
+    cell&.remove
     @rows[row][col] = obj
     update_cell(obj, row, col, nil)
   end
 
   def get_cell_object(row, col)
-    return @rows[row][col]
+    @rows[row][col]
   end
 
-  def refresh()
+  def refresh
     resizing_move_to(@x1, @y1, @x2, @y2)
   end
 
   # move grid and all contents
-  def resizing_move_to(x1, y1, x2, y2, color=nil)
+  def resizing_move_to(x1, y1, x2, y2, color = nil)
     @x1 = x1.to_i
     @y1 = y1.to_i
     @x2 = x2.to_i
@@ -96,9 +85,7 @@ class Grid
       update_cell(rect, row, col, color)
     end
 
-    if @selected_row != nil
-      select_cells(@selected_row, @selected_col1, @selected_col2)
-    end
+    select_cells(@selected_row, @selected_col1, @selected_col2) unless @selected_row.nil?
   end
 
   def foreach_rect(&block)
@@ -119,20 +106,16 @@ class Grid
     end
   end
 
-  def clear()
-    foreach_rect do |rect|
-      rect.remove
-    end
+  def clear
+    foreach_rect(&:remove)
     unhighlight_background
     unselect
   end
 
   def rowcol_for_coord(x, y)
-    row = (y >= @y1 and y < @y2) ? (y - @y1) / @cell_height : nil
-    col = (x >= @x1 and x < @x2) ? (x - @x1) / @cell_width : nil
-
-    result = row, col
-    return result
+    row = (y >= @y1) && (y < @y2) ? (y - @y1) / @cell_height : nil
+    col = (x >= @x1) && (x < @x2) ? (x - @x1) / @cell_width : nil
+    [row, col]
   end
 
   def xcoord(rownum, colnum)
@@ -146,7 +129,7 @@ class Grid
   def set_cell_color(rownum, colnum, color)
     cell = @rows[rownum][colnum]
     cell.color = color
-    return cell
+    cell
   end
 
   def set_cell_opacity(rownum, colnum, opacity)
@@ -155,34 +138,32 @@ class Grid
       cell.opacity = opacity if cell
       return cell
     end
-    return nil
+    nil
   end
 
   def show_cell(rownum, colnum)
     if rownum < num_rows
       cell = @rows[rownum][colnum]
-      cell.add if cell
+      cell&.add
       return cell
     end
-    return nil
+    nil
   end
 
   def hide_cell(rownum, colnum)
     if rownum < num_rows
       cell = @rows[rownum][colnum]
-      cell.remove if cell
+      cell&.remove
       return cell
     end
-    return nil
+    nil
   end
 
-  def select_row(rownum, color='yellow', width=5)
-    if rownum < num_rows
-      select_cells(rownum, 0, @num_cols-1, color, width)
-    end
+  def select_row(rownum, color = 'yellow', width = 5)
+    select_cells(rownum, 0, @num_cols-1, color, width) if rownum < num_rows
   end
 
-  def select_cells(rownum, colnum1, colnum2, color='yellow', width=5)
+  def select_cells(rownum, colnum1, colnum2, color = 'yellow', width = 5)
     @selected_row = rownum
     @selected_col1 = colnum1
     @selected_col2 = colnum2
@@ -225,8 +206,8 @@ class Grid
     end
   end
 
-  def unselect()
-    @selectionbox.each {|s| s.remove}
+  def unselect
+    @selectionbox.each(&:remove)
     @selected_row = nil
     @selected_col1 = nil
     @selected_col2 = nil
@@ -235,11 +216,12 @@ class Grid
   private
 
   def update_cell(rect, row, col, color)
-    return if rect == nil
+    return if rect.nil?
+
     rect.x = xcoord(row, col) + @gap_px
     rect.width = @cell_width - @gap_px
     rect.y = ycoord(row) + @vert_gap_px
     rect.height = @cell_height - @vert_gap_px
-    rect.color = color if color != nil
+    rect.color = color unless color.nil?
   end
 end

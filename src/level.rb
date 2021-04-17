@@ -1,10 +1,10 @@
 require 'ruby2d'
-require_relative 'cell_factory.rb'
-require_relative 'grid.rb'
-require_relative 'game_data.rb'
-require_relative 'level_manager.rb'
-require_relative 'ruleui.rb'
-require_relative 'solve2.rb'
+require_relative 'cell_factory'
+require_relative 'grid'
+require_relative 'game_data'
+require_relative 'level_manager'
+require_relative 'ruleui'
+require_relative 'solve2'
 
 
 class Level
@@ -32,59 +32,56 @@ class Level
     @num_moves = num_moves
     @max_width = maxwidth
     @eff_col = 0
-    @name = @level_cfg[LEVEL_NAME] || ""
+    @name = @level_cfg[LEVEL_NAME] || ''
 
     @color_map = make_color_map(@level_cfg)
     @cell_factory = CellFactory.new(@level_cfg, @color_map, self)
     make_playarea_rows(@level_cfg, maxrows, maxwidth, x1, y1, x2, y2 + 50)
-    make_rules()
-    next_game_data()
+    make_rules
+    next_game_data
   end
 
-  def next_game_data()
-    row_str = @cur_row >= 0 ? @rows[@cur_row] : ""
+  def next_game_data
+    row_str = @cur_row >= 0 ? @rows[@cur_row] : ''
     @game_data = GameState.new(
-      @rules, row_str, @type_overrides, @max_width)
+      @rules, row_str, @type_overrides, @max_width
+    )
   end
 
   # grid index of pixel coord
   def active_x1_coord(col)
-    return @grid.xcoord(@cur_row, col)
+    @grid.xcoord(@cur_row, col)
   end
 
   # grid index of pixel coord
   def active_x2_coord(col)
-    return @grid.xcoord(@cur_row, col) + @grid.cell_width
+    @grid.xcoord(@cur_row, col) + @grid.cell_width
   end
 
   # grid index of pixel coord
-  def active_y1_coord()
-    return @grid.ycoord(@cur_row)
+  def active_y1_coord
+    @grid.ycoord(@cur_row)
   end
 
   # grid index of pixel coord
-  def active_y2_coord()
-    return @grid.ycoord(@cur_row) + @grid.cell_height
+  def active_y2_coord
+    @grid.ycoord(@cur_row) + @grid.cell_height
   end
 
   # for: MoveNumberProvider requirement
-  def cur_move_number()
-    return @game_data ? @game_data.cur_move_number : 0
+  def cur_move_number
+    @game_data ? @game_data.cur_move_number : 0
   end
 
   def update_after_modification
     @needs_modify_callback = update_grid_row(@cur_row, @game_data.cur_raw_row)
     if @game_data.solved?
       @cur_row -= 1
-      if @cur_row < 0
-        @level_manager.prepare_next_level()
-      end
+      @level_manager.prepare_next_level if @cur_row.negative?
       next_game_data
       @needs_modify_callback = update_grid_row(@cur_row, @game_data.cur_raw_row)
     end
-    (@needs_modify_callback + @ruleui.cells_needing_updates).each do |cell|
-      cell.modified
-    end
+    (@needs_modify_callback + @ruleui.cells_needing_updates).each(&:modified)
   end
 
   def reset_cur_level
@@ -97,7 +94,7 @@ class Level
     update_after_modification
   end
 
-  def clear()
+  def clear
     ruleui.clear
     grid.clear
   end
@@ -109,26 +106,23 @@ class Level
     color_idx = -1
 
     # build mapping from char -> color
-    chrs = ""
+    chrs = ''
     level_cfg[LEVEL_RULES].each do |from, tolist|
-        chrs += from
-        chrs += tolist.join
+      chrs += from
+      chrs += tolist.join
     end
     level_cfg[LEVEL_ROWS].each do |row|
-        chrs += row
+      chrs += row
     end
 
     chrs.chars.sort.uniq.each do |ch|
-        if not SPECIAL_PATTERN_CHARS.include?(ch)
-          color_map[ch] ||= COLORS[color_idx += 1]
-        end
+      color_map[ch] ||= COLORS[color_idx += 1] unless SPECIAL_PATTERN_CHARS.include?(ch)
     end
 
-    return color_map
+    color_map
   end
 
   def make_playarea_rows(level, maxrows, maxwidth, x1, y1, x2, y2)
-
     no_verify_rows = level[LEVEL_NO_VERIFY_ROWS]
     verify_rows unless no_verify_rows == true
 
@@ -138,7 +132,7 @@ class Level
 
     eff_y2 = height
     eff_y1 = eff_y2 - @numrows * max_cell_height
-    if eff_y1 < 0
+    if eff_y1.negative?
       eff_y2 += eff_y1.abs
       eff_y1 = 0
     end
@@ -157,13 +151,10 @@ class Level
       @cur_row += 1
     end
     @cur_row -= 1
-
     (0...@numcols).each do |col|
       @grid.set_cell_opacity(@cur_row, col, 1) # reset playing level opacity to 1
     end
-
-    @grid.refresh()
-
+    @grid.refresh
   end
 
   # initialize or update after a modification the given logical rownum
@@ -178,17 +169,17 @@ class Level
     needs_modify_cb = []
 
     # center rows if size is out of phase with width of table
-    needs_offset = (row_str.size % 2 != @numcols % 2) and row_str.size < @numcols
+    needs_offset = (row_str.size % 2 != @numcols % 2) && row_str.size < @numcols
     row_offset = needs_offset ? grid.cell_width / 2 : 0
     @grid.set_row_offset(effrow, row_offset)
 
     row_str.each_char do |ch|
-      cell_object = init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
+      init_grid_cell(ch, effrow, effcol, opacity, needs_modify_cb)
       effcol += 1
     end
     hide_cells_in_row(effrow, effcol, @numcols) # trailing empty cells
 
-    return needs_modify_cb
+    needs_modify_cb
   end
 
   #
@@ -203,16 +194,13 @@ class Level
       # nope, must create
       cell_object = @cell_factory.create(ch)
     end
-    if cell_object.needs_modified_callback
-      needs_modify_cb << cell_object
-    end
+    needs_modify_cb << cell_object if cell_object.needs_modified_callback
 
     @grid.set_cell_object(effrow, effcol, cell_object)
     @grid.set_cell_color(effrow, effcol, @color_map[ch])
     @grid.set_cell_opacity(effrow, effcol, opacity)
     cell_object.z = 10
-
-    return cell_object
+    cell_object
   end
 
   def hide_cells_in_row(rownum, from, to)
@@ -221,7 +209,7 @@ class Level
     end
   end
 
-  def make_rules()
+  def make_rules
     @ruleui = RuleUI.new(@color_map, @level_cfg, self)
     window_width = Window.get(:width)
     window_height = Window.get(:height)
@@ -234,7 +222,7 @@ class Level
     # adjustable height, try to keep same top unless necessary to move up
     cell_height = @grid.cell_height #+ @grid.vert_gap_px
     rulearea_height = [
-      rulearea_max_height(),
+      rulearea_max_height,
       cell_height * @ruleui.num_rows
     ].min
 
@@ -247,13 +235,11 @@ class Level
     puts("*** ruleui created, with cell size of: #{@ruleui.cell_height}")
   end
 
-  def verify_rows()
+  def verify_rows
     @solver = Solver.new(@rules, @num_moves, @max_width)
     @rows.each do |row_str|
       game_data = GameState.new(@rules, row_str, @type_overrides, @max_width)
-      if @solver.find_solution(game_data).empty?
-        raise("Row #{row_str} is not solvable")
-      end
+      raise("Row #{row_str} is not solvable") if @solver.find_solution(game_data).empty?
     end
   end
 end

@@ -1,21 +1,13 @@
+# frozen_string_literal: true
+
 require 'ruby2d'
-require_relative 'input_state.rb'
-require_relative 'level.rb'
-require_relative 'music_player.rb'
-require_relative 'config.rb'
+require_relative 'input_state'
+require_relative 'level'
+require_relative 'music_player'
+require_relative 'config'
 
-# index int <levels> described above
-$level_num = 0
-# current row in current level
-$row_num = 0
-
-$curlevel_spec = nil  # description of level
-$curlevel = nil       # ui game objects for cur level
-
-charmap = {}
-
-Window.set title: "Baneful"
-Window.set({:width => 1024, :height => 768})
+Window.set title: 'Baneful'
+Window.set({ width: 1024, height: 768 })
 
 MAX_ROWS = 5
 MAX_COLS = 9
@@ -23,12 +15,13 @@ MAX_COLS = 9
 VERT_RULE_OFFSET_PX = 30
 HORIZ_RULE_OFFSET_PX = 5
 
-XCOLORS = [
-  "aqua", "red", "lime", "fuchsia",
-  "silver", "purple", "gray", "yellow",
-  "olive",  "blue", "green",
-  "orange","brown", "maroon",
-  "navy", "white",  "black", "teal",]
+XCOLORS = %w[
+  aqua red lime fuchsia
+  silver purple gray yellow
+  olive blue green
+  orange brown maroon
+  navy white black teal
+].freeze
 
 ELECTRIC_BLUE   = Color.new('#A0FFFF')
 FERRARI_RED     = Color.new('#F15015')
@@ -44,54 +37,53 @@ COLORS = [
   HARVEST_GOLD,
   BRIGHT_LAVENDER,
   PASTEL_YELLOW
-]
+].freeze
 
-def playarea_height()
-  return Window.get(:height) / 3
+def playarea_height
+  Window.get(:height) / 3
 end
 
-def rulearea_max_height()
-  return Window.get(:height) / 2
+def rulearea_max_height
+  Window.get(:height) / 2
 end
 
 initial_level = nil
 ARGV.each do |arg|
-  if arg =~ /--level=(.*)/
-    initial_level = $1
-  end
+  initial_level = Regexp.last_match(1) if arg =~ /--level=(.*)/
 end
 
-current_directory = File.dirname($0)
-$music = MusicPlayer.new(current_directory, MUSIC)
-$level_manager = LevelManager.new(current_directory)
-$input_state = InputState.new($music, $level_manager, initial_level)
+current_directory = File.dirname($PROGRAM_NAME)
+music = MusicPlayer.new(current_directory, MUSIC)
+level_manager = LevelManager.new(current_directory)
+input_state = InputState.new(music, level_manager, initial_level)
+level_manager.input_state = input_state
 
 Window.on :mouse_move do |event|
-  $input_state.on_mouse_move(event)
+  input_state.on_mouse_move(event)
 end
 Window.on :mouse_down do |event|
-  $input_state.on_mouse_down(event)
+  input_state.on_mouse_down(event)
 end
 Window.on :mouse_up do |event|
-  $input_state.on_mouse_up(event)
+  input_state.on_mouse_up(event)
 end
 Window.on :key_up do |event|
-  $input_state.on_key_up(event)
+  input_state.on_key_up(event)
 end
 Window.on :key_down do |event|
-  $input_state.on_key_down(event)
+  input_state.on_key_down(event)
 end
 
-$input_state.startup("title_screen.json")
+input_state.startup('title_screen.json')
 
 tick = 0
 update do
   tick += 1
   if tick == 60
-    $music.update
+    music.update
     tick = 0
   end
-  $input_state.update()
+  input_state.update
 end
 
 show

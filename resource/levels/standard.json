@@ -1,6 +1,20 @@
 {
     "levels": [
         {
+	    "name": "foo",
+            "rows": ["aa"],
+            "rules": {
+	        "a": [""],
+                "b": ["a"]
+            },
+	    "type_overrides": {
+	      "a": {
+	        "type": "RotatingColors",
+	        "cycle_chars": "ab"
+	      }
+            }
+        },
+        {
             "name": "hello",
             "rows": ["aaa", "a"],
             "rules": {
