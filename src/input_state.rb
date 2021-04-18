@@ -677,14 +677,17 @@ class TitleScreenState < PlayingState
   end
 
   def start_game
-    puts('START GAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     clear
     @owner.change_state(@owner.playing_state)
     @owner.startup('standard.json')
   end
 
-  def state_activated
+  def prepare_next_level(ruleui, cur_level, solver)
+    super
+    @hintui.remove
   end
+
+  def state_activated; end
 
   def state_deactivated
     @press_any_key.remove
