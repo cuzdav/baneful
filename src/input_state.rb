@@ -188,7 +188,7 @@ class PlayingState < StateImpl
     @level_name_widget = Text.new('', x: 5, y: 5, z: 20, color: 'white', size: 18)
 
     icon_y = Window.get(:height) - 40
-    @undo = UndoArrow.new(Window.get(:width) - 50, icon_y, 25)
+    @undo = UndoArrow.new(Window.get(:width) - 40, icon_y + 6, 25)
     @hintui = QuestionMark.new(10, icon_y, 30, 25)
 
     # [rule_data]
@@ -421,6 +421,9 @@ class PlayingState < StateImpl
     else
       @undo.remove
     end
+
+    puts("***** undo y: #{@undo.y}, #{@undo.y + @undo.height}")
+    puts("***** hint y: #{@hintui.y}, #{@hintui.y + @hintui.height}")
 
     if @possible_plays.empty?
       puts('>>>>>>>> No more moves <<<<<<<<')

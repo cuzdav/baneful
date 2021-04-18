@@ -58,7 +58,14 @@ class UndoArrow
 end
 
 class QuestionMark
+  attr_reader :x, :y, :height, :width
+
   def initialize(x, y, height, width, fgcolor='silver', bgcolor='black')
+    @x = x
+    @y = y
+    @width = width
+    @height = height
+
     thickness = 2
     text_size = height - 2 * thickness
     @parts = [
