@@ -133,6 +133,7 @@ class SingleRule
         cell_obj = WildcardWidget.new(ch)
       else
         cell_obj = cell_factory.create(ch)
+        cell_obj.z = 10
       end
       @rule_grid.set_cell_object(row, col, cell_obj)
       col += 1
