@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative 'custom_widgets'
+require_relative 'custom_cells'
 
 FIRST_REPL_ROW = 2
 

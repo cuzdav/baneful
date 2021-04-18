@@ -1,5 +1,5 @@
 require 'ruby2d'
-require_relative '../custom_widgets.rb'
+require_relative '../custom_cells.rb'
 
 set title: "Hello Triangle"
 

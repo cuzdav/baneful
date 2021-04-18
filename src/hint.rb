@@ -78,7 +78,7 @@ class Hint
     raise "could not find index of repl #{repl}" if idx == nil
     @rule.show_repl_hint(repl)
     @hint_strength += 1
-    @input.select_replacement(idx + FIRST_REPL_ROW, 0, 0)
+    @input.select_replacement(idx + FIRST_REPL_ROW)
 
     # count unique targets (to-string and offset)
     # only one move, so show where it should go at once

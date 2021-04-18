@@ -2,6 +2,7 @@
 require 'ruby2d'
 require_relative 'gameover'
 require_relative 'hint'
+require_relative 'extra_widgets'
 
 TGT_START_X = 0
 TGT_END_X = 1
@@ -45,7 +46,6 @@ class StateImpl
   # main event loop; called each 1/60 of a second.  Give or take.
   def update; end
 end
-
 
 class InputState
   attr_accessor :selected_target_idx
@@ -119,7 +119,6 @@ class InputState
     end
   end
 
-
   def on_key_down(event)
     case event.key
     when 'left shift', 'right shift'
@@ -186,7 +185,11 @@ class PlayingState < StateImpl
     @lines_free = []
     @quads_free = []
     @possible_plays = nil
-    @level_name_widget = Text.new('', x:5, y:5, z:20, color:'white', size:18)
+    @level_name_widget = Text.new('', x: 5, y: 5, z: 20, color: 'white', size: 18)
+
+    icon_y = Window.get(:height) - 40
+    @undo = UndoArrow.new(Window.get(:width) - 50, icon_y, 25)
+    @hintui = QuestionMark.new(10, icon_y, 30, 25)
 
     # [rule_data]
     # rule pattern to data associated:
@@ -195,6 +198,11 @@ class PlayingState < StateImpl
     #      select the potential replacement cells in play area
     @rule_data = {}
   end
+
+  def state_active; end
+
+  # state becomes inactive (popped from stack)
+  def state_deactivated; end
 
   def on_mouse_left_down(event)
     on_mouse_move(event)
@@ -209,6 +217,10 @@ class PlayingState < StateImpl
     @mousedown = false
     if @game_over_state
       restart
+    elsif @undo.contains?(event.x, event.y)
+      undo_move
+    elsif @hintui.contains?(event.x, event.y)
+      give_hint
     elsif @selected_repl != @locked_repl
       @locked_repl = @selected_repl
       @locked_rule = @selected_rule
@@ -269,7 +281,7 @@ class PlayingState < StateImpl
 
   def no_more_moves
     if @cur_level.game_data.solved?
-      Text.new('You Win', size: 80, color: 'white', y: 30, z:20)
+      Text.new('You Win', size: 80, color: 'white', y: 30, z: 20)
     else
       @game_over_state = GameOverState.new
     end
@@ -278,6 +290,8 @@ class PlayingState < StateImpl
   def clear
     unselect_rule
     unselect_widgets
+    @undo.remove
+    @hintui.remove
     @hint&.clear
     @level_name_widget.remove
     @cur_level&.clear
@@ -401,6 +415,13 @@ class PlayingState < StateImpl
       end
     end
 
+    @hintui.add
+    if @ruleui.cur_move_number > 1
+      @undo.add
+    else
+      @undo.remove
+    end
+
     if @possible_plays.empty?
       puts('>>>>>>>> No more moves <<<<<<<<')
       no_more_moves
@@ -421,7 +442,6 @@ class PlayingState < StateImpl
     update_from_game_data
   end
 
-
   def give_hint
     @hint.next_hint(@cur_level)
     return unless @hint.solution
@@ -434,7 +454,6 @@ class PlayingState < StateImpl
       puts("#{move[GS_PLAY_IDX]}: #{move[GS_PLAY_PAT]}->#{move[GS_PLAY_REPL]}   ==> #{gs.cur_row} ")
     end
   end
-
 
   def apply_choice_maybe
     if @selected_rule
@@ -465,7 +484,6 @@ class PlayingState < StateImpl
     unselect_rule
     unselect_replacement
     unselect_playarea_grid
-
 
     if @game_over_state
       @game_over_state.clear
@@ -581,7 +599,7 @@ class PlayingState < StateImpl
 
   def unselect_rule
     return if @selected_rule.nil?
-      @hint.clear
+    @hint.clear
     @selected_rule.rule_grid.unhighlight_background
     unselect_replacement
     unselect_widgets
@@ -601,7 +619,6 @@ class PlayingState < StateImpl
     end
   end
 end
-
 
 class TitleScreenState < PlayingState
 
@@ -664,6 +681,9 @@ class TitleScreenState < PlayingState
     clear
     @owner.change_state(@owner.playing_state)
     @owner.startup('standard.json')
+  end
+
+  def state_activated
   end
 
   def state_deactivated

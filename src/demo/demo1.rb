@@ -1,9 +1,9 @@
 require 'ruby2d'
-
+require_relative('../extra_widgets')
 set title: "Hello Triangle"
 
 r = Rectangle.new(
-  x: 320, y:  50,
+  x: 320, y: 50,
   width: 300,
   height: 80,
 )
@@ -13,29 +13,26 @@ r.color = ['red', 'green', 'blue', 'white']
 txt = Text.new("hello")
 txt.size = 999
 puts(txt.size)
-txt.x=200
+txt.x = 200
 
-class Restart
-  def initialize(x, y, radius, fgcolor='white', bgcolor='black')
-    @circle = Circle.new(x:x, y:y, radius:radius, color:fgcolor)
-    @black_circle = circle = Circle.new(x:x, y:y, radius:radius*0.8, color:bgcolor)
-    @blackout_rect = Rectangle.new(x:x-radius, y:y-radius, width:radius, height:radius*2, color:bgcolor)
-    @toprect = Rectangle.new(x:x-radius, y:y-radius, width:radius, height:radius*0.2, color: fgcolor)
-    @botrect = Rectangle.new(x:x-radius, y:y+radius*0.8, width:radius, height:radius*0.2, color: fgcolor)
 
-    arrowhead_pct=0.40
-    y1 = y - radius - radius*arrowhead_pct
-    y2 = y - radius * 0.80 + radius*arrowhead_pct
-    @tri = Triangle.new(x1: x - radius,
-                        x2: x - radius,
-                        x3: x - radius - radius*0.50,
-                        y1: y1,
-                        y2: y2,
-                        y3: (y2+y1)/2
-                       )
+r = UndoArrow.new(100, 300,50)
+r.add
+
+q = QuestionMark.new(200, 200, 30,30)
+q.add
+
+Window.on :mouse_up do |event|
+  if event.button == :left
+    if q.contains?(event.x, event.y)
+      puts("YES")
+    else
+      puts("NO")
+    end
+    puts("Mouse: (#{event.x},#{event.y}), rect=(#{r.x},#{r.y})-(#{r.x+r.width},#{r.y+r.height})")
   end
+  p event
 end
 
-r = Restart.new(100, 300, 15)
 
 show

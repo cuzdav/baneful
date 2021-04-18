@@ -1,6 +1,6 @@
 require 'ruby2d'
 require "test/unit"
-require_relative "custom_widgets.rb"
+require_relative "custom_cells.rb"
 
 module ExtraColorMethod
   def ==(other)

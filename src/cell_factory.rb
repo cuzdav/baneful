@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'ruby2d'
-require_relative 'custom_widgets'
+require_relative 'custom_cells'
 
 class CellFactory
   def initialize(level_cfg, color_map, move_number_provider)
