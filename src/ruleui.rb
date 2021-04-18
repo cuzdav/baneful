@@ -37,7 +37,11 @@ class SingleRule
     # but replacement moves show the next move, showing what it will be after the replacement
     # hence different factories, since the same call returns different tyeps when the state
     # depends on the move number (like cycling color cells)
-    set_rule_source_cells(from_str, cur_move_cell_factory)
+
+    # The pattern at the top of a rule block
+    set_rule_source_cells(from_str, replacement_strs, cur_move_cell_factory)
+
+    # The replacements that the matched pattern can become
     set_replacement_cells(from_str, replacement_strs, next_move_cell_factory)
   end
 
@@ -113,16 +117,16 @@ class SingleRule
   private
 
   # given a string pattern, enable and colorize the cells in the grid
-  def set_rule_source_cells(from_str, cell_factory)
+  def set_rule_source_cells(from_str, repl_strs, cell_factory)
     #TODO: use cell_factory
     row = 0
     col = 0
     num_wild = 0
-    total_wild = from_str.count('.')
+    max_placeholder = ('0'+repl_strs.join).delete("^0-9").chars.max.to_i
     from_str.each_char do |ch|
       if ch == '.'
-        num_to_show = total_wild > 1 ? num_wild : nil
         num_wild += 1
+        num_to_show = num_wild <= max_placeholder ? num_wild : nil
         cell_obj = WildcardWidget.new(num_to_show)
       elsif ('0'..'9').include? ch
         # TODO: make explicit placeholders ok too
@@ -136,14 +140,14 @@ class SingleRule
   end
 
   def set_replacement_cells(from_str, replacement_strs, cell_factory)
-    row = 2
+    row = FIRST_REPL_ROW
     col = 0
     num_wildcards = from_str.count('.')
     replacement_strs.each do |repl_str|
       if !repl_str.empty?
         repl_str.each_char do |ch|
           if SPECIAL_REPL_CHARS.include?(ch)
-            wc_num = num_wildcards > 1 ? ch.ord - '1'.ord : nil
+            wc_num = num_wildcards > 0 ? ch.ord - '0'.ord : nil
             cell_obj = WildcardWidget.new(wc_num)
             @rule_grid.set_cell_object(row, col, cell_obj)
           else
@@ -321,4 +325,3 @@ class RuleUI
   end
 
 end
-
