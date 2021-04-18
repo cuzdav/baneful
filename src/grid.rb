@@ -3,7 +3,8 @@ require 'ruby2d'
 
 
 class Grid
-  attr_reader :gap_px, :vert_gap_px, :cell_width, :cell_height, :num_rows, :num_cols, :x1, :x2, :y1, :y2
+  attr_reader :gap_px, :vert_gap_px, :cell_width,
+              :cell_height, :num_rows, :num_cols, :x1, :x2, :y1, :y2
 
   def initialize(num_rows, num_cols, x1, y1, x2, y2)
     @num_rows = num_rows
@@ -160,7 +161,7 @@ class Grid
   end
 
   def select_row(rownum, color = 'yellow', width = 5)
-    select_cells(rownum, 0, @num_cols-1, color, width) if rownum < num_rows
+    select_cells(rownum, 0, @num_cols-1, color, width) if rownum < @num_rows
   end
 
   def select_cells(rownum, colnum1, colnum2, color = 'yellow', width = 5)

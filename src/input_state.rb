@@ -201,18 +201,18 @@ class PlayingState < StateImpl
     @mousedown = true
     if @selected_rule
       replacement_str = @ruleui.get_replacement_str_at(event.x, event.y)
-      @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5) if !@selected_repl && replacement_str
+      @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5) if @selected_repl && replacement_str
     end
   end
 
   def on_mouse_left_up(event)
     @mousedown = false
-    if !@game_over_state.nil?
+    if @game_over_state
       restart
     elsif @selected_repl != @locked_repl
       @locked_repl = @selected_repl
       @locked_rule = @selected_rule
-    elsif !@selected_target_idx.nil?
+    elsif @selected_target_idx
       apply_choice_maybe
       @locked_repl = nil
       @locked_rule = nil
@@ -258,7 +258,7 @@ class PlayingState < StateImpl
   end
 
   def on_mouse_move(event)
-    if !@locked_repl.nil?
+    if @locked_repl
       mouse_targeting(event.x, event.y)
     elsif event.y >= @ruleui.y1
       mouse_over_rule(event)
@@ -308,6 +308,7 @@ class PlayingState < StateImpl
       end
     end
     @rule_data.clear
+    @locked_repl = nil
 
     rule_gap = @ruleui.gap_px
 
@@ -451,6 +452,9 @@ class PlayingState < StateImpl
       @game_over_state.clear
       @game_over_state = nil
     end
+    unselect_playarea_grid
+    unselect_replacement
+    unselect_rule
     update_from_game_data
   end
 
@@ -472,8 +476,6 @@ class PlayingState < StateImpl
   end
 
   def mouse_targeting(mousex, mousey)
-    start_col = nil
-
     # go over all possible targets in the play area, find which, if any,
     # mouse is targeting.
 
