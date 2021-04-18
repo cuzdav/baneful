@@ -119,23 +119,18 @@ class SingleRule
     col = 0
     num_wild = 0
     total_wild = from_str.count('.')
-    color = nil
     from_str.each_char do |ch|
       if ch == '.'
         num_to_show = total_wild > 1 ? num_wild : nil
         num_wild += 1
         cell_obj = WildcardWidget.new(num_to_show)
-      elsif (ch.ord >= '0'.ord) && (ch.ord <= '9'.ord)
+      elsif ('0'..'9').include? ch
         # TODO: make explicit placeholders ok too
         cell_obj = WildcardWidget.new(ch)
       else
         cell_obj = cell_factory.create(ch)
-        color = @color_map[ch]
       end
       @rule_grid.set_cell_object(row, col, cell_obj)
-      @rule_grid.set_cell_color(row, col, color)
-      @rule_grid.set_cell_opacity(row, col, 0)
-      @rule_grid.show_cell(row, col)
       col += 1
     end
   end
@@ -153,6 +148,7 @@ class SingleRule
             @rule_grid.set_cell_object(row, col, cell_obj)
           else
             cell_obj = cell_factory.create(ch)
+            cell_obj.z = 10
             @rule_grid.set_cell_object(row, col, cell_obj)
             @parent.cells_needing_updates << cell_obj if cell_obj.needs_modified_callback
           end
