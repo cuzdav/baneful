@@ -199,11 +199,6 @@ class PlayingState < StateImpl
     @rule_data = {}
   end
 
-  def state_active; end
-
-  # state becomes inactive (popped from stack)
-  def state_deactivated; end
-
   def on_mouse_left_down(event)
     on_mouse_move(event)
     @mousedown = true
@@ -247,7 +242,7 @@ class PlayingState < StateImpl
     on_mouse_move(event)
   end
 
-  def on_key_up(event, shiftdown, ctrldown)
+  def on_key_up(event, shiftdown, _ctrldown)
     #    puts "KEYDOWN:"
     #    p event
     case event.key
@@ -336,12 +331,14 @@ class PlayingState < StateImpl
       rule_y2 = rule_y1
 
       widgets_per_row = []
+      widgets_per_play = {}
       target_cell_info_per_row = []
       row_has_moves = []
       has_moves = false
 
       rule_data = {
         widgets: widgets_per_row,
+        widgets_per_play: widgets_per_play,
         has_moves: false,
         target_cell_info: target_cell_info_per_row,
         row_has_moves: row_has_moves
@@ -395,6 +392,9 @@ class PlayingState < StateImpl
           quad.color = 'white'
           quad.opacity = 0.2
           quads << quad
+
+          # intended for hint to enable only the spotlight for the play it would make
+          widgets_per_play[to_canonical_move(move)] = quad
         end
 
         row_idx += 1
@@ -570,9 +570,15 @@ class PlayingState < StateImpl
     result
   end
 
-  def select_replacement(row)
+  # selecting a replacement is normally by clicking the mouse, and sets the row.
+  # however, the hint system may do it too, and then it can pass in the move
+  # If a move is provided, it should only show the spotlight for that move, rather
+  # than all possible spotlights for the given row.
+  def select_replacement(row, move_ary=nil)
     data = @rule_data[@selected_rule.from_str]
     row_has_moves = data[:row_has_moves]
+    puts("******* SELECT REPLACEMNET row=#{row} has_moves #{row_has_moves[row]}")
+
 
     if row && row_has_moves[row]
       # weird, when compiled with mruby, this is a float, but interpreted it's an int
@@ -580,9 +586,18 @@ class PlayingState < StateImpl
       @selected_repl = row
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
       @target_row_info = data[:target_cell_info][row]
-      widgets = data[:widgets][row]
-      widgets&.each(&:add)
+      if move_ary.nil?
+        spotlight_widgets = data[:widgets][row]
+        spotlight_widgets&.each(&:add)
+      else
+        spotlight_widget = data[:widgets_per_play][to_canonical_move(move_ary)]
+        spotlight_widget&.add
+        puts("********* hint's next move: #{move_ary}")
+        puts("********* keys in dictionary: #{data[:widgets_per_play].keys}")
+      end
     end
+    puts("******* EXITING SELECT REPLACEMNET")
+
   end
 
   def unselect_replacement

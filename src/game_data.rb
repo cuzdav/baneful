@@ -14,6 +14,10 @@ GS_PLAY_NUM_MOVES = 6 # number of moves from the solution (opt)
 SPECIAL_PATTERN_CHARS = '.123456789'
 SPECIAL_REPL_CHARS = '123456789'
 
+def to_canonical_move(move)
+  move[0..GS_PLAY_CAPTURES]
+end
+
 def create_reverse_mapping(rules)
   rev = {}
   rules.each do |from, to_list|
@@ -363,4 +367,3 @@ class GameState
   end
 
 end
-

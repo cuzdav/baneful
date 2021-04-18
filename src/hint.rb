@@ -38,6 +38,7 @@ class Hint
     @rule.unselect_hints unless @rule.nil?
     @target_hintbox.remove
     @hint_strength = 0
+    @selected_repl_idx = nil
   end
 
   private
@@ -70,15 +71,17 @@ class Hint
   end
 
   def repl_hint(cur_level)
-    puts ("[repl_hint] next move: #{@next_move}")
-    puts ("rule: #{@rule.from_str} -> #{@rule.replacement_strs}")
+    puts("[repl_hint] next move: #{@next_move}")
+    puts("rule: #{@rule.from_str} -> #{@rule.replacement_strs}")
     repl = @next_move[GS_PLAY_RAWREPL]
 
     idx = @rule.index_of_repl(repl)
     raise "could not find index of repl #{repl}" if idx == nil
+
     @rule.show_repl_hint(repl)
     @hint_strength += 1
-    @input.select_replacement(idx + FIRST_REPL_ROW)
+    @selected_repl_idx = idx + FIRST_REPL_ROW
+    @input.select_replacement(@selected_repl_idx)
 
     # count unique targets (to-string and offset)
     # only one move, so show where it should go at once
@@ -93,6 +96,7 @@ class Hint
 
   def target_hint(cur_level)
     grid = cur_level.grid
+    @input.unselect_replacement
 
     # grid-coord from string coord is offset by eff_col
     idx = @next_move[GS_PLAY_IDX] + cur_level.eff_col
@@ -110,6 +114,10 @@ class Hint
     @target_hintbox.add
     @hint_strength += 1
     @input.select_target(idx, @next_move)
+    puts("*** next_move: #{@next_move}")
+
+    @input.select_replacement(@selected_repl_idx, @next_move)
+
   end
 
 end
