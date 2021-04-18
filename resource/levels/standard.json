@@ -1,227 +1,425 @@
 {
-    "levels": [
-        {
-	    "name": "foo",
-            "rows": ["aa"],
-            "rules": {
-	        "a": [""],
-                "b": ["a"]
-            },
-	    "type_overrides": {
-	      "a": {
-	        "type": "RotatingColors",
-	        "cycle_chars": "ab"
-	      }
-            }
-        },
-        {
-            "name": "hello",
-            "rows": ["aaa", "a"],
-            "rules": {
-                "a": [""]
-            }
-        },
-        {
-            "name": "2-step",
-            "rows": ["a"],
-            "rules": {
-                "a": ["b"],
-                "b": [""]
-            }
-        },
-        {
-            "name": "simple chain",
-            "rows": ["a"],
-            "rules": {
-                "a": ["b"],
-                "b": ["c"],
-                "c": [""]
-            }
-        },
-        {
-            "name": "pairs",
-            "rows": ["abba"],
-            "rules": {
-                "ab": [""],
-                "ba": [""]
-            }
-        },
-        {
-            "name": "choice",
-            "rows": ["abba"],
-            "rules": {
-                "ab": ["a", "b", "c"],
-                "ba": ["b", "c", "a"],
-                "c": [""]
-            }
-        },
-        {
-            "name": "setup",
-            "rows": ["baab", "bbbb", "baba"],
-            "rules": {
-                "ab": [""],
-                "b": ["a"],
-                "ba": ["ab"]
-            }
-        },
-        {
-            "name": "reduce",
-            "rows": ["aaab"],
-            "rules": {
-                "ab": ["b"],
-                "b": [""]
-            }
-        },
-        {
-            "name": "rows",
-            "rows": ["aaaaabb", "ab", "ba"],
-            "rules": {
-                "a": ["bb"],
-                "aab": ["ab", "aaa"],
-                "bbb": [""]
-            }
-        },
-        {
-            "name": "careful",
-            "rows": ["aab", "bab", "b"],
-            "rules": {
-                "abbb": [""],
-                "b": ["bb", ""]
-            }
-        },
-        {
-            "name": "cavity",
-            "rows": ["babaabab", "abbbbbba"],
-            "rules": {
-                "aa": [""],
-                "bb": [""]
-            }
-        },
-        {
-            "name": "rise and fall",
-            "rows": ["aba"],
-            "rules": {
-                "a": ["cc"],
-                "b": [""],
-                "cbc": ["b"]
-            }
-        },
-        {
-            "name": "reverse",
-            "rows": ["a"],
-            "rules": {
-                "a": ["ba", "bb"],
-                "abbb": [""],
-                "ba": ["aab"]
-            }
-        },
-        {
-            "name": "onion",
-            "rows": ["baa", "a", "ba", "aa", "aba"],
-            "rules": {
-                "a": ["aa", "ba"],
-                "aba": [""],
-                "b": ["ab"]
-            }
-        },
-        {
-            "name": "patchwork",
-            "rows": ["abc", "ac", "a"],
-            "rules": {
-                "a": ["b", "c"],
-                "b": ["ac"],
-                "cc": [""]
-            }
-        },
-        {
-            "name": "reverence",
-            "rows": ["a"],
-            "rules": {
-                "a": ["ba", "bb"],
-                "abbbb": [""],
-                "ba": ["ab"]
-            }
-        },
-        {
-            "name": "parity",
-            "rows": ["aaaaaaa"],
-            "rules": {
-                "aa": ["ab"],
-                "ab": [""],
-                "bb": ["b"]
-            }
-        },
-        {
-            "name": "aha!",
-            "rows": ["daaaaa"],
-            "rules": {
-                "a": ["b"],
-                "ab": ["bc"],
-                "dbc": ["db", ""]
-            }
-        },
-        {
-            "name": "I believe in you",
-            "rows": ["bcbc", "c", "a"],
-            "rules": {
-                "a": ["bb", "cc"],
-                "aa": ["c"],
-                "bcb": [""],
-                "c": ["ba", "ab"]
-            }
-        },
-        {
-            "name": "April",
-            "rows": ["bd", "acd"],
-            "rules": {
-                "a": ["bc"],
-                "abcd": [""],
-                "bc": ["bcd", "c"],
-                "cbc": ["ab"],
-                "d": ["a", "db"],
-                "db": ["b"]
-            }
-        },
-        {
-            "name": "reverse 3",
-            "rows": ["abc"],
-            "rules": {
-                "...": ["321"],
-                "cba": [""]
-            }
-        },
-        {
-            "name": "wild!",
-            "rows": ["abcd"],
-            "rules": {
-                ".": [""]
-            }
-        },
-        {
-            "name": "I remember you",
-            "rows": ["aabaa"],
-            "rules": {
-                "a.a": ["1", ""],
-                "b": [""]
-            }
-        },
-        {
-            "name": "swap2",
-            "rows": ["cadbcd", "abcd"],
-            "rules": {
-                "..": ["21"],
-                "ba": [""],
-                "dc": [""]
-            }
-        },
-        {
-            "name": "redshift",
-            "rows": ["abcac"],
-            "rules": {
-                ".b": ["b"],
-                ".b.": ["12b"],
-                "b": [""]
-            }
-        }
-    ]
+  "levels": [
+    {
+      "name": "hello",
+      "rows": [
+        "aaa",
+        "a"
+      ],
+      "rules": {
+        "a": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "2-step",
+      "rows": [
+        "a"
+      ],
+      "rules": {
+        "a": [
+          "b"
+        ],
+        "b": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "simple chain",
+      "rows": [
+        "a"
+      ],
+      "rules": {
+        "a": [
+          "b"
+        ],
+        "b": [
+          "c"
+        ],
+        "c": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "pairs",
+      "rows": [
+        "abba"
+      ],
+      "rules": {
+        "ab": [
+          ""
+        ],
+        "ba": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "choice",
+      "rows": [
+        "abba"
+      ],
+      "rules": {
+        "ab": [
+          "a",
+          "b",
+          "c"
+        ],
+        "ba": [
+          "b",
+          "c",
+          "a"
+        ],
+        "c": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "setup",
+      "rows": [
+        "baab",
+        "bbbb",
+        "baba"
+      ],
+      "rules": {
+        "ab": [
+          ""
+        ],
+        "b": [
+          "a"
+        ],
+        "ba": [
+          "ab"
+        ]
+      }
+    },
+    {
+      "name": "reduce",
+      "rows": [
+        "aaab"
+      ],
+      "rules": {
+        "ab": [
+          "b"
+        ],
+        "b": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "rows",
+      "rows": [
+        "aaaaabb",
+        "ab",
+        "ba"
+      ],
+      "rules": {
+        "a": [
+          "bb"
+        ],
+        "aab": [
+          "ab",
+          "aaa"
+        ],
+        "bbb": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "careful",
+      "rows": [
+        "aab",
+        "bab",
+        "b"
+      ],
+      "rules": {
+        "abbb": [
+          ""
+        ],
+        "b": [
+          "bb",
+          ""
+        ]
+      }
+    },
+    {
+      "name": "cavity",
+      "rows": [
+        "babaabab",
+        "abbbbbba"
+      ],
+      "rules": {
+        "aa": [
+          ""
+        ],
+        "bb": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "rise and fall",
+      "rows": [
+        "aba"
+      ],
+      "rules": {
+        "a": [
+          "cc"
+        ],
+        "b": [
+          ""
+        ],
+        "cbc": [
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "reverse",
+      "rows": [
+        "a"
+      ],
+      "rules": {
+        "a": [
+          "ba",
+          "bb"
+        ],
+        "abbb": [
+          ""
+        ],
+        "ba": [
+          "aab"
+        ]
+      }
+    },
+    {
+      "name": "onion",
+      "rows": [
+        "baa",
+        "a",
+        "ba",
+        "aa",
+        "aba"
+      ],
+      "rules": {
+        "a": [
+          "aa",
+          "ba"
+        ],
+        "aba": [
+          ""
+        ],
+        "b": [
+          "ab"
+        ]
+      }
+    },
+    {
+      "name": "patchwork",
+      "rows": [
+        "abc",
+        "ac",
+        "a"
+      ],
+      "rules": {
+        "a": [
+          "b",
+          "c"
+        ],
+        "b": [
+          "ac"
+        ],
+        "cc": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "reverence",
+      "rows": [
+        "a"
+      ],
+      "rules": {
+        "a": [
+          "ba",
+          "bb"
+        ],
+        "abbbb": [
+          ""
+        ],
+        "ba": [
+          "ab"
+        ]
+      }
+    },
+    {
+      "name": "parity",
+      "rows": [
+        "aaaaaaa"
+      ],
+      "rules": {
+        "aa": [
+          "ab"
+        ],
+        "ab": [
+          ""
+        ],
+        "bb": [
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "aha!",
+      "rows": [
+        "daaaaa"
+      ],
+      "rules": {
+        "a": [
+          "b"
+        ],
+        "ab": [
+          "bc"
+        ],
+        "dbc": [
+          "db",
+          ""
+        ]
+      }
+    },
+    {
+      "name": "I believe in you",
+      "rows": [
+        "bcbc",
+        "c",
+        "a"
+      ],
+      "rules": {
+        "a": [
+          "bb",
+          "cc"
+        ],
+        "aa": [
+          "c"
+        ],
+        "bcb": [
+          ""
+        ],
+        "c": [
+          "ba",
+          "ab"
+        ]
+      }
+    },
+    {
+      "name": "April",
+      "rows": [
+        "bd",
+        "acd"
+      ],
+      "rules": {
+        "a": [
+          "bc"
+        ],
+        "abcd": [
+          ""
+        ],
+        "bc": [
+          "bcd",
+          "c"
+        ],
+        "cbc": [
+          "ab"
+        ],
+        "d": [
+          "a",
+          "db"
+        ],
+        "db": [
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "reverse 3",
+      "rows": [
+        "abc"
+      ],
+      "rules": {
+        "...": [
+          "321"
+        ],
+        "cba": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "wild!",
+      "rows": [
+        "abcd"
+      ],
+      "rules": {
+        ".": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "I remember you",
+      "rows": [
+        "aabaa"
+      ],
+      "rules": {
+        "a.a": [
+          "1",
+          ""
+        ],
+        "b": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "swap2",
+      "rows": [
+        "cadbcd",
+        "abcd"
+      ],
+      "rules": {
+        "..": [
+          "21"
+        ],
+        "ba": [
+          ""
+        ],
+        "dc": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "redshift",
+      "rows": [
+        "abcac"
+      ],
+      "rules": {
+        ".b": [
+          "b"
+        ],
+        ".b.": [
+          "12b"
+        ],
+        "b": [
+          ""
+        ]
+      }
+    }
+  ]
 }

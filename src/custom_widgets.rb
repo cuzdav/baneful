@@ -17,8 +17,8 @@ class CustomCellBase
     raise '"modified" must be overridden'
   end
 
-  def each_widget 
-    raise '"each_widget" Not implemented' 
+  def each_widget
+    raise '"each_widget" Not implemented'
   end
 
   def initialize
@@ -27,6 +27,7 @@ class CustomCellBase
     @z = 10
     @width = 0
     @height = 0
+    @desc = ''
   end
 
   def add
@@ -126,7 +127,9 @@ class WildcardWidget < CustomCellBase
     %w[red blue lime yellow]
   end
 
-  def color=(color); end
+  def color=(color)
+    ;
+  end
 
   def each_widget(&block)
     block.yield @rect
@@ -172,6 +175,7 @@ end
 # that returns a number
 
 class RotatingColorsWidget < CustomCellBase
+
   def initialize(move_number_provider, *colors)
     super()
     ok_color_count = (2..4).include? colors.size
@@ -180,17 +184,19 @@ class RotatingColorsWidget < CustomCellBase
     @move_number_provider = move_number_provider
     @colors = colors.dup
 
-    puts("*** RotatingColorsWidget colors: #{@colors}")
+    puts("*** CREATED RotatingColorsWidget colors: #{self} #{@colors}")
 
-    @circle_colors  = colors.map { |color| Circle.new(color: color) }
+    @circle_colors = colors.map { |color| Circle.new(color: color) }
     @outline_colors = colors.map { |_| Circle.new(color: 'black') }
     @rect = Rectangle.new(z: @z)
     @n = @outline_colors.size
     modified
+
+    @count = 1
   end
 
   def get_cur_index
-     @move_number_provider.cur_move_number % @n
+    @move_number_provider.cur_move_number % @n
   end
 
   def color=(color)

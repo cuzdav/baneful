@@ -50,7 +50,7 @@ class LevelManager
     @level_name = @curlevel_config[LEVEL_NAME]
 
     @row_num = 0
-    @curlevel.clear unless @curlevel.nil?
+    @curlevel&.clear
 
     @curlevel = Level.new(
       self,

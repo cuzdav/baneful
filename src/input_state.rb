@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'ruby2d'
 require_relative 'gameover'
 require_relative 'hint'
@@ -21,19 +22,19 @@ class StateImpl
   # state becomes inactive (popped from stack)
   def state_deactivated; end
 
-  def on_mouse_move(event); end
+  def on_mouse_move(_event); end
 
-  def on_mouse_left_down(event); end
+  def on_mouse_left_down(_event); end
 
-  def on_mouse_left_up(event); end
+  def on_mouse_left_up(_event); end
 
-  def on_mouse_right_down(event); end
+  def on_mouse_right_down(_event); end
 
-  def on_mouse_right_up(event); end
+  def on_mouse_right_up(_event); end
 
-  def on_key_down(event, shiftdown, ctrldown); end
+  def on_key_down(_event, _shiftdown, _ctrldown); end
 
-  def on_key_up(event, shiftdown, ctrldown); end
+  def on_key_up(_event, _shiftdown, _ctrldown); end
 
   # start next level
   def prepare_next_level(ruleui, cur_level, solver); end
@@ -45,10 +46,10 @@ class StateImpl
   def update; end
 end
 
-class InputState
 
+class InputState
   attr_accessor :selected_target_idx
-  attr_reader :playing_state, :title_screen_state, :initial_level
+  attr_reader :playing_state, :title_screen_state, :initial_level # from cmdline
 
   def initialize(bg_music, level_manager, initial_level)
     @initial_level = initial_level
@@ -92,7 +93,7 @@ class InputState
     @level_manager.open_level_group(level_group_filename, initial_level)
   end
 
-  def update()
+  def update
     @cur_state.update
   end
 
@@ -118,6 +119,7 @@ class InputState
     end
   end
 
+
   def on_key_down(event)
     case event.key
     when 'left shift', 'right shift'
@@ -140,7 +142,6 @@ class InputState
       exit if @ctrldown
     when ']'
       @bg_music.next_track
-
     when 'left shift', 'right shift'
       @shiftdown = false
 
@@ -192,15 +193,15 @@ class PlayingState < StateImpl
     #  :widgets add to Window to indicate rule is active
     #  :target_cell_info: when locked&loaded, these x-ranges will
     #      select the potential replacement cells in play area
-    @rule_data = Hash.new
+    @rule_data = {}
   end
 
   def on_mouse_left_down(event)
     on_mouse_move(event)
     @mousedown = true
-    unless @selected_rule.nil?
+    if @selected_rule
       replacement_str = @ruleui.get_replacement_str_at(event.x, event.y)
-      @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5) if !@selected_repl.nil? && !replacement_str.nil?
+      @selected_rule.rule_grid.select_row(@selected_repl, 'yellow', 5) if !@selected_repl && replacement_str
     end
   end
 
@@ -234,7 +235,7 @@ class PlayingState < StateImpl
     on_mouse_move(event)
   end
 
-  def on_key_up(event, shiftdown, _ctrldown)
+  def on_key_up(event, shiftdown, ctrldown)
     #    puts "KEYDOWN:"
     #    p event
     case event.key
@@ -242,7 +243,6 @@ class PlayingState < StateImpl
       unselect_replacement
     when 'h'
       give_hint
-
     when 'r'
       restart
     when 'u'
@@ -329,7 +329,7 @@ class PlayingState < StateImpl
         widgets: widgets_per_row,
         has_moves: false,
         target_cell_info: target_cell_info_per_row,
-        row_has_moves: row_has_moves,
+        row_has_moves: row_has_moves
       }
       @rule_data[rule.from_str] = rule_data
 
@@ -411,7 +411,7 @@ class PlayingState < StateImpl
     result = @cur_level.game_data.make_move(move)
 
     if result.nil?
-      puts("Curr game state: #{@cur_level.game_data.cur_row}xo")
+      puts("Curr game state: #{@cur_level.game_data.cur_row}")
       puts("MOVE: #{move}")
       puts('PROBLEM??? applying move failed!')
     end
@@ -419,6 +419,7 @@ class PlayingState < StateImpl
     @cur_level.update_after_modification
     update_from_game_data
   end
+
 
   def give_hint
     @hint.next_hint(@cur_level)
@@ -433,19 +434,20 @@ class PlayingState < StateImpl
     end
   end
 
+
   def apply_choice_maybe
-    unless @selected_rule.nil?
+    if @selected_rule
       move = @selected_move
       unselect_replacement
       unselect_playarea_grid
-      apply_move(move) unless move.nil?
+      apply_move(move) if move
     end
     unselect_rule
   end
 
   def undo_move
     @cur_level.undo_move
-    unless @game_over_state.nil?
+    if @game_over_state
       @game_over_state.clear
       @game_over_state = nil
     end
@@ -460,7 +462,8 @@ class PlayingState < StateImpl
     unselect_replacement
     unselect_playarea_grid
 
-    unless @game_over_state.nil?
+
+    if @game_over_state
       @game_over_state.clear
       @game_over_state = nil
     end
@@ -468,11 +471,13 @@ class PlayingState < StateImpl
     update_from_game_data
   end
 
-  def mouse_targeting(mousex, _mousey)
+  def mouse_targeting(mousex, mousey)
+    start_col = nil
+
     # go over all possible targets in the play area, find which, if any,
     # mouse is targeting.
 
-    # note: cells in grid are drawn centered, so grid coords may not
+    # NOTE: cells in grid are drawn centered, so grid coords may not
     # have same index as "string" coords.  Example:
     # String: "XXY" and grid width is 5, grid may be [_XXY_]
     # XXY string coords (in game_data) are 0, but in grid are 1.
@@ -481,7 +486,7 @@ class PlayingState < StateImpl
 
     # start by selecting the potential leftmost target, then
     # scan for better mouse-coord matches
-    if !@locked_repl.nil? && !@target_row_info.empty? && @selected_target_idx.nil?
+    if @locked_repl && !@target_row_info.empty? && @selected_target_idx.nil?
       first_target = @target_row_info[0]
       cur_move = first_target[TGT_MOVE]
       grid_col = first_target[TGT_COL]
@@ -489,20 +494,20 @@ class PlayingState < StateImpl
 
     # x1, x2 are mouse coord ranges, col is grid-relative index,
     # and move is hash from possible_plays, describing a move
-    grid_col = nil
-    cur_move = nil
     @target_row_info.each do |x1, x2, col, move|
       if (mousex > x1) && (mousex < x2)
         grid_col = col
         cur_move = move
       end
     end
-    select_target(grid_col, cur_move) if grid_col
+    select_target(grid_col, cur_move)
   end
 
   def select_target(grid_col, move)
-    if !grid_col.nil? && (@selected_target_idx != grid_col)
-      @cur_level.grid.unselect unless @selected_target_idx.nil?
+    return if grid_col.nil?
+
+    if @selected_target_idx != grid_col
+      @cur_level.grid.unselect if @selected_target_idx
       @selected_target_idx = grid_col
       @selected_move = move
       @cur_level.grid.select_cells(
@@ -518,10 +523,8 @@ class PlayingState < StateImpl
     x = event.x
     y = event.y
     rule = @ruleui.get_rule_at(x, y)
-
     select_rule(rule)
-
-    if rule
+    unless rule.nil?
       row, = rule.rowcol_for_coord(x, y)
       if @selected_repl != row || rule.replacement_strs.size == 1
         unselect_replacement
@@ -553,7 +556,6 @@ class PlayingState < StateImpl
       row = row.floor
       @selected_repl = row
       @selected_rule.rule_grid.select_row(row, 'yellow', 4)
-
       @target_row_info = data[:target_cell_info][row]
       widgets = data[:widgets][row]
       widgets&.each(&:add)
@@ -577,8 +579,7 @@ class PlayingState < StateImpl
 
   def unselect_rule
     return if @selected_rule.nil?
-
-    @hint.clear
+      @hint.clear
     @selected_rule.rule_grid.unhighlight_background
     unselect_replacement
     unselect_widgets
@@ -588,18 +589,17 @@ class PlayingState < StateImpl
   end
 
   def unselect_widgets
-    return if @rule_data.nil? || @selected_rule.nil?
-
-    data = @rule_data[@selected_rule.from_str]
-    return if data.nil?
-
-    data[:widgets].each do |widget_row|
-      widget_row&.each do |quad|
-        quad.remove
+    if @rule_data && @selected_rule
+      data = @rule_data[@selected_rule.from_str]
+      unless data.nil?
+        data[:widgets].each do |widget_row|
+          widget_row&.each(&:remove)
+        end
       end
     end
   end
 end
+
 
 class TitleScreenState < PlayingState
 
@@ -617,7 +617,7 @@ class TitleScreenState < PlayingState
     )
   end
 
-  def update()
+  def update
     if (@tick % 60).zero?
       next_selection
       @tick = 0
@@ -667,7 +667,4 @@ class TitleScreenState < PlayingState
   def state_deactivated
     @press_any_key.remove
   end
-
 end
-
-

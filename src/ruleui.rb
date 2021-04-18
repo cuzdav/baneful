@@ -14,7 +14,14 @@ class SingleRule
 
   # from_str is a string representing the "from" pattern
   # replacement_strs is an array of strings representing the "to" patterns
-  def initialize(parent, color_map, from_str, replacement_strs, cell_factory)
+  def initialize(
+      parent,
+      color_map,
+      from_str,
+      replacement_strs,
+      cur_move_cell_factory,
+      next_move_cell_factory
+    )
     @parent = parent
     @from_str = from_str
     @replacement_strs = replacement_strs
@@ -26,10 +33,13 @@ class SingleRule
     @color_map = color_map
 
     # add colors for rules and replacements
-    set_rule_source_cells(from_str, cell_factory)
-    set_replacement_cells(from_str, replacement_strs, cell_factory)
+    # Note: rule patterns (from) show current moves, since that's what will be replaced
+    # but replacement moves show the next move, showing what it will be after the replacement
+    # hence different factories, since the same call returns different tyeps when the state
+    # depends on the move number (like cycling color cells)
+    set_rule_source_cells(from_str, cur_move_cell_factory)
+    set_replacement_cells(from_str, replacement_strs, next_move_cell_factory)
   end
-
 
   def clear
     @rule_grid.clear
@@ -146,7 +156,6 @@ class SingleRule
             @rule_grid.set_cell_object(row, col, cell_obj)
             @parent.cells_needing_updates << cell_obj if cell_obj.needs_modified_callback
           end
-          @rule_grid.show_cell(row, col)
           col += 1
         end
       else
@@ -207,9 +216,10 @@ class RuleUI
     @border_lines.each(&:remove)
 
     rules = level_cfg[LEVEL_RULES]
-    cell_factory = CellFactory.new(level_cfg, color_map, self)
+    cur_move_cell_factory = CellFactory.new(level_cfg, color_map, @move_number_provider)
+    next_move_cell_factory = CellFactory.new(level_cfg, color_map, self)
     rules.each do |from, to|
-      rule = SingleRule.new(self, color_map, from, to, cell_factory)
+      rule = SingleRule.new(self, color_map, from, to, cur_move_cell_factory, next_move_cell_factory)
       @vlines << make_line
       @single_rules << rule
       @num_cols += rule.num_cols
@@ -232,12 +242,10 @@ class RuleUI
   end
 
   def clear
-    @single_rules.each do |rule|
-      puts('************ RULE IS NIL') if rule.nil?
-      rule&.clear
-    end
+    @single_rules.each(&:clear)
     @vlines.each(&:remove)
     @sep_hline.remove
+    @cells_needing_updates.clear
     unselect_hints
   end
 

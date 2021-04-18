@@ -1,0 +1,54 @@
+{
+  "levels": [
+    {
+      "name": "foo",
+      "rows": [
+        "b"
+      ],
+      "rules": {
+        "b": [
+          "a",
+          ""
+        ]
+      },
+      "type_overrides": {
+        "a": {
+          "type": "RotatingColors",
+          "cycle_chars": "ab"
+        }
+      }
+    },
+    {
+      "name": "foo",
+      "rows": [
+        "bb"
+      ],
+      "rules": {
+        "b": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "foo",
+      "rows": [
+        "aa"
+      ],
+      "rules": {
+        "a": [
+          "a",
+          ""
+        ],
+        "b": [
+          "a"
+        ]
+      },
+      "type_overrides": {
+        "a": {
+          "type": "RotatingColors",
+          "cycle_chars": "ab"
+        }
+      }
+    }
+  ]
+}
