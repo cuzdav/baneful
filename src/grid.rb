@@ -15,7 +15,7 @@ class Grid
     @vert_gap_px = 5
     @background = Rectangle.new(z: 0, color: [1, 1, 1, 0.4])
     @background.remove
-  
+
     (0...@num_rows).each do|_|
       @rows << []
       @row_xoffsets << 0
@@ -49,7 +49,7 @@ class Grid
   def unhighlight_background
     @background.remove
   end
-  
+
   # allow some other object to replace a rect, as long as it implements
   # the Rectangle interface
   def set_cell_object(row, col, obj)
@@ -164,41 +164,47 @@ class Grid
     select_cells(rownum, 0, @num_cols-1, color, width) if rownum < @num_rows
   end
 
+  def selected_coords
+    @selected_coords
+  end
+
   def select_cells(rownum, colnum1, colnum2, color = 'yellow', width = 5)
     @selected_row = rownum
     @selected_col1 = colnum1
     @selected_col2 = colnum2
 
     x = xcoord(rownum, colnum1) + @gap_px
-    x2 = xcoord(rownum, colnum2)
+    x2 = xcoord(rownum, colnum2) + @cell_width
     y = ycoord(rownum) + @vert_gap_px
+    y2 = y + @cell_height - @vert_gap_px
+    @selected_coords = [x, y, x2, y2]
 
     # top horiz
     @selectionbox[0].x1 = x
     @selectionbox[0].y1 = y
-    @selectionbox[0].x2 = x2 + @cell_width
+    @selectionbox[0].x2 = x2
     @selectionbox[0].y2 = y
     @selectionbox[0].add
 
     # bottom horiz
     @selectionbox[1].x1 = x
-    @selectionbox[1].y1 = y + @cell_height - @vert_gap_px
-    @selectionbox[1].x2 = x2 + @cell_width
-    @selectionbox[1].y2 = y + @cell_height - @vert_gap_px
+    @selectionbox[1].y1 = y2
+    @selectionbox[1].x2 = x2
+    @selectionbox[1].y2 = y2
     @selectionbox[1].add
 
     # left vert
     @selectionbox[2].x1 = x
     @selectionbox[2].y1 = y
     @selectionbox[2].x2 = x
-    @selectionbox[2].y2 = y + @cell_height - @vert_gap_px
+    @selectionbox[2].y2 = y2
     @selectionbox[2].add
 
     # right vert
-    @selectionbox[3].x1 = x2 + @cell_width
+    @selectionbox[3].x1 = x2
     @selectionbox[3].y1 = y
-    @selectionbox[3].x2 = x2 + @cell_width
-    @selectionbox[3].y2 = y + @cell_height - @vert_gap_px
+    @selectionbox[3].x2 = x2
+    @selectionbox[3].y2 = y2
     @selectionbox[3].add
 
     @selectionbox.each do |box|
@@ -212,6 +218,7 @@ class Grid
     @selected_row = nil
     @selected_col1 = nil
     @selected_col2 = nil
+    @selection_coords = nil
   end
 
   private

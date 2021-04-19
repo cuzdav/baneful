@@ -10,6 +10,16 @@ TGT_COL = 2
 TGT_MOVE = 3
 
 class StateImpl
+  attr_reader :owner
+
+  def initialize(owner)
+    @owner = owner
+  end
+
+  # objects to get update() called every frame, until their update function returns false
+  def add_updatable(updatable)
+    @owner.add_updatable(updatable)
+  end
 
   # state becomes pushed to top of stack
   def state_active; end
@@ -60,6 +70,8 @@ class InputState
     @title_screen_state = TitleScreenState.new(self)
     @playing_state = PlayingState.new(self)
     @state_stack = []
+    @updatables = []
+    @updatables_next = []
     push_state(@title_screen_state)
   end
 
@@ -93,8 +105,21 @@ class InputState
     @level_manager.open_level_group(level_group_filename, initial_level)
   end
 
+  def add_updatable(updatable)
+    @updatables << updatable unless @updatables.include? updatable
+  end
+
   def update
     @cur_state.update
+    if @updatables.size.positive?
+      @updatables.each do |updatable|
+        @updatables_next << updatable if updatable.update
+      end
+      @updatables.clear
+      tmp_updatables = @updatables
+      @updatables = @updatables_next
+      @updatables_next = tmp_updatables
+    end
   end
 
   def on_mouse_move(event)
@@ -175,8 +200,7 @@ class PlayingState < StateImpl
   attr_reader :ruleui, :rule_data
 
   def initialize(owner)
-    super()
-    @owner = owner
+    super(owner)
     @ruleui = nil
     @cur_level = nil
     @selected_rule = nil
@@ -421,10 +445,6 @@ class PlayingState < StateImpl
     else
       @undo.remove
     end
-
-    puts("***** undo y: #{@undo.y}, #{@undo.y + @undo.height}")
-    puts("***** hint y: #{@hintui.y}, #{@hintui.y + @hintui.height}")
-
     if @possible_plays.empty?
       puts('>>>>>>>> No more moves <<<<<<<<')
       no_more_moves
@@ -577,9 +597,6 @@ class PlayingState < StateImpl
   def select_replacement(row, move_ary=nil)
     data = @rule_data[@selected_rule.from_str]
     row_has_moves = data[:row_has_moves]
-    puts("******* SELECT REPLACEMNET row=#{row} has_moves #{row_has_moves[row]}")
-
-
     if row && row_has_moves[row]
       # weird, when compiled with mruby, this is a float, but interpreted it's an int
       row = row.floor
@@ -592,12 +609,8 @@ class PlayingState < StateImpl
       else
         spotlight_widget = data[:widgets_per_play][to_canonical_move(move_ary)]
         spotlight_widget&.add
-        puts("********* hint's next move: #{move_ary}")
-        puts("********* keys in dictionary: #{data[:widgets_per_play].keys}")
       end
     end
-    puts("******* EXITING SELECT REPLACEMNET")
-
   end
 
   def unselect_replacement

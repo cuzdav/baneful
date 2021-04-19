@@ -10,10 +10,12 @@ class Hint
   def initialize(input_state, solver)
     @input = input_state
     @solver = solver
+    @animated_rectangle = AnimatedRectangleZoom.new({ linger: 3, steps: 40, color: 'silver' })
     @target_hintbox = Rectangle.new(
       color: 'white',
       z: 0,
-      opacity: 0.8)
+      opacity: 0.8
+    )
     clear
   end
 
@@ -83,15 +85,13 @@ class Hint
     @selected_repl_idx = idx + FIRST_REPL_ROW
     @input.select_replacement(@selected_repl_idx)
 
-    # count unique targets (to-string and offset)
-    # only one move, so show where it should go at once
-    targets = {}
-    cur_level.game_data.possible_plays.each do |idx, from, to|
-      targets[idx.to_s + from] = 1 if to == repl
-    end
-    if targets.size() == 1
-      target_hint(cur_level)
-    end
+    selection_coords = @rule.rule_grid.selected_coords
+    reset_animated_rect(
+      selection_coords[0],
+      selection_coords[1],
+      selection_coords[2] - selection_coords[0],
+      selection_coords[3] - selection_coords[1]
+    )
   end
 
   def target_hint(cur_level)
@@ -111,13 +111,21 @@ class Hint
     @target_hintbox.y = y
     @target_hintbox.width = width
     @target_hintbox.height = height
+
     @target_hintbox.add
     @hint_strength += 1
     @input.select_target(idx, @next_move)
-    puts("*** next_move: #{@next_move}")
-
     @input.select_replacement(@selected_repl_idx, @next_move)
+    reset_animated_rect(x, y, width, height)
+  end
 
+  def reset_animated_rect(x, y, width, height)
+    @animated_rectangle.x = x
+    @animated_rectangle.y = y
+    @animated_rectangle.width = width
+    @animated_rectangle.height = height
+    @animated_rectangle.reset
+    @input.add_updatable(@animated_rectangle)
   end
 
 end
