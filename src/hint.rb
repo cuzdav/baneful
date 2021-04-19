@@ -10,7 +10,7 @@ class Hint
   def initialize(input_state, solver)
     @input = input_state
     @solver = solver
-    @animated_rectangle = AnimatedRectangleZoom.new({ linger: 3, steps: 40, color: 'silver' })
+    @animated_rectangle = AnimatedRectangleZoom.new({ linger: 3, steps: 30, color: 'silver' })
     @target_hintbox = Rectangle.new(
       color: 'white',
       z: 0,
