@@ -8,18 +8,20 @@ namespace p1::color {
   // NOTE: Color is not red, blue, green, etc. It is a graph theory annotation
   // to the type of vertex in our rule graph. More thought of as "block type",
   // But not all colors are known at compile time, as some are configured at
-  // runtime. Those are NEXT_CUSTOM + (offset), to make unique colors.
+  // runtime. Those are NEXT_CUSTOM + (offset), to make unique colors. The
+  // lowest bit is a secondary attribute of the color, for whether it appears on
+  // the "FROM" pattern (1) or on the right-hand side, the "TO" pattern (0)
+
   enum class Color : std::uint8_t {
-    SOLID_RECTANGLE = 0,
+    TO              = 0, // bit
+    FROM            = 1, // bit (OR'd with rest of color value)
+
+    SOLID_RECTANGLE = 2,
     DEFAULT         = SOLID_RECTANGLE,
-    WILDCARD        = 1,
-    BACKREF         = 2,
+    WILDCARD        = 3,
+    BACKREF         = 4,
 
     NEXT_CUSTOM,
-
-    // FLAG BIT FOR LHS  (a -> b, a is FROM|RECTANGLE and b is RECTANGLE)
-    FROM            = 1<<7,
-    TO              = 0,
   };
 
   // to underlying

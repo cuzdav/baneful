@@ -1,6 +1,8 @@
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER "/usr/local/bin/g++")
 
+add_subdirectory(test)
+
 add_library (phase1
     Graph.cpp
     GraphLoader.cpp

@@ -96,22 +96,22 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
   // "final_color" is normal color with the the From/To bit already set (or
   // unset) properly
   static Vertex
-  make_vertex_single(color::Color final_color, char transformed_block) {
+  make_vertex_single(color::Color final_color, char final_block) {
 
     // an optimized/merged vertex may have multiple blocks within
     // like this:
-    // [???][XYYYY][AAAA][BBBB][CCCC][DDDD][EEEE][FFFF]
+    // [???][YYYYX][AAAA][BBBB][CCCC][DDDD][EEEE][FFFF]
     //      assert(+actual_color < 32); // Only allotted 5 bits
-    // set XYYYY
+    // set YYYYX - note; the From/To is the LOW bit of the color
     std::uint32_t vertex = static_cast<std::uint32_t>(final_color) << 24;
 
     // only set [AAAA] (subsequent blocks can be added later)
-    assert(transformed_block < 16);
-    vertex |= std::uint32_t(transformed_block) << 20;
+    assert(final_block < 16);
+    vertex |= std::uint32_t(final_block) << 20;
     return Vertex{vertex};
   }
 
-    Verticies::size_type Verticies::
+  Verticies::size_type Verticies::
   size() const {
     return std::size(vertex_names_);
   }
@@ -137,67 +137,99 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
   }
 
   int Verticies::
-  index_of(std::string_view vertex_name) const {
-    auto it = std::find(begin(), end(), vertex_name);
+  index_of(std::string_view vertex_name, color::Color final_color) const {
+    auto internal_vertex_name = internal_name(vertex_name, final_color);
+    return index_of_internal(internal_vertex_name);
+  }
+
+  int Verticies::
+  index_of(std::string const& vertex_name, color::Color final_color) const {
+    return index_of(std::string_view(vertex_name), final_color);
+  }
+
+  int Verticies::
+  index_of_internal(std::string_view internal_vertex_name) const {
+    auto it = std::find(begin(), end(), internal_vertex_name);
     if (it == end()) {
       return -1;
     }
     return it - begin();
   }
 
-  int Verticies::
-  index_of(std::string const& vertex_name) const {
-    return index_of(std::string_view(vertex_name));
-  }
 
   int Verticies::
-  index_of_checked(std::string_view vertex_name) const {
-    int idx = index_of(vertex_name);
+  index_of_checked(std::string_view vertex_name,
+                   color::Color final_color) const {
+    auto internal_vertex_name = internal_name(vertex_name, final_color);
+    int idx = index_of_checked_internal(internal_vertex_name);
     if (idx == -1) {
       throw std::runtime_error(
-          "vertex " +
-          std::string{vertex_name.data(), vertex_name.size()} +
-          " unknown");
+          "vertex " + internal_vertex_name + " unknown");
     }
     return idx;
   }
 
   int Verticies::
-  index_of_checked(std::string const& vertex_name) const {
-    return index_of_checked(vertex_name);
+  index_of_checked(std::string const& vertex_name,
+                   color::Color final_color) const {
+    return index_of_checked(vertex_name, final_color);
+  }
+
+  int Verticies::
+  index_of_checked_internal(std::string_view internal_vertex_name) const {
+    int idx = index_of_internal(internal_vertex_name);
+    if (idx == -1) {
+      throw std::runtime_error("vertex " +
+                               std::string(internal_vertex_name) +
+                               " unknown");
+    }
+    return idx;
+  }
+
+  std::string const& Verticies::
+  name_of(int index) const {
+    return vertex_names_[index];
   }
 
   // create a synthetic vertex that is guaranteed unique.
   // Names are assigned, starting at _1 and counts up.
   int Verticies::
   generate_unique_vertex_name() {
-    std::string name = "_" + std::to_string(++next_unique_);
+    std::string name = "_" + std::to_string(next_unique_++);
     vertex_names_.push_back(name);
     return vertex_names_.size() - 1;
   }
 
   int Verticies::
   add_vertex_single(std::string_view vertex_name,
-             char transformed_block,
-             color::Color final_color) {
-    int idx = index_of(vertex_name);
+                    char transformed_block,
+                    color::Color final_color) {
+    auto internal_vertex_name = internal_name(vertex_name, final_color);
+    int idx = index_of_internal(internal_vertex_name);
 
     if (idx == -1) {
       idx = size();
-      vertex_names_.emplace_back(vertex_name.data(), vertex_name.size());
-      verticies_[idx] = make_vertex_single(final_color,
-                                           transformed_block);
+      vertex_names_.emplace_back(internal_vertex_name);
+      verticies_[idx] = make_vertex_single(final_color, transformed_block);
     }
     return idx;
   }
 
   int Verticies::
   add_vertex_single(std::string const& vertex_name,
-                    char transformed_block,
+                    char final_block,
                     color::Color color) {
     return add_vertex_single(std::string_view{vertex_name},
-                             transformed_block,
+                             final_block,
                              color);
   }
+
+  std::string Verticies::
+  internal_name(std::string_view vertex_id_string,
+                color::Color final_color) {
+    // convert the color to a printable character and prefix the name with it.
+    return char(char(33) + +final_color) + std::string(vertex_id_string);
+  }
+
 } // p1
 
