@@ -1,3 +1,5 @@
-build
 allsource.rb
 .idea
+src/levelgen/build
+*~
+.#*

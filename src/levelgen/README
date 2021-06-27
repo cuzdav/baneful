@@ -1,0 +1,24 @@
+This c++ code is not necessary for the game but is used as a level
+generator.  It's like a mini-embedded repo, hence the second directory
+named 'src'.  At this point nothing more of a fun experiment, but the
+purpose is a few challenges: 
+
+1) generate random levels (to some critera) - not started
+
+2) create an ability to determine if two levels are functionally
+equivalent, if rules are simply reordered, or blocks are colored
+differently but are isomorphisms of each other. 
+  - some progress. 
+
+This will prevent creating a bunch of random repeats of each other,
+and has some interesting "colored graph isomorphism" problems to work
+on and learn from.
+
+
+This is developed with g++11 and c++20, but may work on older versions
+(I just haven't tried verified yet.)  Create an empty build directory
+`src/levelgen/build`, then cd inside it, and generate the makefiles:
+
+cmake .. -DCMAKE_C_COMPILER=/usr/local/bin/gcc -DCMAKE_CXX_COMPILER=/usr/local/bin/g++
+
+(change compiler path as desired.)
