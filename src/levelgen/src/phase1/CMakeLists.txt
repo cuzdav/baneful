@@ -6,6 +6,7 @@ add_subdirectory(test)
 add_library (phase1
     Graph.cpp
     GraphLoader.cpp
+    Vertex.cpp
     Verticies.cpp
 )
 

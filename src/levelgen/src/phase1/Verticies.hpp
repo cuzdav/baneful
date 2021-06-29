@@ -1,14 +1,15 @@
 #pragma once
 
 #include "Color.hpp"
+#include "Vertex.hpp"
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace p1 {
 
-  enum class Vertex : std::uint32_t{};
 
   class Verticies {
   public:
@@ -19,30 +20,24 @@ namespace p1 {
 
     Verticies() = default;
 
-    size_type size() const;
-    iterator begin();
-    iterator end();
-    const_iterator begin() const;
-    const_iterator end() const;
+    size_type names_size() const;
+    iterator names_begin();
+    iterator names_end();
+    const_iterator names_begin() const;
+    const_iterator names_end() const;
 
-    int index_of(std::string_view vertex, color::Color final_color) const;
-    int index_of(std::string const& vertex, color::Color final_color) const;
-    int index_of_checked(std::string_view vertex, color::Color final_color) const;
-    int index_of_checked(std::string const& vertex, color::Color final_color) const;
+    int name_index_of(std::string_view vertex, color::Color final_color) const;
+    int name_index_of_checked(std::string_view vertex, color::Color final_color) const;
 
     std::string const& name_of(int index) const;
 
+    // vertex is the block-id of the vertex to create, and the first and
+    // only block in it will be vertex[0]
     // returns index
     // transformed block has been adjusted by the transforms for fixups.
     int add_vertex_single(std::string_view vertex,
-                          char transformed_block,
+                          block::FinalBlock block,
                           color::Color final_color);
-    // returns index
-    // transformed block has been adjusted by the transforms for fixups.
-    int add_vertex_single(std::string const& vertex_name,
-                          char transformed_block,
-                          color::Color final_color);
-
     // create a synthetic vertex that is guaranteed unique.
     // Names are assigned, starting at _1 and counts up.
     // Returns index to it.
@@ -50,13 +45,13 @@ namespace p1 {
 
     static std::string internal_name(std::string_view vertex_id_string, color::Color final_color);
   private:
-    int index_of_internal(std::string_view internal_vertex_name) const;
-    int index_of_checked_internal(std::string_view internal_vertex_name) const;
+    int name_index_of_internal(std::string_view internal_vertex_name) const;
+    int name_index_of_checked_internal(std::string_view internal_vertex_name) const;
 
   private:
     Names vertex_names_;
     int next_unique_ = 0;
-    Vertex verticies_[32]{};
+    vertex::Vertex verticies_[32]{};
   };
 
 } // p1

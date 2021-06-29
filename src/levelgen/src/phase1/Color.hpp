@@ -25,15 +25,15 @@ namespace p1::color {
   };
 
   // to underlying
-  inline std::uint8_t operator+(Color c) {
-    return static_cast<std::uint8_t>(c);
+  inline constexpr std::uint32_t operator+(Color c) {
+    return static_cast<std::uint32_t>(c);
   }
 
-  inline Color operator|(Color a, Color b) {
+  inline constexpr Color operator|(Color a, Color b) {
     return Color(+a | +b);
   }
 
-  inline Color for_side(Color color, RuleSide side) {
+  inline constexpr Color for_side(Color color, RuleSide side) {
     return color | (RuleSide::FROM == side ? Color::FROM : Color::TO);
   }
 

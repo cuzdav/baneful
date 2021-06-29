@@ -1,5 +1,6 @@
 #pragma once
 #include "Transforms.hpp"
+#include "Vertex.hpp"
 
 #include <boost/json.hpp>
 #include <string>
