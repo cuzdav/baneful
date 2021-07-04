@@ -2,6 +2,7 @@
 
 #include "RuleSide.hpp"
 #include <cstdint>
+#include <string>
 
 namespace p1::color {
 
@@ -35,6 +36,32 @@ namespace p1::color {
 
   inline constexpr Color for_side(Color color, RuleSide side) {
     return color | (RuleSide::FROM == side ? Color::FROM : Color::TO);
+  }
+
+  // remove FROM bit from color
+  inline constexpr Color pure(Color color) {
+    return Color(+color & ~+Color::FROM);
+  }
+
+  inline constexpr bool has_from(Color color) {
+    return color == pure(color);
+  }
+
+  inline std::string to_string_pure(Color color) {
+    switch (pure(color)) {
+    case Color::TO:              return "TO";
+    case Color::FROM:            return "FROM";
+    case Color::SOLID_RECTANGLE: return "SOLID_RECTANGLE";
+    case Color::WILDCARD:        return "WILDCARD";
+    case Color::BACKREF:         return "BACKREF";
+    default:                     return "CUSTOM";
+    }
+  }
+
+  inline std::string to_string(Color color) {
+    auto side = has_from(color) ? ":FROM:" : ":TO:";
+    auto value = std::to_string(std::uint8_t(+color));
+    return "#<Color:" + value + side + to_string_pure(color) + ">";
   }
 
 } // p1

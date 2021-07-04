@@ -41,13 +41,15 @@ namespace p1::vertex {
   add_block(Vertex vertex, block::FinalBlock block);
 
   color::Color
-  get_color(Vertex v);
+  get_color(Vertex vertex);
 
   block::FinalBlock
-  get_block(Vertex v, std::uint8_t idx);
+  get_block(Vertex vertex, std::uint8_t idx);
 
   std::array<block::FinalBlock, MaxBlocksPerVertex>
-  get_blocks(Vertex v);
+  get_blocks(Vertex vertex);
 
+  std::string
+  to_string(Vertex vertex);
 
 } // p1

@@ -63,6 +63,15 @@ TEST(TestVerticies, AddVertexSingle_SameNameDifferentColor) {
   EXPECT_EQ(2, v.names_size());
   EXPECT_EQ(0, idx);
   EXPECT_EQ(1, idx2);
+
+  auto iter = v.names_begin();
+  ASSERT_NE(v.names_end(), iter);
+  EXPECT_EQ(v.name_of(0), *iter);
+  ++iter;
+  ASSERT_NE(v.names_end(), iter);
+  EXPECT_EQ(v.name_of(1), *iter);
+  ++iter;
+  ASSERT_EQ(v.names_end(), iter);
 }
 
 
@@ -202,3 +211,4 @@ TEST(TestVerticies, VertexEncodingGetBlocks) {
   EXPECT_EQ(block5, blocks[4]);
   EXPECT_EQ(block6, blocks[5]);
 }
+

@@ -13,9 +13,9 @@ namespace p1::vertex {
   }
 
   color::Color
-  get_color(Vertex v) {
+  get_color(Vertex vertex) {
     return color::Color{
-      std::uint8_t((+v >> ColorShift) & ColorMask)
+      std::uint8_t((+vertex >> ColorShift) & ColorMask)
     };
   }
 
@@ -33,26 +33,37 @@ namespace p1::vertex {
       ((v >> Block6Shift) & BlockMask) == 0 ? Block6Shift :
       throw std::runtime_error("Vertex is Full");
 
-    return Vertex{ +v | (std::uint32_t(+block) << shift) };
+    return Vertex{ v | (std::uint32_t(+block) << shift) };
   }
 
   block::FinalBlock
-  get_block(Vertex v, std::uint8_t idx) {
-    auto bits = +v >> (Block1Shift - idx * BitsPerBlock);
+  get_block(Vertex vertex, std::uint8_t idx) {
+    auto bits = +vertex >> (Block1Shift - idx * BitsPerBlock);
 
     return block::FinalBlock{std::uint8_t(bits & BlockMask)};
   }
 
   std::array<block::FinalBlock, MaxBlocksPerVertex>
-  get_blocks(Vertex v)
+  get_blocks(Vertex vertex)
   {
     return {
-      block::FinalBlock((+v >> Block1Shift) & BlockMask),
-      block::FinalBlock((+v >> Block2Shift) & BlockMask),
-      block::FinalBlock((+v >> Block3Shift) & BlockMask),
-      block::FinalBlock((+v >> Block4Shift) & BlockMask),
-      block::FinalBlock((+v >> Block5Shift) & BlockMask),
-      block::FinalBlock((+v >> Block6Shift) & BlockMask),
+      block::FinalBlock((+vertex >> Block1Shift) & BlockMask),
+      block::FinalBlock((+vertex >> Block2Shift) & BlockMask),
+      block::FinalBlock((+vertex >> Block3Shift) & BlockMask),
+      block::FinalBlock((+vertex >> Block4Shift) & BlockMask),
+      block::FinalBlock((+vertex >> Block5Shift) & BlockMask),
+      block::FinalBlock((+vertex >> Block6Shift) & BlockMask),
     };
+  }
+
+  std::string
+  to_string(Vertex vertex) {
+    std::string blocks;
+    char const * sep = "";
+    for (block::FinalBlock block : get_blocks(vertex)) {
+      blocks += std::exchange(sep, ", ");
+      blocks += +block;    }
+
+    return "#<Vertex:" + to_string(get_color(vertex)) + ":" + blocks + ">";
   }
 }

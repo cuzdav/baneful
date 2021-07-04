@@ -43,7 +43,8 @@ namespace p1 {
     // Returns index to it.
     int generate_unique_vertex_name();
 
-    static std::string internal_name(std::string_view vertex_id_string, color::Color final_color);
+    static std::string internal_name(std::string_view vertex_id_string,
+                                     color::Color final_color);
   private:
     int name_index_of_internal(std::string_view internal_vertex_name) const;
     int name_index_of_checked_internal(std::string_view internal_vertex_name) const;
