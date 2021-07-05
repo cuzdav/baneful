@@ -3,3 +3,6 @@ allsource.rb
 src/levelgen/build
 *~
 .#*
+.config
+.clangd
+compile_commands.json
