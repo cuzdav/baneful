@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "Color.hpp"
+#include "RuleSide.hpp"
 #include "Verticies.hpp"
 
 using namespace p1;
@@ -9,8 +10,13 @@ using namespace std::literals;
 
 static constexpr block::FinalBlock empty_block = block::FinalBlock{'\0'};
 
-static constexpr color::Color from_rect =
-  p1::color::Color::SOLID_RECTANGLE | p1::color::Color::FROM;
+static constexpr color::FinalColor fc_rect_from =
+  to_final_color(p1::color::Color::SOLID_RECTANGLE, p1::RuleSide::FROM);
+static constexpr color::FinalColor fc_rect_to =
+    to_final_color(p1::color::Color::SOLID_RECTANGLE, p1::RuleSide::TO);
+
+static constexpr color::FinalColor fc_wc_from =
+    to_final_color(p1::color::Color::WILDCARD, p1::RuleSide::FROM);
 
 TEST(TestVerticies, BasicInterface) {
   Verticies v;
@@ -44,13 +50,13 @@ TEST(TestVerticies, GeneratedNames) {
 TEST(TestVerticies, AddVertexSingleDefault) {
   Verticies v;
 
-  int idx = v.add_vertex_single("abc"sv, empty_block, color::Color::DEFAULT);
+  int idx = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
   EXPECT_EQ(1, v.names_size());
 
-  auto abc_internal = Verticies::internal_name("abc", color::Color::DEFAULT);
+  auto abc_internal = Verticies::internal_name("abc", fc_rect_from);
   EXPECT_EQ(abc_internal, v.name_of(idx));
 
-  int idx2 = v.add_vertex_single("abc"sv, empty_block, color::Color::DEFAULT);
+  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
   EXPECT_EQ(1, v.names_size());
   EXPECT_EQ(idx, idx2);
 }
@@ -58,8 +64,8 @@ TEST(TestVerticies, AddVertexSingleDefault) {
 TEST(TestVerticies, AddVertexSingle_SameNameDifferentColor) {
   Verticies v;
 
-  int idx = v.add_vertex_single("abc"sv, empty_block, color::Color::DEFAULT);
-  int idx2 = v.add_vertex_single("abc"sv, empty_block, color::Color::WILDCARD);
+  int idx = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
+  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_wc_from);
   EXPECT_EQ(2, v.names_size());
   EXPECT_EQ(0, idx);
   EXPECT_EQ(1, idx2);
@@ -79,15 +85,15 @@ TEST(TestVerticies, IndexOfs) {
   Verticies v;
 
   // three-node chain "a->b->c"
-  int idx1 = v.add_vertex_single("abc"sv, empty_block, color::Color::DEFAULT);
-  int idx2 = v.add_vertex_single("bc"sv, empty_block, color::Color::DEFAULT);
-  int idx3 = v.add_vertex_single("c"sv, empty_block, color::Color::DEFAULT);
+  int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
+  int idx2 = v.add_vertex_single("bc"sv, empty_block, fc_rect_from);
+  int idx3 = v.add_vertex_single("c"sv, empty_block, fc_rect_from);
 
-  int actual1 = v.name_index_of("abc", color::Color::DEFAULT);
-  int actual2 = v.name_index_of("bc", color::Color::DEFAULT);
-  int actual3 = v.name_index_of("c", color::Color::DEFAULT);
+  int actual1 = v.name_index_of("abc", fc_rect_from);
+  int actual2 = v.name_index_of("bc", fc_rect_from);
+  int actual3 = v.name_index_of("c", fc_rect_from);
 
-  EXPECT_EQ(-1, v.name_index_of("abc", color::Color::WILDCARD));
+  EXPECT_EQ(-1, v.name_index_of("abc", fc_wc_from));
   EXPECT_EQ(idx1, actual1);
   EXPECT_EQ(idx2, actual2);
   EXPECT_EQ(idx3, actual3);
@@ -109,13 +115,13 @@ TEST(TestVerticies, Constants) {
 }
 
 TEST(TestVerticies, VertexEncodingColor) {
-  vertex::Vertex v1 = vertex::create(from_rect, empty_block);
-  EXPECT_EQ(from_rect, get_color(v1));
+  vertex::Vertex v1 = vertex::create(fc_rect_from, empty_block);
+  EXPECT_EQ(fc_rect_from, get_color(v1));
 }
 
 TEST(TestVerticies, VertexEncodingGetBlockSingle) {
   block::FinalBlock block1{11};
-  vertex::Vertex v1 = vertex::create(from_rect, block1);
+  vertex::Vertex v1 = vertex::create(fc_rect_from, block1);
   EXPECT_EQ(block1, get_block(v1, 0));
   EXPECT_EQ(empty_block, get_block(v1, 1));
 
@@ -161,7 +167,7 @@ TEST(TestVerticies, VertexEncodingGetBlockSingle) {
 
 TEST(TestVerticies, VertexEncodingGetBlocks) {
   block::FinalBlock block1{11};
-  vertex::Vertex v1 = vertex::create(from_rect, block1);
+  vertex::Vertex v1 = vertex::create(fc_rect_from, block1);
 
   auto blocks = get_blocks(v1);
   EXPECT_EQ(block1, blocks[0]);
@@ -211,4 +217,3 @@ TEST(TestVerticies, VertexEncodingGetBlocks) {
   EXPECT_EQ(block5, blocks[4]);
   EXPECT_EQ(block6, blocks[5]);
 }
-

@@ -119,7 +119,8 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
   }
 
   int Verticies::
-  name_index_of(std::string_view vertex_name, color::Color final_color) const {
+  name_index_of(std::string_view vertex_name,
+                color::FinalColor final_color) const {
     auto internal_vertex_name = internal_name(vertex_name, final_color);
     return name_index_of_internal(internal_vertex_name);
   }
@@ -136,7 +137,7 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
 
   int Verticies::
   name_index_of_checked(std::string_view vertex_name,
-                   color::Color final_color) const {
+                   color::FinalColor final_color) const {
     auto internal_vertex_name = internal_name(vertex_name, final_color);
     int idx = name_index_of_checked_internal(internal_vertex_name);
     if (idx == -1) {
@@ -173,7 +174,7 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
   int Verticies::
   add_vertex_single(std::string_view vertex_name,
                     block::FinalBlock transformed_block,
-                    color::Color final_color) {
+                    color::FinalColor final_color) {
     auto internal_vertex_name = internal_name(vertex_name, final_color);
     int idx = name_index_of_internal(internal_vertex_name);
 
@@ -187,9 +188,9 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
 
   std::string Verticies::
   internal_name(std::string_view vertex_id_string,
-                color::Color final_color) {
-    // convert acolor to printable char and prefix the name with it.
-    return char(+final_color + 33) + std::string(vertex_id_string);
+                color::FinalColor final_color) {
+    // convert color to printable char and prefix the name with it.
+    return char(+final_color + ' ' + 1) + std::string(vertex_id_string);
   }
 
 } // p1

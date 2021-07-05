@@ -1,10 +1,14 @@
 #pragma once
 
+#include "enumutils.hpp"
 #include "RuleSide.hpp"
 #include <cstdint>
 #include <string>
 
 namespace p1::color {
+
+  // FinalColor is the combination of Color and RuleSide
+  // The 1-bit is the RuleSide, and the rest if the color bits shifted up 1.
 
   // NOTE: Color is not red, blue, green, etc. It is a graph theory annotation
   // to the type of vertex in our rule graph. More thought of as "block type",
@@ -13,44 +17,37 @@ namespace p1::color {
   // lowest bit is a secondary attribute of the color, for whether it appears on
   // the "FROM" pattern (1) or on the right-hand side, the "TO" pattern (0)
 
+  // Color is a category of type of vertex
   enum class Color : std::uint8_t {
-    TO              = 0, // bit
-    FROM            = 1, // bit (OR'd with rest of color value)
-
-    SOLID_RECTANGLE = 2,
-    DEFAULT         = SOLID_RECTANGLE,
-    WILDCARD        = 3,
-    BACKREF         = 4,
-
+    SOLID_RECTANGLE,
+    DEFAULT = SOLID_RECTANGLE,
+    WILDCARD = 1,
+    BACKREF,
     NEXT_CUSTOM,
   };
 
-  // to underlying
-  inline constexpr std::uint32_t operator+(Color c) {
-    return static_cast<std::uint32_t>(c);
-  }
+  // Combines pure Color and a RuleSide enum
+  enum class FinalColor : std::uint8_t {};
 
-  inline constexpr Color operator|(Color a, Color b) {
-    return Color(+a | +b);
-  }
-
-  inline constexpr Color for_side(Color color, RuleSide side) {
-    return color | (RuleSide::FROM == side ? Color::FROM : Color::TO);
+  inline constexpr FinalColor to_final_color(Color color, RuleSide side) {
+    return FinalColor((+color << 1) | +side);
   }
 
   // remove FROM bit from color
-  inline constexpr Color pure(Color color) {
-    return Color(+color & ~+Color::FROM);
+  inline constexpr Color to_color(FinalColor color) {
+    return Color(+color >> 1);
   }
 
-  inline constexpr bool has_from(Color color) {
-    return color == pure(color);
+  inline constexpr RuleSide to_rule_side(FinalColor color) {
+    return RuleSide(+color & 1);
   }
 
-  inline std::string to_string_pure(Color color) {
-    switch (pure(color)) {
-    case Color::TO:              return "TO";
-    case Color::FROM:            return "FROM";
+  inline constexpr bool has_from(FinalColor color) {
+    return to_rule_side(color) == RuleSide::FROM;
+  }
+
+  inline std::string to_string(Color color) {
+    switch (color) {
     case Color::SOLID_RECTANGLE: return "SOLID_RECTANGLE";
     case Color::WILDCARD:        return "WILDCARD";
     case Color::BACKREF:         return "BACKREF";
@@ -58,10 +55,8 @@ namespace p1::color {
     }
   }
 
-  inline std::string to_string(Color color) {
-    auto side = has_from(color) ? ":FROM:" : ":TO:";
-    auto value = std::to_string(std::uint8_t(+color));
-    return "#<Color:" + value + side + to_string_pure(color) + ">";
+  inline std::string to_string(FinalColor color) {
+    return to_string(to_color(color)) + ":" + to_string(to_rule_side(color));
   }
 
 } // p1

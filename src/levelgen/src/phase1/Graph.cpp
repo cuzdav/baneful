@@ -1,19 +1,5 @@
 #include "Graph.hpp"
-#include "Color.hpp"
-#include "Transforms.hpp"
-#include "Verticies.hpp"
-#include "boost/json.hpp"
-
-#include <cassert>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <stdexcept>
-#include <string>
-
-using namespace boost;
-using namespace std::literals;
+#include "GraphCreator.hpp"
 
 /*
   If "a", "b", and "c" were
@@ -55,49 +41,10 @@ using namespace std::literals;
 
 namespace p1 {
 
-  static void install_override_transforms(
-      json::object const & type_overrides,
-      Transforms& transforms)
-  {
-    for (auto const& [ch, type_override] : type_overrides) {
-      if (size(ch) > 1) {
-        throw std::runtime_error("Invalid type override, expecting char key, got: " + std::string(ch));
-      }
-      json::object const & type_config = type_override.as_object();
-      assert(ch.size() == 1);
-      transforms.add_level_type_override(ch[0], type_config);
-    }
-  }
-
   Graph::
   Graph(boost::json::object const & level_obj)
   {
-    Transforms transforms;
-    if (auto * type_overrides_val = level_obj.if_contains("type_overrides")) {
-      install_override_transforms(type_overrides_val->as_object(), transforms);
-    }
-
-    Verticies verticies;
-    if (auto * rules_val = level_obj.if_contains("rules")) {
-      add_rules(rules_val->as_object(), transforms, verticies);
-    }
-    else {
-      throw std::runtime_error("Level does not contain rules");
-    }
+    GraphCreator creator(level_obj);
   }
-
-  void Graph::
-  add_rules(
-      json::object const & rules,
-      Transforms & transforms,
-      Verticies & verticies) {
-    for (auto const& [from, to] : rules) {
-      auto len = from.size();
-      for (char const & ch : from) {
-        transforms.add_vertex(std::string_view(&ch, len--), RuleSide::FROM, verticies);
-      }
-    }
-  }
-
 } // p1
 

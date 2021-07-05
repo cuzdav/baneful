@@ -1,13 +1,15 @@
 #pragma once
 
+#include "Block.hpp"
 #include "Color.hpp"
-#include "Verticies.hpp"
+#include "Vertex.hpp"
 
-#include <boost/json.hpp>
+#include "boost/json.hpp"
 
 #include <cassert>
 #include <cstdint>
 #include <string_view>
+#include <tuple>
 #include <map>
 
 /*
@@ -16,10 +18,7 @@
 
   1) recognize the "color" (type) of the parts
 
-  2) break separate "colors" apart into separate verticies, but
-  group "like" adjacent nodes together.
-
-
+  2) break separate "colors" apart into separate vertex nodes
 
  */
 
@@ -48,9 +47,9 @@ namespace p1 {
       }
     }
 
-    Color
+    color::FinalColor
     get_color(char block, RuleSide side) {
-      return color::for_side(block_to_color_map_[block], side);
+      return color::to_final_color(block_to_color_map_[block], side);
     }
 
     block::FinalBlock
@@ -60,13 +59,11 @@ namespace p1 {
       return block::FinalBlock{std::uint8_t(transformed)};
     };
 
-    int
-    add_vertex(std::string_view vertex, RuleSide side, Verticies & verticies) {
+    std::tuple<block::FinalBlock, color::FinalColor>
+    do_transform(std::string_view vertex, RuleSide side) {
       char block = vertex[0];
       block::FinalBlock transformed_block = finalize_block(block);
-      return verticies.add_vertex_single(vertex,
-                                         transformed_block,
-                                         get_color(block, side));
+      return std::make_tuple(transformed_block, get_color(block, side));
     }
 
   private:
@@ -79,11 +76,11 @@ namespace p1 {
         e = 'a'; // assume letters are the main units
       }
 
-      block_to_color_map_['.'] = color::Color::WILDCARD;
+      block_to_color_map_['.'] = Color::WILDCARD;
       block_fixup_map_['.'] = '.';
 
       for (char c = '1'; c <= '9'; ++c) {
-        block_to_color_map_[c] = color::Color::BACKREF;
+        block_to_color_map_[c] = Color::BACKREF;
         block_fixup_map_[c] = '1'; // '1' -> 0
       }
     }

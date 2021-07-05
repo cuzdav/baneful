@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace p1 {
@@ -26,8 +27,10 @@ namespace p1 {
     const_iterator names_begin() const;
     const_iterator names_end() const;
 
-    int name_index_of(std::string_view vertex, color::Color final_color) const;
-    int name_index_of_checked(std::string_view vertex, color::Color final_color) const;
+    int name_index_of(std::string_view vertex,
+                      color::FinalColor final_color) const;
+    int name_index_of_checked(std::string_view vertex,
+                              color::FinalColor final_color) const;
 
     std::string const& name_of(int index) const;
 
@@ -37,14 +40,14 @@ namespace p1 {
     // transformed block has been adjusted by the transforms for fixups.
     int add_vertex_single(std::string_view vertex,
                           block::FinalBlock block,
-                          color::Color final_color);
+                          color::FinalColor final_color);
     // create a synthetic vertex that is guaranteed unique.
     // Names are assigned, starting at _1 and counts up.
     // Returns index to it.
     int generate_unique_vertex_name();
 
     static std::string internal_name(std::string_view vertex_id_string,
-                                     color::Color final_color);
+                                     color::FinalColor final_color);
   private:
     int name_index_of_internal(std::string_view internal_vertex_name) const;
     int name_index_of_checked_internal(std::string_view internal_vertex_name) const;

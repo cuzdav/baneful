@@ -4,7 +4,6 @@
 #include "Color.hpp"
 
 #include <array>
-#include <cassert>
 #include <cstdint>
 
 
@@ -28,19 +27,16 @@ namespace p1::vertex {
   // [???][YYYYX][AAAA][BBBB][CCCC][DDDD][EEEE][FFFF]
   enum class Vertex : std::uint32_t{};
 
-  inline constexpr std::uint32_t
-  operator+(Vertex v) { return static_cast<std::uint32_t>(v); }
-
   // "final_color" is normal color with the the From/To bit already set (or
   // unset) properly
   // "final_block" is the first block, already transformed.
   Vertex
-  create(color::Color final_color, block::FinalBlock block);
+  create(color::FinalColor final_color, block::FinalBlock block);
 
   Vertex
   add_block(Vertex vertex, block::FinalBlock block);
 
-  color::Color
+  color::FinalColor
   get_color(Vertex vertex);
 
   block::FinalBlock
@@ -52,4 +48,4 @@ namespace p1::vertex {
   std::string
   to_string(Vertex vertex);
 
-} // p1
+} // p1::vertex

@@ -1,4 +1,6 @@
+#include "enumutils.hpp"
 #include "Vertex.hpp"
+#include <cassert>
 #include <stdexcept>
 
 namespace p1::vertex {
@@ -7,14 +9,14 @@ namespace p1::vertex {
   // unset) properly
   // "block1" is the already-transformed first block
   Vertex
-  create(color::Color final_color, block::FinalBlock block1) {
+  create(color::FinalColor final_color, block::FinalBlock block1) {
     auto vertex = Vertex{+final_color << ColorShift};
     return add_block(vertex, block1);
   }
 
-  color::Color
+  color::FinalColor
   get_color(Vertex vertex) {
-    return color::Color{
+    return color::FinalColor{
       std::uint8_t((+vertex >> ColorShift) & ColorMask)
     };
   }
