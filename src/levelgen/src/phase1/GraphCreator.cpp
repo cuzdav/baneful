@@ -83,16 +83,29 @@ namespace p1 {
     }
   }
 
+  void GraphCreator::add_chain(json::string_view chain, RuleSide side) {
+    std::cout << "*** CHAIN: " << chain << " " << to_string(side) << std::endl;
+
+    if (chain.empty()) {
+      chain = " ";
+    }
+    auto len = chain.size();
+    for (char const &ch : chain) {
+      auto vertex_id = std::string_view(&ch, len--);
+      auto [block, color] = transforms_.do_transform(vertex_id, side);
+      verticies_.add_vertex_single(vertex_id, block, color);
+    }
+  }
+
   //
   void GraphCreator::
   add_rules(json::object const & rules) {
     for (auto const& [from, to] : rules) {
-      auto len = from.size();
-      for (char const & ch : from) {
-        auto vertex_id = std::string_view(&ch, len--);
-        auto [block, color] = transforms_.do_transform(vertex_id,
-                                                       RuleSide::FROM);
-        verticies_.add_vertex_single(vertex_id, block, color);
+      add_chain(from, RuleSide::FROM);
+
+      // each string in the to array
+      for (json::value to : to.as_array()) {
+        add_chain(to.as_string(), RuleSide::TO);
       }
     }
   }

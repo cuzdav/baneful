@@ -9,10 +9,11 @@ namespace p1::color::test {
   static_assert(std::is_same_v<std::uint8_t, decltype(+(color::FinalColor{}))>);
 
   TEST(TestColor, toUnderlying) {
-    EXPECT_EQ(1, +Color::SOLID_RECTANGLE);
-    EXPECT_EQ(2, +Color::WILDCARD);
-    EXPECT_EQ(3, +Color::BACKREF);
-    EXPECT_EQ(4, +Color::NEXT_CUSTOM);
+    EXPECT_EQ(1, +Color::NOTHING);
+    EXPECT_EQ(2, +Color::SOLID_RECTANGLE);
+    EXPECT_EQ(3, +Color::WILDCARD);
+    EXPECT_EQ(4, +Color::BACKREF);
+    EXPECT_EQ(5, +Color::NEXT_CUSTOM);
   }
 
   TEST(TestColor, to_final_color_and_back) {

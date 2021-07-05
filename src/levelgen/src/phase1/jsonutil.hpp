@@ -11,7 +11,8 @@ namespace jsonutil {
   namespace json = boost::json;
 
   namespace detail {
-    void
+  
+    inline void
     pretty_print(std::ostream& os,
                  json::value const& jv,
                  std::string* indent)
@@ -103,7 +104,7 @@ namespace jsonutil {
   }
 
 
-  void
+  inline void
   pretty_print(std::ostream& os, json::value const& jv)
   {
     detail::pretty_print(os, jv, nullptr);

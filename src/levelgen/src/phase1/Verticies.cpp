@@ -186,11 +186,19 @@ The vertex class originally creates graphs in ONE-BLOCK-PER-CHAR in the grap, me
     return idx;
   }
 
-  std::string Verticies::
-  internal_name(std::string_view vertex_id_string,
-                color::FinalColor final_color) {
+  char Verticies::
+  color_to_char(color::FinalColor fcolor) {
+    return char(+fcolor + ' ');
+  }
+
+  color::FinalColor Verticies::char_to_color(char color_char) {
+    return color::FinalColor(color_char - ' ');
+  }
+
+  std::string Verticies::internal_name(std::string_view vertex_id_string,
+                                       color::FinalColor final_color) {
     // convert color to printable char and prefix the name with it.
-    return char(+final_color + ' ' + 1) + std::string(vertex_id_string);
+    return color_to_char(final_color) + std::string(vertex_id_string);
   }
 
 } // p1

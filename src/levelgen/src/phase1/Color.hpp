@@ -19,10 +19,10 @@ namespace p1::color {
 
 // Color is a category of type of vertex
 enum class Color : std::uint8_t {
-  EMPTY = 0,
+  NOTHING = 1, // "Goes to nothing i.e., "a" -> ""
   SOLID_RECTANGLE,
   DEFAULT = SOLID_RECTANGLE,
-  WILDCARD = 2,
+  WILDCARD = 3,
   BACKREF,
   NEXT_CUSTOM,
 };
@@ -50,8 +50,8 @@ inline constexpr bool has_from(FinalColor color) {
 inline std::string to_string(Color color) {
   using enum Color;
   switch (color) {
-  case EMPTY:
-    return "EMPTY";
+  case NOTHING:
+    return "NOTHING";
   case SOLID_RECTANGLE:
     return "SOLID_RECTANGLE";
   case WILDCARD:

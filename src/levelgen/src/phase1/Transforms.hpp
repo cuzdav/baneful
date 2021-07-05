@@ -54,13 +54,14 @@ namespace p1 {
 
     block::FinalBlock
     finalize_block(char block) {
-      auto transformed = block - block_fixup_map_[block];
+      auto transformed = block - block_fixup_map_[block] + 1;
       assert((transformed & ~vertex::BlockMask) == 0);
       return block::FinalBlock{std::uint8_t(transformed)};
     };
 
     std::tuple<block::FinalBlock, color::FinalColor>
     do_transform(std::string_view vertex, RuleSide side) {
+      assert(vertex.size() > 0);
       char block = vertex[0];
       block::FinalBlock transformed_block = finalize_block(block);
       return std::make_tuple(transformed_block, get_color(block, side));
@@ -73,15 +74,18 @@ namespace p1 {
         e = Color::DEFAULT;
       }
       for (auto& e : block_fixup_map_) {
-        e = 'a' - 1; // assume letters are the main units
+        e = 'a'; // assume letters are the main units
       }
+
+      block_to_color_map_[' '] = Color::NOTHING;
+      block_fixup_map_[' '] = ' ';
 
       block_to_color_map_['.'] = Color::WILDCARD;
       block_fixup_map_['.'] = '.';
 
       for (char c = '1'; c <= '9'; ++c) {
         block_to_color_map_[c] = Color::BACKREF;
-        block_fixup_map_[c] = '0';
+        block_fixup_map_[c] = '1';
       }
     }
 

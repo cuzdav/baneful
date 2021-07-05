@@ -20,8 +20,7 @@ namespace p1::test
 
     t.add_level_type_override('a', rotating_colors("bc"));
 
-    auto expected_color = to_final_color(
-                                         color::Color::NEXT_CUSTOM, 
+    auto expected_color = to_final_color(color::Color::NEXT_CUSTOM, 
                                          RuleSide::TO);
     auto expected_vertex = vertex::create(expected_color, block::FinalBlock{1});
     add_block(expected_vertex, block::FinalBlock{2});
@@ -29,7 +28,7 @@ namespace p1::test
 
     auto [block, color] = t.do_transform("ab", RuleSide::TO);
     //    EXPECT_EQ(expected);
-    std::cout << +block << ", color= " << to_string(color) << std::endl;
+    std::cout << to_string(block) << ", color= " << to_string(color) << std::endl;
 
 }
 

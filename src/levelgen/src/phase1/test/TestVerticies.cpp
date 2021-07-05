@@ -119,6 +119,17 @@ TEST(TestVerticies, VertexEncodingColor) {
   EXPECT_EQ(fc_rect_from, get_final_color(v1));
 }
 
+TEST(TestVerticies, color_char_conversions) {
+  using enum color::Color;
+  auto final_color = to_final_color(SOLID_RECTANGLE, RuleSide::TO);
+  auto iname = Verticies::internal_name("a", final_color);
+
+  // final color is color<<1 to make room for side. SOLID_RECTANGLE is 2, side
+  // is 0, so fc is 4.  chr(' ') + 4 is 36 (#).  Space char added to put
+  // value into visible/printable character range
+  EXPECT_EQ("$a", iname);
+}
+
 TEST(TestVerticies, VertexEncodingGetBlockSingle) {
   block::FinalBlock block1{11};
   vertex::Vertex v1 = vertex::create(fc_rect_from, block1);

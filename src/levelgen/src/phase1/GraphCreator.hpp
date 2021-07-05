@@ -1,4 +1,5 @@
 #pragma once
+#include "RuleSide.hpp"
 #include "Transforms.hpp"
 #include "Vertex.hpp"
 #include "Verticies.hpp"
@@ -26,10 +27,13 @@ namespace p1 {
     void add_rules(boost::json::object const & rules);
 
   private:
+    void add_chain(boost::json::string_view chain, RuleSide side);
+
+  private:
     Transforms transforms_;
     Verticies verticies_;
     VertexVec nodes_;
     std::vector<bool> adjacency_matrix;
-  };
+    };
 
 } // p1
