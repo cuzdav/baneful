@@ -37,7 +37,7 @@ namespace p1::vertex {
   add_block(Vertex vertex, block::FinalBlock block);
 
   color::FinalColor
-  get_color(Vertex vertex);
+  get_final_color(Vertex vertex);
 
   block::FinalBlock
   get_block(Vertex vertex, std::uint8_t idx);

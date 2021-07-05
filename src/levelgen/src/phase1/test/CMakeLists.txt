@@ -1,6 +1,7 @@
 enable_testing()
 
 add_executable(testphase1
+  TestColor.cpp
   TestGraph.cpp
   TestTransforms.cpp
   TestVerticies.cpp

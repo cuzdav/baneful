@@ -73,7 +73,7 @@ namespace p1 {
         e = Color::DEFAULT;
       }
       for (auto& e : block_fixup_map_) {
-        e = 'a'; // assume letters are the main units
+        e = 'a' - 1; // assume letters are the main units
       }
 
       block_to_color_map_['.'] = Color::WILDCARD;
@@ -81,7 +81,7 @@ namespace p1 {
 
       for (char c = '1'; c <= '9'; ++c) {
         block_to_color_map_[c] = Color::BACKREF;
-        block_fixup_map_[c] = '1'; // '1' -> 0
+        block_fixup_map_[c] = '0';
       }
     }
 

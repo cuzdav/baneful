@@ -116,7 +116,7 @@ TEST(TestVerticies, Constants) {
 
 TEST(TestVerticies, VertexEncodingColor) {
   vertex::Vertex v1 = vertex::create(fc_rect_from, empty_block);
-  EXPECT_EQ(fc_rect_from, get_color(v1));
+  EXPECT_EQ(fc_rect_from, get_final_color(v1));
 }
 
 TEST(TestVerticies, VertexEncodingGetBlockSingle) {

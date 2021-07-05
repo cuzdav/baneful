@@ -10,12 +10,13 @@ namespace p1::vertex {
   // "block1" is the already-transformed first block
   Vertex
   create(color::FinalColor final_color, block::FinalBlock block1) {
-    auto vertex = Vertex{+final_color << ColorShift};
+    std::uint32_t value = +final_color << ColorShift;
+    Vertex vertex{value};
     return add_block(vertex, block1);
   }
 
   color::FinalColor
-  get_color(Vertex vertex) {
+  get_final_color(Vertex vertex) {
     return color::FinalColor{
       std::uint8_t((+vertex >> ColorShift) & ColorMask)
     };
@@ -23,7 +24,7 @@ namespace p1::vertex {
 
   Vertex
   add_block(Vertex vertex, block::FinalBlock block) {
-    assert((+block & ~BlockMask) == 0);
+    assert((+block & ~BlockMask) == 0); // not using any "too-high" bits
     auto v = +vertex;
 
     auto shift =
@@ -63,9 +64,13 @@ namespace p1::vertex {
     std::string blocks;
     char const * sep = "";
     for (block::FinalBlock block : get_blocks(vertex)) {
+      if (+block == 0) {
+        break;
+      }
       blocks += std::exchange(sep, ", ");
-      blocks += +block;    }
+      blocks += std::to_string(+block);
+    }
 
-    return "#<Vertex:" + to_string(get_color(vertex)) + ":" + blocks + ">";
+    return "#<Vertex:" + to_string(get_final_color(vertex)) + ":" + blocks + ">";
   }
 }

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "enumutils.hpp"
 #include <cstdint>
+#include <string>
 
 namespace p1::block {
 
@@ -13,9 +15,8 @@ namespace p1::block {
     return FinalBlock(std::uint8_t(c));
   };
 
-  inline constexpr std::uint8_t
-  operator+(FinalBlock b) {
-    return static_cast<std::uint8_t>(b);
+  inline std::string to_string(FinalBlock block) {
+    return "Block:(" + std::to_string(+block) + ")";
   }
 
 }
