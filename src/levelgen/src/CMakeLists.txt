@@ -1,4 +1,6 @@
-add_library (LevelGenLib levelgen.cpp)
+add_library (LevelGenLib
+    levelgen.cpp
+)
 
 target_include_directories (LevelGenLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries (LevelGenLib LINK_PUBLIC

@@ -84,6 +84,12 @@ GraphCreator::GraphCreator(boost::json::object const & level_obj) {
 void
 GraphCreator::add_chain(json::string_view chain, RuleSide side) {
   if (chain.empty()) {
+    // since verticies are added for each block in the string_view, if it's
+    // empty that means the rule goes to nothing, but there isn't a char to add.
+    // Thus, synthesize a character from the NOTHING_BLOCK which is
+    // pre-configured for the NOTHING color. Without this, a->["b", ""] would be
+    // identical to a->["b"], which is a problem, since they differ
+    // significantly!
     chain = block::NOTHING_BLOCK_CSTR;
   }
   auto len = chain.size();
@@ -94,13 +100,12 @@ GraphCreator::add_chain(json::string_view chain, RuleSide side) {
   }
 }
 
-//
 void
 GraphCreator::add_rules(json::object const & rules) {
   for (auto const & [from, to] : rules) {
     add_chain(from, RuleSide::FROM);
 
-    // each string in the to array
+    // each string in the "to" array
     for (json::value to : to.as_array()) {
       add_chain(to.as_string(), RuleSide::TO);
     }

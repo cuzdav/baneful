@@ -52,7 +52,7 @@ TEST(TestColor, test_to_string) {
   EXPECT_EQ("SOLID_RECTANGLE"s, to_string(SOLID_RECTANGLE));
   EXPECT_EQ("WILDCARD"s, to_string(WILDCARD));
   EXPECT_EQ("BACKREF"s, to_string(BACKREF));
-  EXPECT_EQ("CUSTOM"s, to_string(NEXT_CUSTOM));
+  EXPECT_EQ("CUSTOM(5)"s, to_string(NEXT_CUSTOM));
 }
 
 TEST(TestColor, test_to_final_color_string_) {
@@ -69,14 +69,14 @@ TEST(TestColor, test_to_final_color_string_) {
   auto cust_to = to_string(to_final_color(NEXT_CUSTOM, TO));
   auto cust_fm = to_string(to_final_color(NEXT_CUSTOM, FROM));
 
-  EXPECT_EQ("SOLID_RECTANGLE:TO"s, rect_to);
-  EXPECT_EQ("SOLID_RECTANGLE:FROM"s, rect_fm);
-  EXPECT_EQ("WILDCARD:TO"s, wild_to);
-  EXPECT_EQ("WILDCARD:FROM"s, wild_fm);
-  EXPECT_EQ("BACKREF:TO"s, bref_to);
-  EXPECT_EQ("BACKREF:FROM"s, bref_fm);
-  EXPECT_EQ("CUSTOM:TO"s, cust_to);
-  EXPECT_EQ("CUSTOM:FROM"s, cust_fm);
+  EXPECT_EQ("FinalColor(4):SOLID_RECTANGLE:TO"s, rect_to);
+  EXPECT_EQ("FinalColor(5):SOLID_RECTANGLE:FROM"s, rect_fm);
+  EXPECT_EQ("FinalColor(6):WILDCARD:TO"s, wild_to);
+  EXPECT_EQ("FinalColor(7):WILDCARD:FROM"s, wild_fm);
+  EXPECT_EQ("FinalColor(8):BACKREF:TO"s, bref_to);
+  EXPECT_EQ("FinalColor(9):BACKREF:FROM"s, bref_fm);
+  EXPECT_EQ("FinalColor(10):CUSTOM(5):TO"s, cust_to);
+  EXPECT_EQ("FinalColor(11):CUSTOM(5):FROM"s, cust_fm);
 }
 
 } // namespace p1::color::test
