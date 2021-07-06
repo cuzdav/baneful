@@ -55,24 +55,25 @@ using namespace std::literals;
 namespace p1 {
 
 static void
-install_override_transforms(json::object const &type_overrides, Transforms &transforms) {
-  for (auto const &[ch, type_override] : type_overrides) {
+install_override_transforms(json::object const & type_overrides,
+                            Transforms &         transforms) {
+  for (auto const & [ch, type_override] : type_overrides) {
     if (size(ch) > 1) {
       throw std::runtime_error("Invalid type override, expecting char key, got: " +
                                std::string(ch));
     }
-    json::object const &type_config = type_override.as_object();
+    json::object const & type_config = type_override.as_object();
     assert(ch.size() == 1);
     transforms.add_level_type_override(ch[0], type_config);
   }
 }
 
-GraphCreator::GraphCreator(boost::json::object const &level_obj) {
-  if (auto *type_overrides_val = level_obj.if_contains("type_overrides")) {
+GraphCreator::GraphCreator(boost::json::object const & level_obj) {
+  if (auto * type_overrides_val = level_obj.if_contains("type_overrides")) {
     install_override_transforms(type_overrides_val->as_object(), transforms_);
   }
 
-  if (auto *rules_val = level_obj.if_contains("rules")) {
+  if (auto * rules_val = level_obj.if_contains("rules")) {
     add_rules(rules_val->as_object());
   }
   else {
@@ -86,7 +87,7 @@ GraphCreator::add_chain(json::string_view chain, RuleSide side) {
     chain = block::NOTHING_BLOCK_CSTR;
   }
   auto len = chain.size();
-  for (char const &ch : chain) {
+  for (char const & ch : chain) {
     auto vertex_id      = std::string_view(&ch, len--);
     auto [block, color] = transforms_.do_transform(vertex_id, side);
     verticies_.add_vertex_single(vertex_id, block, color);
@@ -95,8 +96,8 @@ GraphCreator::add_chain(json::string_view chain, RuleSide side) {
 
 //
 void
-GraphCreator::add_rules(json::object const &rules) {
-  for (auto const &[from, to] : rules) {
+GraphCreator::add_rules(json::object const & rules) {
+  for (auto const & [from, to] : rules) {
     add_chain(from, RuleSide::FROM);
 
     // each string in the to array

@@ -33,8 +33,8 @@ public:
   }
 
   void
-  add_level_type_override(char block, boost::json::object const &type_config) {
-    auto const &type = type_config.at("type").as_string();
+  add_level_type_override(char block, boost::json::object const & type_config) {
+    auto const & type = type_config.at("type").as_string();
     if (type == "RotatingColors") {
       auto cycle_chars           = type_config.at("cycle_chars").as_string();
       auto custom_name           = "Cycle:" + std::string{cycle_chars};
@@ -69,10 +69,10 @@ public:
 private:
   void
   init_block_maps() {
-    for (auto &e : block_to_color_map_) {
+    for (auto & e : block_to_color_map_) {
       e = Color::DEFAULT;
     }
-    for (auto &e : block_fixup_map_) {
+    for (auto & e : block_fixup_map_) {
       e = 'a'; // assume letters are the main units
     }
 
@@ -89,7 +89,7 @@ private:
   }
 
   Color
-  get_or_create_color_by_name(std::string const &color_name) {
+  get_or_create_color_by_name(std::string const & color_name) {
     auto names_begin = begin(custom_color_names_), names_end = end(custom_color_names_),
          name_iter = std::find(names_begin, names_end, color_name);
 

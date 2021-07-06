@@ -13,7 +13,7 @@ namespace json = boost::json;
 namespace detail {
 
 inline void
-pretty_print(std::ostream &os, json::value const &jv, std::string *indent) {
+pretty_print(std::ostream & os, json::value const & jv, std::string * indent) {
   std::string indent_;
   if (!indent)
     indent = &indent_;
@@ -21,7 +21,7 @@ pretty_print(std::ostream &os, json::value const &jv, std::string *indent) {
   case json::kind::object: {
     os << "{\n";
     indent->append(4, ' ');
-    auto const &obj = jv.get_object();
+    auto const & obj = jv.get_object();
     if (!obj.empty()) {
       auto it = obj.begin();
       for (;;) {
@@ -41,7 +41,7 @@ pretty_print(std::ostream &os, json::value const &jv, std::string *indent) {
   case json::kind::array: {
     os << "[\n";
     indent->append(4, ' ');
-    auto const &arr = jv.get_array();
+    auto const & arr = jv.get_array();
     if (!arr.empty()) {
       auto it = arr.begin();
       for (;;) {
@@ -85,7 +85,7 @@ pretty_print(std::ostream &os, json::value const &jv, std::string *indent) {
 } // namespace detail
 
 inline void
-pretty_print(std::ostream &os, json::value const &jv) {
+pretty_print(std::ostream & os, json::value const & jv) {
   detail::pretty_print(os, jv, nullptr);
 }
 } // namespace jsonutil

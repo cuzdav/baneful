@@ -5,4 +5,5 @@ src/levelgen/build
 .#*
 .config
 .clangd
+.cache
 compile_commands.json

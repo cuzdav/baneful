@@ -25,8 +25,8 @@ using StrVec = std::vector<std::string>;
 StrVec
 vertex_names(boost::json::object lvl) {
 
-  GraphCreator     gc(lvl);
-  Verticies const &verticies = gc.get_verticies();
+  GraphCreator      gc(lvl);
+  Verticies const & verticies = gc.get_verticies();
 
   std::vector<std::string> actual{verticies.names_begin(), verticies.names_end()};
 
@@ -66,8 +66,8 @@ TEST(TestGraphCreator, type_override_sets_up_custom_colors) {
                    type_overrides(
                        std::pair("a", rotating_colors("cd"))));
   // clang-format on
-  GraphCreator      gc(lvl);
-  Transforms const &transforms = gc.get_transforms();
+  GraphCreator       gc(lvl);
+  Transforms const & transforms = gc.get_transforms();
 }
 
 TEST(TestGraphCreator, rule3_with_transform) {

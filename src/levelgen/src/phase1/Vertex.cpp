@@ -2,6 +2,7 @@
 #include "Vertex.hpp"
 #include <cassert>
 #include <stdexcept>
+#include <utility>
 
 namespace p1::vertex {
 
@@ -58,8 +59,8 @@ get_blocks(Vertex vertex) {
 
 std::string
 to_string(Vertex vertex) {
-  std::string blocks;
-  char const *sep = "";
+  std::string  blocks;
+  char const * sep = "";
   for (block::FinalBlock block : get_blocks(vertex)) {
     if (+block == 0) {
       break;

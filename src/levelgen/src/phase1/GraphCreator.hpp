@@ -19,7 +19,7 @@ class GraphCreator {
 public:
   using const_iterator = typename VertexVec::const_iterator;
 
-  GraphCreator(boost::json::object const &level);
+  GraphCreator(boost::json::object const & level);
 
   Verticies const &
   get_verticies() const {
@@ -30,12 +30,10 @@ public:
     return transforms_;
   }
 
-  void
-  add_rules(boost::json::object const &rules);
+  void add_rules(boost::json::object const & rules);
 
 private:
-  void
-  add_chain(boost::json::string_view chain, RuleSide side);
+  void add_chain(boost::json::string_view chain, RuleSide side);
 
 private:
   Transforms        transforms_;

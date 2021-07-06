@@ -14,7 +14,7 @@ class Graph {
   using VertexVec = std::vector<vertex::Vertex>;
 
 public:
-  Graph(boost::json::object const &level);
+  Graph(boost::json::object const & level);
 
 private:
   VertexVec         nodes_;
