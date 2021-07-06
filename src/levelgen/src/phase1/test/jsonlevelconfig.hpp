@@ -38,26 +38,35 @@ namespace p1::test {
 
 */
 
-template <typename... NVPair> auto level(NVPair... objects) {
+template <typename... NVPair>
+auto
+level(NVPair... objects) {
   return boost::json::object{objects...};
 }
 
-inline auto rule(std::string_view from, boost::json::array to) {
+inline auto
+rule(std::string_view from, boost::json::array to) {
   return std::pair(from, to);
 }
 
-auto rules(auto... rs) {
+auto
+rules(auto... rs) {
   return std::pair("rules", boost::json::object{rs...});
 }
 
-inline boost::json::array to(auto... args) {
+inline boost::json::array
+to(auto... args) {
   return boost::json::array{args...};
 }
 
 struct from {
   std::string_view from_sv_;
-  from(std::string_view from_sv) : from_sv_{from_sv} {}
-  auto operator=(boost::json::array to) { return rule(from_sv_, to); }
+  from(std::string_view from_sv) : from_sv_{from_sv} {
+  }
+  auto
+  operator=(boost::json::array to) {
+    return rule(from_sv_, to);
+  }
 };
 
 // customization for meaning of blocks.  Takes pair<SV, object>, where
@@ -65,14 +74,15 @@ struct from {
 // the configuration for what that type override can be.  Currently
 // only rotating_colors are supported.
 template <typename... StringViewT>
-auto type_overrides(
-    std::pair<StringViewT, boost::json::object>... type_overrides) {
+auto
+type_overrides(std::pair<StringViewT, boost::json::object>... type_overrides) {
   return std::pair<boost::json::string_view, boost::json::object>{
       "type_overrides", boost::json::object{type_overrides...}};
 }
 
 // a type-override value generator
-inline auto rotating_colors(boost::json::string_view colors) {
+inline auto
+rotating_colors(boost::json::string_view colors) {
   return boost::json::object{std::pair("type", "RotatingColors"),
                              std::pair("cycle_chars", colors)};
 }

@@ -5,20 +5,20 @@
 #include <vector>
 
 namespace p1::vertex {
-  enum class Vertex : std::uint32_t;
+enum class Vertex : std::uint32_t;
 }
 
 namespace p1 {
 
-  class Graph {
-    using VertexVec = std::vector<vertex::Vertex>;
-  public:
+class Graph {
+  using VertexVec = std::vector<vertex::Vertex>;
 
-    Graph(boost::json::object const & level);
+public:
+  Graph(boost::json::object const &level);
 
-  private:
-    VertexVec nodes_;
-    std::vector<bool> adjacency_matrix;
-  };
+private:
+  VertexVec         nodes_;
+  std::vector<bool> adjacency_matrix;
+};
 
-} // p1
+} // namespace p1

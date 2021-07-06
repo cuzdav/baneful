@@ -8,32 +8,40 @@
 #include <vector>
 
 namespace p1::vertex {
-  enum class Vertex : std::uint32_t;
+enum class Vertex : std::uint32_t;
 }
 
 namespace p1 {
 
-  class GraphCreator {
-    using VertexVec = std::vector<vertex::Vertex>;
-  public:
+class GraphCreator {
+  using VertexVec = std::vector<vertex::Vertex>;
 
-    using const_iterator = typename VertexVec::const_iterator;
+public:
+  using const_iterator = typename VertexVec::const_iterator;
 
-    GraphCreator(boost::json::object const & level);
+  GraphCreator(boost::json::object const &level);
 
-    Verticies const& get_verticies() const { return verticies_; }
-    Transforms const& get_transforms() const { return transforms_; }
+  Verticies const &
+  get_verticies() const {
+    return verticies_;
+  }
+  Transforms const &
+  get_transforms() const {
+    return transforms_;
+  }
 
-    void add_rules(boost::json::object const & rules);
+  void
+  add_rules(boost::json::object const &rules);
 
-  private:
-    void add_chain(boost::json::string_view chain, RuleSide side);
+private:
+  void
+  add_chain(boost::json::string_view chain, RuleSide side);
 
-  private:
-    Transforms transforms_;
-    Verticies verticies_;
-    VertexVec nodes_;
-    std::vector<bool> adjacency_matrix;
-    };
+private:
+  Transforms        transforms_;
+  Verticies         verticies_;
+  VertexVec         nodes_;
+  std::vector<bool> adjacency_matrix;
+};
 
-} // p1
+} // namespace p1

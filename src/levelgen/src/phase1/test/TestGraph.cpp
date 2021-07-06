@@ -9,7 +9,4 @@
 #include <gtest/gtest.h>
 #include <boost/json.hpp>
 
-namespace p1::test {
-
-
-} // p1::test
+namespace p1::test {} // namespace p1::test

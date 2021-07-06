@@ -6,5 +6,6 @@
 #include <vector>
 
 namespace p1 {
-  std::vector<Graph> create_graphs(std::string const & filename);
+std::vector<Graph>
+create_graphs(std::string const &filename);
 }

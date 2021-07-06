@@ -54,61 +54,56 @@ using namespace std::literals;
 
 namespace p1 {
 
-  static void install_override_transforms(
-      json::object const & type_overrides,
-      Transforms& transforms)
-  {
-    for (auto const& [ch, type_override] : type_overrides) {
-      if (size(ch) > 1) {
-        throw std::runtime_error("Invalid type override, expecting char key, got: " + std::string(ch));
-      }
-      json::object const & type_config = type_override.as_object();
-      assert(ch.size() == 1);
-      transforms.add_level_type_override(ch[0], type_config);
+static void
+install_override_transforms(json::object const &type_overrides, Transforms &transforms) {
+  for (auto const &[ch, type_override] : type_overrides) {
+    if (size(ch) > 1) {
+      throw std::runtime_error("Invalid type override, expecting char key, got: " +
+                               std::string(ch));
     }
+    json::object const &type_config = type_override.as_object();
+    assert(ch.size() == 1);
+    transforms.add_level_type_override(ch[0], type_config);
+  }
+}
+
+GraphCreator::GraphCreator(boost::json::object const &level_obj) {
+  if (auto *type_overrides_val = level_obj.if_contains("type_overrides")) {
+    install_override_transforms(type_overrides_val->as_object(), transforms_);
   }
 
-  GraphCreator::
-  GraphCreator(boost::json::object const & level_obj)
-  {
-    if (auto * type_overrides_val = level_obj.if_contains("type_overrides")) {
-      install_override_transforms(type_overrides_val->as_object(), transforms_);
-    }
+  if (auto *rules_val = level_obj.if_contains("rules")) {
+    add_rules(rules_val->as_object());
+  }
+  else {
+    throw std::runtime_error("Level does not contain rules");
+  }
+}
 
-    if (auto * rules_val = level_obj.if_contains("rules")) {
-      add_rules(rules_val->as_object());
-    }
-    else {
-      throw std::runtime_error("Level does not contain rules");
+void
+GraphCreator::add_chain(json::string_view chain, RuleSide side) {
+  if (chain.empty()) {
+    chain = block::NOTHING_BLOCK_CSTR;
+  }
+  auto len = chain.size();
+  for (char const &ch : chain) {
+    auto vertex_id      = std::string_view(&ch, len--);
+    auto [block, color] = transforms_.do_transform(vertex_id, side);
+    verticies_.add_vertex_single(vertex_id, block, color);
+  }
+}
+
+//
+void
+GraphCreator::add_rules(json::object const &rules) {
+  for (auto const &[from, to] : rules) {
+    add_chain(from, RuleSide::FROM);
+
+    // each string in the to array
+    for (json::value to : to.as_array()) {
+      add_chain(to.as_string(), RuleSide::TO);
     }
   }
+}
 
-  void GraphCreator::add_chain(json::string_view chain, RuleSide side) {
-    std::cout << "*** CHAIN: " << chain << " " << to_string(side) << std::endl;
-
-    if (chain.empty()) {
-      chain = " ";
-    }
-    auto len = chain.size();
-    for (char const &ch : chain) {
-      auto vertex_id = std::string_view(&ch, len--);
-      auto [block, color] = transforms_.do_transform(vertex_id, side);
-      verticies_.add_vertex_single(vertex_id, block, color);
-    }
-  }
-
-  //
-  void GraphCreator::
-  add_rules(json::object const & rules) {
-    for (auto const& [from, to] : rules) {
-      add_chain(from, RuleSide::FROM);
-
-      // each string in the to array
-      for (json::value to : to.as_array()) {
-        add_chain(to.as_string(), RuleSide::TO);
-      }
-    }
-  }
-
-} // p1
-
+} // namespace p1

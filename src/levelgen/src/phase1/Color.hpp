@@ -19,52 +19,57 @@ namespace p1::color {
 
 // Color is a category of type of vertex
 enum class Color : std::uint8_t {
+  UNUSED_ = 0,
   NOTHING = 1, // "Goes to nothing i.e., "a" -> ""
   SOLID_RECTANGLE,
-  DEFAULT = SOLID_RECTANGLE,
-  WILDCARD = 3,
-  BACKREF,
-  NEXT_CUSTOM,
+  DEFAULT     = SOLID_RECTANGLE,
+  WILDCARD    = 3,
+  BACKREF     = 4,
+  NEXT_CUSTOM = 5,
 };
 
 // Combines pure Color and a RuleSide enum
 enum class FinalColor : std::uint8_t {};
 
-inline constexpr FinalColor to_final_color(Color color, RuleSide side) {
+inline constexpr FinalColor
+to_final_color(Color color, RuleSide side) {
   return FinalColor((+color << 1) | +side);
 }
 
 // remove FROM bit from color
-inline constexpr Color get_color(FinalColor color) {
+inline constexpr Color
+get_color(FinalColor color) {
   return Color(+color >> 1);
 }
 
-inline constexpr RuleSide get_rule_side(FinalColor color) {
+inline constexpr RuleSide
+get_rule_side(FinalColor color) {
   return RuleSide(+color & 1);
 }
 
-inline constexpr bool has_from(FinalColor color) {
+inline constexpr bool
+has_from(FinalColor color) {
   return get_rule_side(color) == RuleSide::FROM;
 }
 
-inline std::string to_string(Color color) {
+inline std::string
+to_string(Color color) {
   using enum Color;
   switch (color) {
-  case NOTHING:
-    return "NOTHING";
-  case SOLID_RECTANGLE:
-    return "SOLID_RECTANGLE";
-  case WILDCARD:
-    return "WILDCARD";
-  case BACKREF:
-    return "BACKREF";
-  default:
-    return "CUSTOM";
+
+  case UNUSED_: return "[UNUSED!]";
+  case NOTHING: return "NOTHING";
+  case SOLID_RECTANGLE: return "SOLID_RECTANGLE";
+  case WILDCARD: return "WILDCARD";
+  case BACKREF: return "BACKREF";
+  default: return "CUSTOM(" + std::to_string(+color) + ")";
   }
 }
 
-inline std::string to_string(FinalColor final_color) {
-  return to_string(get_color(final_color)) + ":" +
+inline std::string
+to_string(FinalColor final_color) {
+  return "FinalColor(" + std::to_string(+final_color) +
+         "):" + to_string(get_color(final_color)) + ":" +
          to_string(get_rule_side(final_color));
 }
 

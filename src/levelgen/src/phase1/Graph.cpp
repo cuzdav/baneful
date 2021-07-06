@@ -41,10 +41,7 @@
 
 namespace p1 {
 
-  Graph::
-  Graph(boost::json::object const & level_obj)
-  {
-    GraphCreator creator(level_obj);
-  }
-} // p1
-
+Graph::Graph(boost::json::object const &level_obj) {
+  GraphCreator creator(level_obj);
+}
+} // namespace p1
