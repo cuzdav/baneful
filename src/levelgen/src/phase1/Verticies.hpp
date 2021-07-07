@@ -34,8 +34,10 @@ public:
   const_iterator names_begin() const;
   const_iterator names_end() const;
 
-  int name_index_of(std::string_view vertex, color::FinalColor final_color) const;
-  int name_index_of_checked(std::string_view vertex, color::FinalColor final_color) const;
+  int name_index_of(std::string_view  vertex,
+                    color::FinalColor final_color) const;
+  int name_index_of_checked(std::string_view  vertex,
+                            color::FinalColor final_color) const;
 
   std::string const & name_of(int index) const;
 
@@ -50,17 +52,12 @@ public:
   // Returns index to it.
   int generate_unique_vertex_name();
 
-  // How a color is represented as a printable char, as is found in the
-  // internal name
-  static char              color_to_char(color::FinalColor color);
-  static color::FinalColor char_to_color(char color_char);
-
   static std::string internal_name(std::string_view  vertex_id_string,
                                    color::FinalColor final_color);
 
 private:
-  int name_index_of_internal(std::string_view internal_vertex_name) const;
-  int name_index_of_checked_internal(std::string_view internal_vertex_name) const;
+  int name_index_of_internal(std::string_view intern_vertex_name) const;
+  int name_index_of_checked_internal(std::string_view intern_vertex_name) const;
 
 private:
   Names          vertex_names_;

@@ -19,7 +19,7 @@ TEST(TestTransforms, BasicInterface) {
 
   t.add_level_type_override('a', rotating_colors("bc"));
 
-  auto expected_color  = to_final_color(color::Color::NEXT_CUSTOM, RuleSide::TO);
+  auto expected_color = to_final_color(color::Color::NEXT_CUSTOM, RuleSide::TO);
   auto expected_vertex = vertex::create(expected_color, block::FinalBlock{1});
   add_block(expected_vertex, block::FinalBlock{2});
   add_block(expected_vertex, block::FinalBlock{3});

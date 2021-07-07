@@ -26,7 +26,9 @@ namespace p1 {
 
 class Transforms {
 public:
-  using Color = color::Color;
+  using Color          = color::Color;
+  using ColorNames     = std::vector<std::string>;
+  using const_iterator = ColorNames::const_iterator;
 
   Transforms() {
     init_block_maps();
@@ -37,7 +39,7 @@ public:
     auto const & type = type_config.at("type").as_string();
     if (type == "RotatingColors") {
       auto cycle_chars           = type_config.at("cycle_chars").as_string();
-      auto custom_name           = "Cycle:" + std::string{cycle_chars};
+      auto custom_name           = "RotCol:" + std::string{cycle_chars};
       auto color                 = get_or_create_color_by_name(custom_name);
       block_to_color_map_[block] = color;
     }
@@ -47,23 +49,33 @@ public:
   }
 
   color::FinalColor
-  get_color(char block, RuleSide side) {
+  get_color(char block, RuleSide side) const {
     return color::to_final_color(block_to_color_map_[block], side);
   }
 
   block::FinalBlock
-  finalize_block(char block) {
+  finalize_block(char block) const {
     auto transformed = block - block_fixup_map_[block] + 1;
     assert((transformed & ~vertex::BlockMask) == 0);
     return block::FinalBlock{std::uint8_t(transformed)};
   };
 
   std::tuple<block::FinalBlock, color::FinalColor>
-  do_transform(std::string_view vertex, RuleSide side) {
+  do_transform(std::string_view vertex, RuleSide side) const {
     assert(vertex.size() > 0);
     char              block             = vertex[0];
     block::FinalBlock transformed_block = finalize_block(block);
     return std::make_tuple(transformed_block, get_color(block, side));
+  }
+
+  const_iterator
+  begin() const {
+    return custom_color_names_.begin();
+  }
+
+  const_iterator
+  end() const {
+    return custom_color_names_.end();
   }
 
 private:
@@ -90,11 +102,9 @@ private:
 
   Color
   get_or_create_color_by_name(std::string const & color_name) {
-    auto names_begin = begin(custom_color_names_), names_end = end(custom_color_names_),
-         name_iter = std::find(names_begin, names_end, color_name);
-
-    auto offset    = std::distance(names_begin, name_iter);
-    if (name_iter == names_end) {
+    auto name_iter = std::find(begin(), end(), color_name);
+    auto offset    = std::distance(begin(), name_iter);
+    if (name_iter == end()) {
       custom_color_names_.push_back(color_name);
     }
     return Color(+Color::NEXT_CUSTOM + offset);
@@ -109,8 +119,8 @@ private:
 
   // for configuring runtime colors, like Cycle(abc), Cycle(ac), etc.
   // The name is dynamically generated, unknown until it's seen.
-  std::vector<std::string> custom_color_names_;
-  Color                    next_custom_color_ = Color::NEXT_CUSTOM;
+  ColorNames custom_color_names_;
+  Color      next_custom_color_ = Color::NEXT_CUSTOM;
 };
 
 } // namespace p1

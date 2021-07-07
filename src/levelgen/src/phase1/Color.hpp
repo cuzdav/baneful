@@ -73,4 +73,19 @@ to_string(FinalColor final_color) {
          to_string(get_rule_side(final_color));
 }
 
+// An arbitrary offset past ' ' so that value is shifted into printable range.
+// Start at " makes computed values be after it, so '"' isn't a name, which is
+// ugly to use as a marker char.
+static constexpr char CHAR_OFFSET = '\"';
+
+inline char
+color_to_char(FinalColor fcolor) {
+  return char(+fcolor + CHAR_OFFSET);
+}
+
+inline FinalColor
+char_to_color(char color_char) {
+  return color::FinalColor(color_char - CHAR_OFFSET);
+}
+
 } // namespace p1::color

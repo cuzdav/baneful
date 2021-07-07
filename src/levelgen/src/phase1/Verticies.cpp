@@ -142,7 +142,7 @@ int
 Verticies::name_index_of_checked(std::string_view  vertex_name,
                                  color::FinalColor final_color) const {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
-  int  idx                  = name_index_of_checked_internal(internal_vertex_name);
+  int  idx = name_index_of_checked_internal(internal_vertex_name);
   if (idx == -1) {
     throw std::runtime_error("vertex " + internal_vertex_name + " unknown");
   }
@@ -150,7 +150,8 @@ Verticies::name_index_of_checked(std::string_view  vertex_name,
 }
 
 int
-Verticies::name_index_of_checked_internal(std::string_view internal_vertex_name) const {
+Verticies::name_index_of_checked_internal(
+    std::string_view internal_vertex_name) const {
   int idx = name_index_of_internal(internal_vertex_name);
   if (idx == -1) {
     auto msg = "vertex " + std::string(internal_vertex_name) + " unknown";
@@ -186,21 +187,6 @@ Verticies::add_vertex_single(std::string_view  vertex_name,
     verticies_[idx] = vertex::create(final_color, transformed_block);
   }
   return idx;
-}
-
-// An arbitrary offset past ' ' so that value is shifted into printable range.
-// Start at " makes computed values be after it, so '"' isn't a name, which is
-// ugly to use as a marker char.
-static constexpr char CHAR_OFFSET = '\"';
-
-char
-Verticies::color_to_char(color::FinalColor fcolor) {
-  return char(+fcolor + CHAR_OFFSET);
-}
-
-color::FinalColor
-Verticies::char_to_color(char color_char) {
-  return color::FinalColor(color_char - CHAR_OFFSET);
 }
 
 std::string
