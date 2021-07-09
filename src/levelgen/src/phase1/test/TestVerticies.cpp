@@ -84,9 +84,9 @@ TEST(TestVerticies, IndexOfs) {
   Verticies v;
 
   // three-node chain "a->b->c"
-  int idx1    = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  int idx2    = v.add_vertex_single("bc"sv, empty_block, fc_rect_from);
-  int idx3    = v.add_vertex_single("c"sv, empty_block, fc_rect_from);
+  int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
+  int idx2 = v.add_vertex_single("bc"sv, empty_block, fc_rect_from);
+  int idx3 = v.add_vertex_single("c"sv, empty_block, fc_rect_from);
 
   int actual1 = v.name_index_of("abc", fc_rect_from);
   int actual2 = v.name_index_of("bc", fc_rect_from);
@@ -179,7 +179,7 @@ TEST(TestVerticies, VertexEncodingGetBlocks) {
   block::FinalBlock block1{11};
   vertex::Vertex    v1 = vertex::create(fc_rect_from, block1);
 
-  auto blocks          = get_blocks(v1);
+  auto blocks = get_blocks(v1);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(empty_block, blocks[1]);
 

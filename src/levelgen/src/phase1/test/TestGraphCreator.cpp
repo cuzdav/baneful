@@ -54,7 +54,7 @@ TEST(TestGraphCreator, simple_rule1) {
 }
 
 TEST(TestGraphCreator, simple_rule2) {
-  auto lvl    = level(rules(from("abc") = to("bb")));
+  auto lvl = level(rules(from("abc") = to("bb")));
 
   // "abc" is the id of the vertex starting at 'a'
   // "bc" is the id of the vertex starting at 'b'
@@ -122,6 +122,88 @@ TEST(TestGraphCreator, type_override_sets_up_custom_colors) {
   EXPECT_EQ(TO_CUST2[0], color_to_char(to_b_color));
   EXPECT_EQ(FR_CUST3[0], color_to_char(fr_c_color));
   EXPECT_EQ(TO_CUST3[0], color_to_char(to_c_color));
+}
+
+TEST(TestGraphCreator, proper_edges) {
+  // clang-format off
+  auto lvl = level(rules(from("a") = to("b", "cc"),
+                         from("bb") = to(""),
+                         from("c") = to("bb")
+                  ));
+  // clang-format on
+  GraphCreator       gc(lvl);
+  Transforms const & transforms = gc.get_transforms();
+  Verticies const &  verts      = gc.get_verticies();
+
+  // jsonutil::pretty_print(std::cout, lvl);
+
+  auto has_edge = [&](auto vert_name1, auto vert_name2) {
+    int from_idx = verts.index_of_internal_name(vert_name1);
+    int to_idx   = verts.index_of_internal_name(vert_name2);
+    return gc.has_edge(from_idx, to_idx);
+  };
+
+  EXPECT_TRUE(has_edge(FR_RECT + "a", TO_RECT + "b"));
+  EXPECT_TRUE(has_edge(FR_RECT + "a", TO_RECT + "cc"));
+  EXPECT_TRUE(has_edge(FR_RECT + "bb", FR_RECT + "b"));
+  EXPECT_TRUE(has_edge(FR_RECT + "b", TO_NOTH + "!"));
+  EXPECT_TRUE(has_edge(TO_RECT + "cc", TO_RECT + "c"));
+  EXPECT_TRUE(has_edge(FR_RECT + "c", TO_RECT + "bb"));
+  EXPECT_TRUE(has_edge(TO_RECT + "bb", TO_RECT + "b"));
+
+  EXPECT_FALSE(has_edge(FR_RECT + "a", FR_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "a", FR_RECT + "b"));
+  EXPECT_FALSE(has_edge(FR_RECT + "a", TO_NOTH + "!"));
+  EXPECT_FALSE(has_edge(FR_RECT + "a", TO_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "a", TO_RECT + "c"));
+
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", FR_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", FR_RECT + "a"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", FR_RECT + "c"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "b"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "cc"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "c"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "b"));
+  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_NOTH + "!"));
+
+  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "a"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", TO_RECT + "b"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "c"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", TO_RECT + "cc"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", TO_RECT + "c"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "b"));
+
+  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "bb"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "a"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "b"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "c"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", TO_RECT + "cc"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", TO_RECT + "c"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", TO_NOTH + "!"));
+  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "b"));
+}
+
+TEST(TestGraphCreator, merging_edges) {
+  // clang-format off
+  auto lvl = level(rules(from("a") = to("bc"),
+                         from("b") = to("c")
+                  ));
+  // clang-format on
+  GraphCreator       gc(lvl);
+  Transforms const & transforms = gc.get_transforms();
+  Verticies const &  verts      = gc.get_verticies();
+
+  int frect_a  = verts.index_of_internal_name(FR_RECT + "a");
+  int frect_b  = verts.index_of_internal_name(FR_RECT + "b");
+  int trect_bc = verts.index_of_internal_name(TO_RECT + "bc");
+  int trect_c  = verts.index_of_internal_name(TO_RECT + "c");
+
+  EXPECT_TRUE(gc.has_edge(frect_a, trect_bc));
+  EXPECT_TRUE(gc.has_edge(trect_bc, trect_c));
+  EXPECT_TRUE(gc.has_edge(frect_b, trect_c));
 }
 
 } // namespace p1::test

@@ -24,7 +24,7 @@ get_final_color(Vertex vertex) {
 Vertex
 add_block(Vertex vertex, block::FinalBlock block) {
   assert((+block & ~BlockMask) == 0); // not using any "too-high" bits
-  auto v     = +vertex;
+  auto v = +vertex;
 
   auto shift = ((v >> Block1Shift) & BlockMask) == 0 ? Block1Shift
              : ((v >> Block2Shift) & BlockMask) == 0 ? Block2Shift

@@ -81,35 +81,69 @@ GraphCreator::GraphCreator(boost::json::object const & level_obj) {
   }
 }
 
-void
-GraphCreator::add_chain(json::string_view chain, RuleSide side) {
+int
+GraphCreator::process_chain(json::string_view chain, RuleSide side,
+                            int prev_idx, GraphCreator::TraverseAction action) {
   if (chain.empty()) {
-    // since verticies are added for each block in the string_view, if it's
-    // empty that means the rule goes to nothing, but there isn't a char to add.
-    // Thus, synthesize a character from the NOTHING_BLOCK which is
-    // pre-configured for the NOTHING color. Without this, a->["b", ""] would be
-    // identical to a->["b"], which is a problem, since they differ
-    // significantly!
+    assert(side == RuleSide::TO); // no empty chains on the left
     chain = block::NOTHING_BLOCK_CSTR;
   }
   auto len = chain.size();
+  int  idx;
   for (char const & ch : chain) {
     auto vertex_id      = std::string_view(&ch, len--);
     auto [block, color] = transforms_.do_transform(vertex_id, side);
-    verticies_.add_vertex_single(vertex_id, block, color);
+    idx                 = verticies_.add_vertex_single(vertex_id, block, color);
+
+    if (action == TraverseAction::CREATE_EDGES) {
+      if (prev_idx != -1) {
+        add_edge(prev_idx, idx);
+      }
+      prev_idx = idx;
+    }
+  }
+  return idx;
+}
+
+void
+GraphCreator::traverse_input(json::object const &         rules,
+                             GraphCreator::TraverseAction action) {
+  for (auto const & [from, to] : rules) {
+    int prev_idx = process_chain(from, RuleSide::FROM, -1, action);
+
+    // Each chain's prev_idx is from above; do NOT update it in the loop.
+    // "a"->["b", "c"], then "a" is the prev of both "b" and "c"
+    for (json::value to : to.as_array()) {
+      process_chain(to.as_string(), RuleSide::TO, prev_idx, action);
+    }
   }
 }
 
 void
 GraphCreator::add_rules(json::object const & rules) {
-  for (auto const & [from, to] : rules) {
-    add_chain(from, RuleSide::FROM);
+  traverse_input(rules, TraverseAction::CREATE_VERTEX_ONLY);
+  // must know the number of verticies before we can size the adj matrix
+  adj_row_width_ = verticies_.names_size();
+  adjacency_matrix_.resize(adj_row_width_ * adj_row_width_);
+  traverse_input(rules, TraverseAction::CREATE_EDGES);
+}
 
-    // each string in the "to" array
-    for (json::value to : to.as_array()) {
-      add_chain(to.as_string(), RuleSide::TO);
-    }
-  }
+void
+GraphCreator::add_edge(int from, int to) {
+  int idx                = to_flat_idx(from, to);
+  adjacency_matrix_[idx] = true;
+}
+
+int
+GraphCreator::to_flat_idx(int from, int to) {
+  auto idx = adj_row_width_ * from + to;
+  assert(idx < adjacency_matrix_.size());
+  return idx;
+}
+
+bool
+GraphCreator::has_edge(int from, int to) {
+  return adjacency_matrix_[to_flat_idx(from, to)];
 }
 
 } // namespace p1

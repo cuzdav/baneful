@@ -91,8 +91,8 @@ private:
     block_to_color_map_[block::NOTHING_BLOCK_CHAR] = Color::NOTHING;
     block_fixup_map_[block::NOTHING_BLOCK_CHAR]    = ' ';
 
-    block_to_color_map_['.']                       = Color::WILDCARD;
-    block_fixup_map_['.']                          = '.';
+    block_to_color_map_['.'] = Color::WILDCARD;
+    block_fixup_map_['.']    = '.';
 
     for (char c = '1'; c <= '9'; ++c) {
       block_to_color_map_[c] = Color::BACKREF;

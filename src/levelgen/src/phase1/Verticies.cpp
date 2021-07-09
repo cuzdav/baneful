@@ -126,11 +126,11 @@ int
 Verticies::name_index_of(std::string_view  vertex_name,
                          color::FinalColor final_color) const {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
-  return name_index_of_internal(internal_vertex_name);
+  return index_of_internal_name(internal_vertex_name);
 }
 
 int
-Verticies::name_index_of_internal(std::string_view internal_vertex_name) const {
+Verticies::index_of_internal_name(std::string_view internal_vertex_name) const {
   auto it = std::find(names_begin(), names_end(), internal_vertex_name);
   if (it == names_end()) {
     return -1;
@@ -142,7 +142,7 @@ int
 Verticies::name_index_of_checked(std::string_view  vertex_name,
                                  color::FinalColor final_color) const {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
-  int  idx = name_index_of_checked_internal(internal_vertex_name);
+  int  idx = index_of_checked_internal_name(internal_vertex_name);
   if (idx == -1) {
     throw std::runtime_error("vertex " + internal_vertex_name + " unknown");
   }
@@ -150,9 +150,9 @@ Verticies::name_index_of_checked(std::string_view  vertex_name,
 }
 
 int
-Verticies::name_index_of_checked_internal(
+Verticies::index_of_checked_internal_name(
     std::string_view internal_vertex_name) const {
-  int idx = name_index_of_internal(internal_vertex_name);
+  int idx = index_of_internal_name(internal_vertex_name);
   if (idx == -1) {
     auto msg = "vertex " + std::string(internal_vertex_name) + " unknown";
     throw std::runtime_error(msg);
@@ -179,7 +179,7 @@ Verticies::add_vertex_single(std::string_view  vertex_name,
                              block::FinalBlock transformed_block,
                              color::FinalColor final_color) {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
-  int  idx                  = name_index_of_internal(internal_vertex_name);
+  int  idx                  = index_of_internal_name(internal_vertex_name);
 
   if (idx == -1) {
     idx = names_size();

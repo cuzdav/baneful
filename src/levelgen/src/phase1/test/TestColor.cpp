@@ -20,14 +20,14 @@ TEST(TestColor, to_final_color_and_back) {
   using enum Color;
   using enum RuleSide;
 
-  auto rect_to       = std::pair(SOLID_RECTANGLE, TO);
-  auto rect_fm       = std::pair(SOLID_RECTANGLE, FROM);
-  auto wild_to       = std::pair(WILDCARD, TO);
-  auto wild_fm       = std::pair(WILDCARD, FROM);
-  auto bref_to       = std::pair(BACKREF, TO);
-  auto bref_fm       = std::pair(BACKREF, FROM);
-  auto cust_to       = std::pair(NEXT_CUSTOM, TO);
-  auto cust_fm       = std::pair(NEXT_CUSTOM, FROM);
+  auto rect_to = std::pair(SOLID_RECTANGLE, TO);
+  auto rect_fm = std::pair(SOLID_RECTANGLE, FROM);
+  auto wild_to = std::pair(WILDCARD, TO);
+  auto wild_fm = std::pair(WILDCARD, FROM);
+  auto bref_to = std::pair(BACKREF, TO);
+  auto bref_fm = std::pair(BACKREF, FROM);
+  auto cust_to = std::pair(NEXT_CUSTOM, TO);
+  auto cust_fm = std::pair(NEXT_CUSTOM, FROM);
 
   auto encode_decode = [](auto colorSidePair) {
     auto [color, side] = colorSidePair;

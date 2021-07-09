@@ -26,7 +26,7 @@ public:
   using const_iterator = Names::const_iterator;
   using size_type      = Names::size_type;
 
-  Verticies()          = default;
+  Verticies() = default;
 
   size_type      names_size() const;
   iterator       names_begin();
@@ -55,14 +55,13 @@ public:
   static std::string internal_name(std::string_view  vertex_id_string,
                                    color::FinalColor final_color);
 
-private:
-  int name_index_of_internal(std::string_view intern_vertex_name) const;
-  int name_index_of_checked_internal(std::string_view intern_vertex_name) const;
+  int index_of_internal_name(std::string_view intern_vertex_name) const;
+  int index_of_checked_internal_name(std::string_view intern_vertex_name) const;
 
 private:
-  Names          vertex_names_;
-  int            next_unique_ = 0;
-  vertex::Vertex verticies_[32]{};
+  Names                          vertex_names_;
+  int                            next_unique_ = 0;
+  std::array<vertex::Vertex, 32> verticies_{};
 };
 
 } // namespace p1
