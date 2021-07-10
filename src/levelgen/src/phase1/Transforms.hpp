@@ -4,13 +4,13 @@
 #include "Color.hpp"
 #include "Vertex.hpp"
 
-#include "boost/json.hpp"
-
 #include <cassert>
 #include <cstdint>
 #include <string_view>
 #include <tuple>
 #include <map>
+
+#include "boost/json.hpp"
 
 /*
   a Transform takes an abstract node in the original json graph and

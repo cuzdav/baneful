@@ -9,6 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(FetchContent)
 FetchContent_Declare(
   googletest
+  UPDATE_DISCONNECTED 0,
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG        release-1.10.0
 )
@@ -20,6 +21,7 @@ option(BOOST_JSON_BUILD_EXAMPLES "Build boost::json examples" OFF)
 
 FetchContent_Declare(
   boost_json
+  UPDATE_DISCONNECTED 0,
   GIT_REPOSITORY https://github.com/boostorg/json
   GIT_TAG        
 )

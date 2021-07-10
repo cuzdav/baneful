@@ -96,8 +96,9 @@ GraphCreator::process_chain(json::string_view chain, RuleSide side,
     idx                 = verticies_.add_vertex_single(vertex_id, block, color);
 
     if (action == TraverseAction::CREATE_EDGES) {
+      assert(adjacency_matrix_.has_value());
       if (prev_idx != -1) {
-        add_edge(prev_idx, idx);
+        adjacency_matrix_->add_edge(prev_idx, idx);
       }
       prev_idx = idx;
     }
@@ -122,28 +123,13 @@ GraphCreator::traverse_input(json::object const &         rules,
 void
 GraphCreator::add_rules(json::object const & rules) {
   traverse_input(rules, TraverseAction::CREATE_VERTEX_ONLY);
-  // must know the number of verticies before we can size the adj matrix
-  adj_row_width_ = verticies_.names_size();
-  adjacency_matrix_.resize(adj_row_width_ * adj_row_width_);
+  // must know the number of vertices before we can size the adj matrix
+  adjacency_matrix_.emplace(verticies_.names_size());
   traverse_input(rules, TraverseAction::CREATE_EDGES);
 }
 
 void
-GraphCreator::add_edge(int from, int to) {
-  int idx                = to_flat_idx(from, to);
-  adjacency_matrix_[idx] = true;
-}
-
-int
-GraphCreator::to_flat_idx(int from, int to) {
-  auto idx = adj_row_width_ * from + to;
-  assert(idx < adjacency_matrix_.size());
-  return idx;
-}
-
-bool
-GraphCreator::has_edge(int from, int to) {
-  return adjacency_matrix_[to_flat_idx(from, to)];
+GraphCreator::merge_like_verticies() {
 }
 
 } // namespace p1

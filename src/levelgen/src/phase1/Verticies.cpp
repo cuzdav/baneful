@@ -183,6 +183,7 @@ Verticies::add_vertex_single(std::string_view  vertex_name,
 
   if (idx == -1) {
     idx = names_size();
+    assert(idx < verticies_.size());
     vertex_names_.emplace_back(internal_vertex_name);
     verticies_[idx] = vertex::create(final_color, transformed_block);
   }
