@@ -3,7 +3,7 @@
 
 #include "Color.hpp"
 #include "RuleSide.hpp"
-#include "Verticies.hpp"
+#include "Vertices.hpp"
 
 using namespace p1;
 using namespace std::literals;
@@ -18,18 +18,18 @@ static constexpr color::FinalColor fc_rect_to =
 static constexpr color::FinalColor fc_wc_from =
     to_final_color(p1::color::Color::WILDCARD, p1::RuleSide::FROM);
 
-TEST(TestVerticies, BasicInterface) {
-  Verticies v;
+TEST(TestVertices, BasicInterface) {
+  Vertices v;
   EXPECT_EQ(v.names_end(), v.names_begin());
   EXPECT_EQ(0, v.names_size());
 
-  Verticies const v2;
+  Vertices const v2;
   EXPECT_EQ(v2.names_end(), v2.names_begin());
   EXPECT_EQ(0, v2.names_size());
 }
 
-TEST(TestVerticies, GeneratedNames) {
-  Verticies v;
+TEST(TestVertices, GeneratedNames) {
+  Vertices v;
   EXPECT_EQ(0, v.names_size());
 
   auto genidx0 = v.generate_unique_vertex_name();
@@ -47,13 +47,13 @@ TEST(TestVerticies, GeneratedNames) {
   EXPECT_EQ("_2", v.name_of(genidx2));
 }
 
-TEST(TestVerticies, AddVertexSingleDefault) {
-  Verticies v;
+TEST(TestVertices, AddVertexSingleDefault) {
+  Vertices v;
 
   int idx = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
   EXPECT_EQ(1, v.names_size());
 
-  auto abc_internal = Verticies::internal_name("abc", fc_rect_from);
+  auto abc_internal = Vertices::internal_name("abc", fc_rect_from);
   EXPECT_EQ(abc_internal, v.name_of(idx));
 
   int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
@@ -61,8 +61,8 @@ TEST(TestVerticies, AddVertexSingleDefault) {
   EXPECT_EQ(idx, idx2);
 }
 
-TEST(TestVerticies, AddVertexSingle_SameNameDifferentColor) {
-  Verticies v;
+TEST(TestVertices, AddVertexSingle_SameNameDifferentColor) {
+  Vertices v;
 
   int idx  = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
   int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_wc_from);
@@ -80,8 +80,8 @@ TEST(TestVerticies, AddVertexSingle_SameNameDifferentColor) {
   ASSERT_EQ(v.names_end(), iter);
 }
 
-TEST(TestVerticies, IndexOfs) {
-  Verticies v;
+TEST(TestVertices, IndexOfs) {
+  Vertices v;
 
   // three-node chain "a->b->c"
   int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
@@ -98,14 +98,14 @@ TEST(TestVerticies, IndexOfs) {
   EXPECT_EQ(idx3, actual3);
 }
 
-TEST(TestVerticies, enums) {
+TEST(TestVertices, enums) {
   char              c = 'C';
   block::FinalBlock b{std::uint8_t(c)};
   char              result = +b;
   EXPECT_EQ('C', result);
 }
 
-TEST(TestVerticies, Constants) {
+TEST(TestVertices, Constants) {
   EXPECT_EQ(4, vertex::BitsPerBlock);
   EXPECT_EQ(5, vertex::BitsForColor);
   EXPECT_EQ(6, vertex::MaxBlocksPerVertex);
@@ -113,15 +113,15 @@ TEST(TestVerticies, Constants) {
   EXPECT_EQ(31, vertex::ColorMask);
 }
 
-TEST(TestVerticies, VertexEncodingColor) {
+TEST(TestVertices, VertexEncodingColor) {
   vertex::Vertex v1 = vertex::create(fc_rect_from, empty_block);
   EXPECT_EQ(fc_rect_from, get_final_color(v1));
 }
 
-TEST(TestVerticies, color_char_conversions) {
+TEST(TestVertices, color_char_conversions) {
   using enum color::Color;
   auto final_color = to_final_color(SOLID_RECTANGLE, RuleSide::TO);
-  auto iname       = Verticies::internal_name("a", final_color);
+  auto iname       = Vertices::internal_name("a", final_color);
 
   // final color is color<<1 to make room for side. SOLID_RECTANGLE is 2, side
   // is 0, so fc is 4.  CHAR_OFFSET('\"')=34, thus 34 + 4 is 38 ().  Space char
@@ -129,7 +129,7 @@ TEST(TestVerticies, color_char_conversions) {
   EXPECT_EQ("&a", iname);
 }
 
-TEST(TestVerticies, VertexEncodingGetBlockSingle) {
+TEST(TestVertices, VertexEncodingGetBlockSingle) {
   block::FinalBlock block1{11};
   vertex::Vertex    v1 = vertex::create(fc_rect_from, block1);
   EXPECT_EQ(block1, get_block(v1, 0));
@@ -175,7 +175,7 @@ TEST(TestVerticies, VertexEncodingGetBlockSingle) {
   EXPECT_EQ(block6, get_block(v6, 5));
 }
 
-TEST(TestVerticies, VertexEncodingGetBlocks) {
+TEST(TestVertices, VertexEncodingGetBlocks) {
   block::FinalBlock block1{11};
   vertex::Vertex    v1 = vertex::create(fc_rect_from, block1);
 

@@ -19,14 +19,14 @@ namespace p1 {
 //
 // The "cd" parts of both rules are identical "tails" and so can merge.
 
-class Verticies {
+class Vertices {
 public:
   using Names          = std::vector<std::string>;
   using iterator       = Names::iterator;
   using const_iterator = Names::const_iterator;
   using size_type      = Names::size_type;
 
-  Verticies() = default;
+  Vertices() = default;
 
   size_type      names_size() const;
   iterator       names_begin();

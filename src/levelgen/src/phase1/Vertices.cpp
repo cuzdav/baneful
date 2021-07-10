@@ -1,4 +1,4 @@
-#include "Verticies.hpp"
+#include "Vertices.hpp"
 
 #include "Block.hpp"
 #include "RuleSide.hpp"
@@ -97,40 +97,40 @@ because while we are reading in the graph it's too early to merge.  We do not
 
 */
 
-Verticies::size_type
-Verticies::names_size() const {
+Vertices::size_type
+Vertices::names_size() const {
   return std::size(vertex_names_);
 }
 
-Verticies::iterator
-Verticies::names_begin() {
+Vertices::iterator
+Vertices::names_begin() {
   return std::begin(vertex_names_);
 }
 
-Verticies::iterator
-Verticies::names_end() {
+Vertices::iterator
+Vertices::names_end() {
   return std::end(vertex_names_);
 }
 
-Verticies::const_iterator
-Verticies::names_begin() const {
+Vertices::const_iterator
+Vertices::names_begin() const {
   return std::begin(vertex_names_);
 }
 
-Verticies::const_iterator
-Verticies::names_end() const {
+Vertices::const_iterator
+Vertices::names_end() const {
   return std::end(vertex_names_);
 }
 
 int
-Verticies::name_index_of(std::string_view  vertex_name,
-                         color::FinalColor final_color) const {
+Vertices::name_index_of(std::string_view  vertex_name,
+                        color::FinalColor final_color) const {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
   return index_of_internal_name(internal_vertex_name);
 }
 
 int
-Verticies::index_of_internal_name(std::string_view internal_vertex_name) const {
+Vertices::index_of_internal_name(std::string_view internal_vertex_name) const {
   auto it = std::find(names_begin(), names_end(), internal_vertex_name);
   if (it == names_end()) {
     return -1;
@@ -139,8 +139,8 @@ Verticies::index_of_internal_name(std::string_view internal_vertex_name) const {
 }
 
 int
-Verticies::name_index_of_checked(std::string_view  vertex_name,
-                                 color::FinalColor final_color) const {
+Vertices::name_index_of_checked(std::string_view  vertex_name,
+                                color::FinalColor final_color) const {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
   int  idx = index_of_checked_internal_name(internal_vertex_name);
   if (idx == -1) {
@@ -150,7 +150,7 @@ Verticies::name_index_of_checked(std::string_view  vertex_name,
 }
 
 int
-Verticies::index_of_checked_internal_name(
+Vertices::index_of_checked_internal_name(
     std::string_view internal_vertex_name) const {
   int idx = index_of_internal_name(internal_vertex_name);
   if (idx == -1) {
@@ -161,23 +161,23 @@ Verticies::index_of_checked_internal_name(
 }
 
 std::string const &
-Verticies::name_of(int index) const {
+Vertices::name_of(int index) const {
   return vertex_names_[index];
 }
 
 // create a synthetic vertex that is guaranteed unique.
 // Names are assigned, starting at _1 and counts up.
 int
-Verticies::generate_unique_vertex_name() {
+Vertices::generate_unique_vertex_name() {
   std::string name = "_" + std::to_string(next_unique_++);
   vertex_names_.push_back(name);
   return names_size() - 1;
 }
 
 int
-Verticies::add_vertex_single(std::string_view  vertex_name,
-                             block::FinalBlock transformed_block,
-                             color::FinalColor final_color) {
+Vertices::add_vertex_single(std::string_view  vertex_name,
+                            block::FinalBlock transformed_block,
+                            color::FinalColor final_color) {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
   int  idx                  = index_of_internal_name(internal_vertex_name);
 
@@ -191,8 +191,8 @@ Verticies::add_vertex_single(std::string_view  vertex_name,
 }
 
 std::string
-Verticies::internal_name(std::string_view  vertex_id_string,
-                         color::FinalColor final_color) {
+Vertices::internal_name(std::string_view  vertex_id_string,
+                        color::FinalColor final_color) {
   // convert color to printable char and prefix the name with it.
   return color_to_char(final_color) + std::string(vertex_id_string);
 }

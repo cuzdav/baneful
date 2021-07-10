@@ -1,7 +1,7 @@
 #include "Block.hpp"
 #include "Color.hpp"
 #include "Vertex.hpp"
-#include "Verticies.hpp"
+#include "Vertices.hpp"
 #include "Transforms.hpp"
 #include "jsonlevelconfig.hpp"
 

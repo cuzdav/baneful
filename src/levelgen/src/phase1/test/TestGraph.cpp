@@ -2,7 +2,7 @@
 #include "Graph.hpp"
 #include "jsonutil.hpp"
 #include "Vertex.hpp"
-#include "Verticies.hpp"
+#include "Vertices.hpp"
 
 #include "jsonlevelconfig.hpp"
 

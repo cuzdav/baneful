@@ -1,7 +1,7 @@
 #include "GraphCreator.hpp"
 #include "Color.hpp"
 #include "Transforms.hpp"
-#include "Verticies.hpp"
+#include "Vertices.hpp"
 #include <boost/json.hpp>
 
 #include <cassert>

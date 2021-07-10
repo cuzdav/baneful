@@ -29,8 +29,8 @@ using StrVec = std::vector<std::string>;
 StrVec
 vertex_names(boost::json::object lvl) {
 
-  GraphCreator      gc(lvl);
-  Verticies const & verticies = gc.get_verticies();
+  GraphCreator     gc(lvl);
+  Vertices const & verticies = gc.get_verticies();
 
   std::vector<std::string> actual{verticies.names_begin(),
                                   verticies.names_end()};
@@ -133,7 +133,7 @@ TEST(TestGraphCreator, proper_edges) {
   // clang-format on
   GraphCreator       gc(lvl);
   Transforms const & transforms = gc.get_transforms();
-  Verticies const &  verts      = gc.get_verticies();
+  Vertices const &   verts      = gc.get_verticies();
 
   // jsonutil::pretty_print(std::cout, lvl);
 
@@ -194,7 +194,7 @@ TEST(TestGraphCreator, merging_edges) {
   // clang-format on
   GraphCreator       gc(lvl);
   Transforms const & transforms = gc.get_transforms();
-  Verticies const &  verts      = gc.get_verticies();
+  Vertices const &   verts      = gc.get_verticies();
 
   int frect_a  = verts.index_of_internal_name(FR_RECT + "a");
   int frect_b  = verts.index_of_internal_name(FR_RECT + "b");

@@ -8,7 +8,7 @@ add_library (phase1
     GraphCreator.cpp
     GraphLoader.cpp
     Vertex.cpp
-    Verticies.cpp
+    Vertices.cpp
 )
 
 target_link_libraries(phase1 LINK_PUBLIC boost_json)

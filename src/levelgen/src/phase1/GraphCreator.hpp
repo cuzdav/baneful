@@ -3,7 +3,7 @@
 #include "RuleSide.hpp"
 #include "Transforms.hpp"
 #include "Vertex.hpp"
-#include "Verticies.hpp"
+#include "Vertices.hpp"
 
 #include <boost/json.hpp>
 #include <optional>
@@ -23,7 +23,7 @@ public:
 
   GraphCreator(boost::json::object const & level);
 
-  Verticies const &
+  Vertices const &
   get_verticies() const {
     return verticies_;
   }
@@ -62,7 +62,7 @@ private:
 
 private:
   Transforms                     transforms_;
-  Verticies                      verticies_;
+  Vertices                       verticies_;
   VertexVec                      nodes_;
   std::optional<AdjacencyMatrix> adjacency_matrix_;
 };
