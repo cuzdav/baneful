@@ -3,6 +3,7 @@
 #include "Block.hpp"
 #include "Color.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <stdexcept>
@@ -30,6 +31,8 @@ static constexpr std::uint32_t BitsPerBlock       = 4;
 static constexpr std::uint32_t BlockMask          = (1 << BitsPerBlock) - 1;
 static constexpr std::uint32_t BitsForColor       = 5;
 static constexpr std::uint32_t ColorMask          = (1 << BitsForColor) - 1;
+static constexpr std::uint32_t AllBlocksMask =
+    (1 << MaxBlocksPerVertex * BitsPerBlock) - 1;
 
 enum class Vertex : std::uint32_t {};
 
@@ -58,6 +61,41 @@ create(color::FinalColor final_color, block::FinalBlock block) {
   std::uint32_t value = +final_color << ColorShift;
   Vertex        vertex{value};
   return add_block(vertex, block);
+}
+
+constexpr Vertex
+create(color::FinalColor final_color, block::FinalBlock block1,
+       block::FinalBlock block2) {
+  return add_block(create(final_color, block1), block2);
+}
+
+constexpr Vertex
+create(color::FinalColor final_color, block::FinalBlock block1,
+       block::FinalBlock block2, block::FinalBlock block3) {
+  return add_block(create(final_color, block1, block2), block3);
+}
+
+constexpr Vertex
+create(color::FinalColor final_color, block::FinalBlock block1,
+       block::FinalBlock block2, block::FinalBlock block3,
+       block::FinalBlock block4) {
+  return add_block(create(final_color, block1, block2, block3), block4);
+}
+
+constexpr Vertex
+create(color::FinalColor final_color, block::FinalBlock block1,
+       block::FinalBlock block2, block::FinalBlock block3,
+       block::FinalBlock block4, block::FinalBlock block5) {
+  return add_block(create(final_color, block1, block2, block3, block4), block5);
+}
+
+constexpr Vertex
+create(color::FinalColor final_color, block::FinalBlock block1,
+       block::FinalBlock block2, block::FinalBlock block3,
+       block::FinalBlock block4, block::FinalBlock block5,
+       block::FinalBlock block6) {
+  return add_block(create(final_color, block1, block2, block3, block4, block5),
+                   block6);
 }
 
 constexpr color::FinalColor
@@ -111,17 +149,26 @@ available_spaces(Vertex vertex) {
 }
 
 constexpr int
-num_blocks(Vertex vertex) {
+size(Vertex vertex) {
   return MaxBlocksPerVertex - available_spaces(vertex);
 }
 
-constexpr bool
-can_merge(Vertex a, Vertex b) {
-  return same_color(a, b) && available_spaces(a) <= num_blocks(b);
+constexpr int
+num_can_merge(Vertex a, Vertex b) {
+  return same_color(a, b) * std::min(available_spaces(a), size(b));
 }
 
 constexpr Vertex
-merge(Vertex a, Vertex b) {
+pop_front(Vertex vertex, int num = 1) {
+  auto highbits_color = +vertex & ~AllBlocksMask;
+  return Vertex{
+      (((+vertex & AllBlocksMask) << BitsPerBlock * num) & AllBlocksMask) |
+      highbits_color};
+}
+
+// Take first n blocks from b that fit into a and add them to a.
+constexpr Vertex
+create_merged(Vertex a, Vertex b) {
   return {};
 }
 

@@ -134,9 +134,10 @@ GraphCreator::merge_like_verticies() {
     int source_idx = -1;
     int indegree   = adjacency_matrix_->visit_sources_of(
           i, [&](int src_idx) { source_idx = src_idx; });
-    vertex::Vertex from_vtx = verticies_[source_idx];
-    vertex::Vertex to_vtx   = verticies_[i];
-    if (indegree == 1 && can_merge(from_vtx, to_vtx)) {}
+    vertex::Vertex from_vtx        = verticies_[source_idx];
+    vertex::Vertex to_vtx          = verticies_[i];
+    auto           mergeable_count = num_can_merge(from_vtx, to_vtx);
+    if (indegree == 1 && mergeable_count) {}
   }
 }
 
