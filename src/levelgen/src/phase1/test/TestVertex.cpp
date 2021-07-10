@@ -1,111 +1,35 @@
-#include <string_view>
-#include <gtest/gtest.h>
-
+#include "gtest/gtest.h"
 #include "Color.hpp"
-#include "RuleSide.hpp"
+#include "Transforms.hpp"
+#include "Vertex.hpp"
 #include "Vertices.hpp"
 
-using namespace p1;
-using namespace std::literals;
+namespace p1::vertex::test {
+
+using enum color::Color;
+using enum RuleSide;
+
+using FinalColor = color::FinalColor;
+
+constexpr FinalColor frect_color = to_final_color(SOLID_RECTANGLE, FROM),
+                     trect_color = to_final_color(SOLID_RECTANGLE, TO),
+                     fwild_color = to_final_color(WILDCARD, FROM),
+                     twild_color = to_final_color(WILDCARD, TO),
+                     fbref_color = to_final_color(BACKREF, FROM),
+                     tbref_color = to_final_color(BACKREF, TO);
 
 static constexpr block::FinalBlock empty_block = block::FinalBlock{'\0'};
 
-static constexpr color::FinalColor fc_rect_from =
-    to_final_color(p1::color::Color::SOLID_RECTANGLE, p1::RuleSide::FROM);
-static constexpr color::FinalColor fc_rect_to =
-    to_final_color(p1::color::Color::SOLID_RECTANGLE, p1::RuleSide::TO);
+Transforms tr;
 
-static constexpr color::FinalColor fc_wc_from =
-    to_final_color(p1::color::Color::WILDCARD, p1::RuleSide::FROM);
-
-TEST(TestVertices, BasicInterface) {
-  Vertices v;
-  EXPECT_EQ(v.names_end(), v.names_begin());
-  EXPECT_EQ(0, v.names_size());
-
-  Vertices const v2;
-  EXPECT_EQ(v2.names_end(), v2.names_begin());
-  EXPECT_EQ(0, v2.names_size());
-}
-
-TEST(TestVertices, GeneratedNames) {
-  Vertices v;
-  EXPECT_EQ(0, v.names_size());
-
-  auto genidx0 = v.generate_unique_vertex_name();
-  auto genidx1 = v.generate_unique_vertex_name();
-  auto genidx2 = v.generate_unique_vertex_name();
-
-  EXPECT_EQ(0, genidx0);
-  EXPECT_EQ(1, genidx1);
-  EXPECT_EQ(2, genidx2);
-
-  EXPECT_EQ(3, v.names_size());
-
-  EXPECT_EQ("_0", v.name_of(genidx0));
-  EXPECT_EQ("_1", v.name_of(genidx1));
-  EXPECT_EQ("_2", v.name_of(genidx2));
-}
-
-TEST(TestVertices, AddVertexSingleDefault) {
-  Vertices v;
-
-  int idx = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  EXPECT_EQ(1, v.names_size());
-
-  auto abc_internal = Vertices::internal_name("abc", fc_rect_from);
-  EXPECT_EQ(abc_internal, v.name_of(idx));
-
-  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  EXPECT_EQ(1, v.names_size());
-  EXPECT_EQ(idx, idx2);
-}
-
-TEST(TestVertices, AddVertexSingle_SameNameDifferentColor) {
-  Vertices v;
-
-  int idx  = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_wc_from);
-  EXPECT_EQ(2, v.names_size());
-  EXPECT_EQ(0, idx);
-  EXPECT_EQ(1, idx2);
-
-  auto iter = v.names_begin();
-  ASSERT_NE(v.names_end(), iter);
-  EXPECT_EQ(v.name_of(0), *iter);
-  ++iter;
-  ASSERT_NE(v.names_end(), iter);
-  EXPECT_EQ(v.name_of(1), *iter);
-  ++iter;
-  ASSERT_EQ(v.names_end(), iter);
-}
-
-TEST(TestVertices, IndexOfs) {
-  Vertices v;
-
-  // three-node chain "a->b->c"
-  int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  int idx2 = v.add_vertex_single("bc"sv, empty_block, fc_rect_from);
-  int idx3 = v.add_vertex_single("c"sv, empty_block, fc_rect_from);
-
-  int actual1 = v.name_index_of("abc", fc_rect_from);
-  int actual2 = v.name_index_of("bc", fc_rect_from);
-  int actual3 = v.name_index_of("c", fc_rect_from);
-
-  EXPECT_EQ(-1, v.name_index_of("abc", fc_wc_from));
-  EXPECT_EQ(idx1, actual1);
-  EXPECT_EQ(idx2, actual2);
-  EXPECT_EQ(idx3, actual3);
-}
-
-TEST(TestVertices, enums) {
+TEST(TestVertex, enums) {
   char              c = 'C';
   block::FinalBlock b{std::uint8_t(c)};
   char              result = +b;
   EXPECT_EQ('C', result);
 }
 
-TEST(TestVertices, Constants) {
+TEST(TestVertex, Constants) {
   EXPECT_EQ(4, vertex::BitsPerBlock);
   EXPECT_EQ(5, vertex::BitsForColor);
   EXPECT_EQ(6, vertex::MaxBlocksPerVertex);
@@ -113,14 +37,14 @@ TEST(TestVertices, Constants) {
   EXPECT_EQ(31, vertex::ColorMask);
 }
 
-TEST(TestVertices, VertexEncodingColor) {
-  vertex::Vertex v1 = vertex::create(fc_rect_from, empty_block);
-  EXPECT_EQ(fc_rect_from, get_final_color(v1));
+TEST(TestVertex, VertexEncodingColor) {
+  vertex::Vertex v1 = vertex::create(frect_color, empty_block);
+  EXPECT_EQ(frect_color, get_final_color(v1));
 }
 
-TEST(TestVertices, color_char_conversions) {
+TEST(TestVertex, color_char_conversions) {
   using enum color::Color;
-  auto final_color = to_final_color(SOLID_RECTANGLE, RuleSide::TO);
+  auto final_color = to_final_color(SOLID_RECTANGLE, TO);
   auto iname       = Vertices::internal_name("a", final_color);
 
   // final color is color<<1 to make room for side. SOLID_RECTANGLE is 2, side
@@ -129,9 +53,9 @@ TEST(TestVertices, color_char_conversions) {
   EXPECT_EQ("&a", iname);
 }
 
-TEST(TestVertices, VertexEncodingGetBlockSingle) {
+TEST(TestVertex, VertexEncodingGetBlockSingle) {
   block::FinalBlock block1{11};
-  vertex::Vertex    v1 = vertex::create(fc_rect_from, block1);
+  vertex::Vertex    v1 = vertex::create(frect_color, block1);
   EXPECT_EQ(block1, get_block(v1, 0));
   EXPECT_EQ(empty_block, get_block(v1, 1));
 
@@ -175,9 +99,9 @@ TEST(TestVertices, VertexEncodingGetBlockSingle) {
   EXPECT_EQ(block6, get_block(v6, 5));
 }
 
-TEST(TestVertices, VertexEncodingGetBlocks) {
+TEST(TestVertex, VertexEncodingGetBlocks) {
   block::FinalBlock block1{11};
-  vertex::Vertex    v1 = vertex::create(fc_rect_from, block1);
+  vertex::Vertex    v1 = vertex::create(frect_color, block1);
 
   auto blocks = get_blocks(v1);
   EXPECT_EQ(block1, blocks[0]);
@@ -227,3 +151,78 @@ TEST(TestVertices, VertexEncodingGetBlocks) {
   EXPECT_EQ(block5, blocks[4]);
   EXPECT_EQ(block6, blocks[5]);
 }
+
+TEST(TestVertex, same_color) {
+  using namespace color;
+  using enum Color;
+
+  Vertex v1 = vertex::create(frect_color, empty_block),
+         v2 = vertex::create(trect_color, empty_block),
+         v3 = vertex::create(fwild_color, empty_block),
+         v4 = vertex::create(twild_color, empty_block),
+         v5 = vertex::create(fbref_color, empty_block),
+         v6 = vertex::create(tbref_color, empty_block);
+
+  EXPECT_TRUE(same_color(v1, v1));
+  EXPECT_TRUE(same_color(v2, v2));
+  EXPECT_TRUE(same_color(v3, v3));
+  EXPECT_TRUE(same_color(v4, v4));
+  EXPECT_TRUE(same_color(v5, v5));
+  EXPECT_TRUE(same_color(v6, v6));
+
+  EXPECT_FALSE(same_color(v1, v2));
+  EXPECT_FALSE(same_color(v1, v3));
+  EXPECT_FALSE(same_color(v1, v4));
+  EXPECT_FALSE(same_color(v1, v5));
+  EXPECT_FALSE(same_color(v1, v6));
+
+  EXPECT_FALSE(same_color(v2, v3));
+  EXPECT_FALSE(same_color(v2, v4));
+  EXPECT_FALSE(same_color(v2, v5));
+  EXPECT_FALSE(same_color(v2, v6));
+
+  EXPECT_FALSE(same_color(v3, v4));
+  EXPECT_FALSE(same_color(v3, v5));
+  EXPECT_FALSE(same_color(v3, v6));
+
+  EXPECT_FALSE(same_color(v4, v5));
+  EXPECT_FALSE(same_color(v4, v6));
+
+  EXPECT_FALSE(same_color(v5, v6));
+}
+
+TEST(TestVertex, capacity_funcs) {
+  block::FinalBlock block = block::FinalBlock{1};
+  Vertex            v     = create(frect_color, block);
+
+  EXPECT_EQ(1, num_blocks(v));
+  EXPECT_EQ(5, available_spaces(v));
+  EXPECT_FALSE(is_full(v));
+
+  v = add_block(v, block);
+  EXPECT_EQ(2, num_blocks(v));
+  EXPECT_EQ(4, available_spaces(v));
+  EXPECT_FALSE(is_full(v));
+
+  v = add_block(v, block);
+  EXPECT_EQ(3, num_blocks(v));
+  EXPECT_EQ(3, available_spaces(v));
+  EXPECT_FALSE(is_full(v));
+
+  v = add_block(v, block);
+  EXPECT_EQ(4, num_blocks(v));
+  EXPECT_EQ(2, available_spaces(v));
+  EXPECT_FALSE(is_full(v));
+
+  v = add_block(v, block);
+  EXPECT_EQ(5, num_blocks(v));
+  EXPECT_EQ(1, available_spaces(v));
+  EXPECT_FALSE(is_full(v));
+
+  v = add_block(v, block);
+  EXPECT_EQ(6, num_blocks(v));
+  EXPECT_EQ(0, available_spaces(v));
+  EXPECT_TRUE(is_full(v));
+}
+
+} // namespace p1::vertex::test

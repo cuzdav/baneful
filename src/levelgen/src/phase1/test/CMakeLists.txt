@@ -6,6 +6,7 @@ add_executable(testphase1
   TestGraph.cpp
   TestGraphCreator.cpp
   TestTransforms.cpp
+  TestVertex.cpp
   TestVertices.cpp
 )
 target_link_libraries(testphase1 phase1 gtest_main)

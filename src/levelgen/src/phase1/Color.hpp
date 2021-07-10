@@ -31,23 +31,23 @@ enum class Color : std::uint8_t {
 // Combines pure Color and a RuleSide enum
 enum class FinalColor : std::uint8_t {};
 
-inline constexpr FinalColor
+constexpr FinalColor
 to_final_color(Color color, RuleSide side) {
   return FinalColor((+color << 1) | +side);
 }
 
-// remove FROM bit from color
-inline constexpr Color
+// remove FROM bit from color (from/to is in low bit)
+constexpr Color
 get_color(FinalColor color) {
   return Color(+color >> 1);
 }
 
-inline constexpr RuleSide
+constexpr RuleSide
 get_rule_side(FinalColor color) {
   return RuleSide(+color & 1);
 }
 
-inline constexpr bool
+constexpr bool
 has_from(FinalColor color) {
   return get_rule_side(color) == RuleSide::FROM;
 }
@@ -76,14 +76,16 @@ to_string(FinalColor final_color) {
 // An arbitrary offset past ' ' so that value is shifted into printable range.
 // Start at " makes computed values be after it, so '"' isn't a name, which is
 // ugly to use as a marker char.
-static constexpr char CHAR_OFFSET = '\"';
+constexpr char CHAR_OFFSET = '\"';
 
-inline char
+// internal printable-char representation of colors
+constexpr char
 color_to_char(FinalColor fcolor) {
   return char(+fcolor + CHAR_OFFSET);
 }
 
-inline FinalColor
+// internal printable-char representation of colors
+constexpr FinalColor
 char_to_color(char color_char) {
   return color::FinalColor(color_char - CHAR_OFFSET);
 }

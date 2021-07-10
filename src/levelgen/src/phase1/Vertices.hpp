@@ -34,6 +34,11 @@ public:
   const_iterator names_begin() const;
   const_iterator names_end() const;
 
+  vertex::Vertex
+  operator[](int idx) const {
+    return verticies_[idx];
+  }
+
   int name_index_of(std::string_view  vertex,
                     color::FinalColor final_color) const;
   int name_index_of_checked(std::string_view  vertex,

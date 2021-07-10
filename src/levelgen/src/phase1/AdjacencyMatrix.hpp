@@ -44,6 +44,22 @@ public:
     return inedges;
   }
 
+  // for given vertex index, make a callback providing each index of source
+  // vertex with an incoming edge.
+  // return: number of incoming edges (indegree)
+  template <typename CallbackT>
+  int
+  visit_sources_of(int idx, CallbackT callback) {
+    int inedges = 0;
+    for (int row = 0; row < num_verticies_; row++) {
+      if (adjacency_matrix_[row * num_verticies_ + idx]) {
+        ++inedges;
+        callback(row);
+      }
+    }
+    return inedges;
+  }
+
 private:
   int
   to_flat_idx(int from, int to) const {
@@ -53,8 +69,11 @@ private:
   }
 
 private:
-  int               num_verticies_;
-  std::vector<bool> adjacency_matrix_; // vector bool?  Really?  Yep.
+  int num_verticies_;
+
+  // Minimizing allocations is desirable.  This gives 64 edges in 8 bytes.
+  // TODO: make a small SBO version?
+  std::vector<bool> adjacency_matrix_;
 };
 
 } // namespace p1

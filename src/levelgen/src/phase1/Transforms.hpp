@@ -53,6 +53,13 @@ public:
     return color::to_final_color(block_to_color_map_[block], side);
   }
 
+  // Each color has some set of plain-text chars representing block state. A
+  // final block is this char transformed into a 0-based value. For example:
+  // Color of "SolidRectangle" uses chars 'a', 'b', etc., and as final blocks,
+  // 'a' is 0, 'b' is 1, etc. But for a color of BACKREF, the chars a '1', '2',
+  // etc, and for that color, '1' is finalized to value of 0, '2' is 1, etc.
+  // This is because we only have 4 bits to encode a block, and so can't leave
+  // them as chars.
   block::FinalBlock
   finalize_block(char block) const {
     auto transformed = block - block_fixup_map_[block] + 1;

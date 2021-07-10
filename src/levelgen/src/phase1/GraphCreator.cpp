@@ -130,6 +130,14 @@ GraphCreator::add_rules(json::object const & rules) {
 
 void
 GraphCreator::merge_like_verticies() {
+  for (int i = 0, sz = adjacency_matrix_->size(); i < sz; ++i) {
+    int source_idx = -1;
+    int indegree   = adjacency_matrix_->visit_sources_of(
+          i, [&](int src_idx) { source_idx = src_idx; });
+    vertex::Vertex from_vtx = verticies_[source_idx];
+    vertex::Vertex to_vtx   = verticies_[i];
+    if (indegree == 1 && can_merge(from_vtx, to_vtx)) {}
+  }
 }
 
 } // namespace p1
