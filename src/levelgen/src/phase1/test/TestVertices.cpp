@@ -28,25 +28,6 @@ TEST(TestVertices, BasicInterface) {
   EXPECT_EQ(0, v2.names_size());
 }
 
-TEST(TestVertices, GeneratedNames) {
-  Vertices v;
-  EXPECT_EQ(0, v.names_size());
-
-  auto genidx0 = v.generate_unique_vertex_name();
-  auto genidx1 = v.generate_unique_vertex_name();
-  auto genidx2 = v.generate_unique_vertex_name();
-
-  EXPECT_EQ(0, genidx0);
-  EXPECT_EQ(1, genidx1);
-  EXPECT_EQ(2, genidx2);
-
-  EXPECT_EQ(3, v.names_size());
-
-  EXPECT_EQ("_0", v.name_of(genidx0));
-  EXPECT_EQ("_1", v.name_of(genidx1));
-  EXPECT_EQ("_2", v.name_of(genidx2));
-}
-
 TEST(TestVertices, AddVertexSingleDefault) {
   Vertices v;
 

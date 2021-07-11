@@ -8,9 +8,9 @@ namespace p1 {
 
 class AdjacencyMatrix {
 public:
-  AdjacencyMatrix(int num_verticies)
-      : num_verticies_(num_verticies),
-        adjacency_matrix_(num_verticies * num_verticies) {
+  AdjacencyMatrix(int num_vertices)
+      : num_vertices_(num_vertices),
+        adjacency_matrix_(num_vertices * num_vertices) {
   }
 
   void
@@ -19,9 +19,15 @@ public:
     adjacency_matrix_[idx] = true;
   }
 
+  void
+  remove_edge(int from, int to) {
+    int idx                = to_flat_idx(from, to);
+    adjacency_matrix_[idx] = false;
+  }
+
   int
   size() const {
-    return num_verticies_;
+    return num_vertices_;
   }
 
   bool
@@ -31,15 +37,15 @@ public:
 
   int
   outdegree_of(int idx) const {
-    auto b = adjacency_matrix_.begin() + idx * num_verticies_;
-    return std::accumulate(b, b + num_verticies_, 0);
+    auto b = adjacency_matrix_.begin() + idx * num_vertices_;
+    return std::accumulate(b, b + num_vertices_, 0);
   }
 
   int
   indegree_of(int idx) const {
     int inedges = 0;
-    for (int row = 0; row < num_verticies_; row++) {
-      inedges += adjacency_matrix_[row * num_verticies_ + idx];
+    for (int row = 0; row < num_vertices_; row++) {
+      inedges += adjacency_matrix_[row * num_vertices_ + idx];
     }
     return inedges;
   }
@@ -49,10 +55,10 @@ public:
   // return: number of incoming edges (indegree)
   template <typename CallbackT>
   int
-  visit_sources_of(int idx, CallbackT callback) {
+  visit_parents_of(int idx, CallbackT callback) {
     int inedges = 0;
-    for (int row = 0; row < num_verticies_; row++) {
-      if (adjacency_matrix_[row * num_verticies_ + idx]) {
+    for (int row = 0; row < num_vertices_; row++) {
+      if (adjacency_matrix_[row * num_vertices_ + idx]) {
         ++inedges;
         callback(row);
       }
@@ -60,16 +66,32 @@ public:
     return inedges;
   }
 
+  // for given vertex index, make a callback providing each index of child
+  // vertex, connected by an outgoing edge.
+  // return: number of outgoing edges (outdegree)
+  template <typename CallbackT>
+  int
+  visit_children_of(int idx, CallbackT callback) {
+    int outedges = 0;
+    for (int col = 0; col < num_vertices_; col++) {
+      if (adjacency_matrix_[idx * num_vertices_ + col]) {
+        ++outedges;
+        callback(col);
+      }
+    }
+    return outedges;
+  }
+
 private:
   int
   to_flat_idx(int from, int to) const {
-    auto idx = num_verticies_ * from + to;
+    auto idx = num_vertices_ * from + to;
     assert(idx < adjacency_matrix_.size());
     return idx;
   }
 
 private:
-  int num_verticies_;
+  int num_vertices_;
 
   // Minimizing allocations is desirable.  This gives 64 edges in 8 bytes.
   // TODO: make a small SBO version?

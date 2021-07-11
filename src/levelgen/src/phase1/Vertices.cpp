@@ -165,15 +165,6 @@ Vertices::name_of(int index) const {
   return vertex_names_[index];
 }
 
-// create a synthetic vertex that is guaranteed unique.
-// Names are assigned, starting at _1 and counts up.
-int
-Vertices::generate_unique_vertex_name() {
-  std::string name = "_" + std::to_string(next_unique_++);
-  vertex_names_.push_back(name);
-  return names_size() - 1;
-}
-
 int
 Vertices::add_vertex_single(std::string_view  vertex_name,
                             block::FinalBlock transformed_block,
@@ -183,9 +174,9 @@ Vertices::add_vertex_single(std::string_view  vertex_name,
 
   if (idx == -1) {
     idx = names_size();
-    assert(idx < verticies_.size());
+    assert(idx < vertices_.size());
     vertex_names_.emplace_back(internal_vertex_name);
-    verticies_[idx] = vertex::create(final_color, transformed_block);
+    vertices_[idx] = vertex::create(final_color, transformed_block);
   }
   return idx;
 }

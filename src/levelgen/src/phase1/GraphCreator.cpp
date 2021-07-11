@@ -19,7 +19,7 @@ using namespace std::literals;
   standard Rectangle types, then "abc" would be a single
   Rectangle(abc). But if "." is the wildcard, that's a different
   color from 'a' and 'c', so they must be represented in multiple
-  verticies.
+  vertices.
   "a.c" would be 3 nodes:Rectangle(a)--Wildcard--Rectangle(c)
 
   if a is Cycle(bcd)
@@ -93,7 +93,7 @@ GraphCreator::process_chain(json::string_view chain, RuleSide side,
   for (char const & ch : chain) {
     auto vertex_id      = std::string_view(&ch, len--);
     auto [block, color] = transforms_.do_transform(vertex_id, side);
-    idx                 = verticies_.add_vertex_single(vertex_id, block, color);
+    idx                 = vertices_.add_vertex_single(vertex_id, block, color);
 
     if (action == TraverseAction::CREATE_EDGES) {
       assert(adjacency_matrix_.has_value());
@@ -124,21 +124,71 @@ void
 GraphCreator::add_rules(json::object const & rules) {
   traverse_input(rules, TraverseAction::CREATE_VERTEX_ONLY);
   // must know the number of vertices before we can size the adj matrix
-  adjacency_matrix_.emplace(verticies_.names_size());
+  adjacency_matrix_.emplace(vertices_.names_size());
   traverse_input(rules, TraverseAction::CREATE_EDGES);
 }
 
 void
-GraphCreator::merge_like_verticies() {
-  for (int i = 0, sz = adjacency_matrix_->size(); i < sz; ++i) {
-    int source_idx = -1;
-    int indegree   = adjacency_matrix_->visit_sources_of(
-          i, [&](int src_idx) { source_idx = src_idx; });
-    vertex::Vertex from_vtx        = verticies_[source_idx];
-    vertex::Vertex to_vtx          = verticies_[i];
-    auto           mergeable_count = num_can_merge(from_vtx, to_vtx);
-    if (indegree == 1 && mergeable_count) {}
+GraphCreator::compress_vertices() {
+  int  am_size = adjacency_matrix_->size();
+  bool something_changed;
+  do {
+    something_changed = false;
+    for (int cur_idx = 0; cur_idx < am_size; ++cur_idx) {
+      int source_idx;
+      int indegree = adjacency_matrix_->visit_parents_of(
+          cur_idx, [&](int src_idx) { source_idx = src_idx; });
+      if (indegree == 1) {
+        something_changed = try_to_merge(source_idx, cur_idx);
+      }
+    }
+  } while (something_changed);
+}
+
+bool
+GraphCreator::try_to_merge(int from_idx, int to_idx) {
+  vertex::Vertex from_vtx = vertices_[from_idx];
+  vertex::Vertex to_vtx   = vertices_[to_idx];
+
+  bool something_changed = false;
+
+  if (same_color(from_vtx, to_vtx)) {
+    vertex::Vertex merged_vtx = create_merged(from_vtx, to_vtx);
+    if (merged_vtx != from_vtx) {
+      something_changed = true;
+      int  num_merged   = num_can_merge(from_vtx, to_vtx);
+      auto to_vtx2      = pop_front(to_vtx, num_merged);
+      vertices_.set_vertex(from_idx, merged_vtx);
+      vertices_.set_vertex(to_idx, to_vtx2);
+      if (size(to_vtx2) == 0) {
+        remove_vertex(to_idx, from_idx);
+      }
+    }
   }
+  return something_changed;
+}
+
+void
+GraphCreator::remove_vertex(int doomed_idx, int parent_idx) {
+  // clang-format off
+  // vertex became empty, unthread it from adjacency matrix.
+  // 1) give its out-edges to its parent
+  // 2) remove parent's edge to child
+  // 3) remove vertex from Vertices name-map.  This will move the "last"
+  //    vertex into the dead slot.  Ex: if there are 4 vertices (0..3) and
+  //    we remove 1, then 3 takes the empty slot opened by removing 1
+  // 4) Thus, we must update the adjacency matrix edges to follow where that
+  //    node moved.
+  // clang-format on
+
+  assert(adjacency_matrix_->indegree_of(doomed_idx) == 1);
+
+  adjacency_matrix_->visit_children_of(
+      doomed_idx, [parent_idx, this](int child_idx) {
+        adjacency_matrix_->add_edge(parent_idx, child_idx);
+      });
+
+  adjacency_matrix_->remove_edge(parent_idx, doomed_idx);
 }
 
 } // namespace p1

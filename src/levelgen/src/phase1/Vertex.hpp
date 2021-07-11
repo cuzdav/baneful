@@ -155,7 +155,7 @@ size(Vertex vertex) {
 
 constexpr int
 num_can_merge(Vertex a, Vertex b) {
-  return same_color(a, b) * std::min(available_spaces(a), size(b));
+  return std::min(available_spaces(a), size(b));
 }
 
 constexpr Vertex
@@ -166,10 +166,12 @@ pop_front(Vertex vertex, int num = 1) {
       highbits_color};
 }
 
-// Take first n blocks from b that fit into a and add them to a.
+// Take as many front blocks from b that fit into the available blocks of a.
 constexpr Vertex
 create_merged(Vertex a, Vertex b) {
-  return {};
+  auto b_blockbits  = +b & AllBlocksMask; // remove color bits
+  auto shift_blocks = MaxBlocksPerVertex - available_spaces(a);
+  return Vertex{+a | (b_blockbits >> BitsPerBlock * shift_blocks)};
 }
 
 } // namespace p1::vertex

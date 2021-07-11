@@ -24,8 +24,8 @@ public:
   GraphCreator(boost::json::object const & level);
 
   Vertices const &
-  get_verticies() const {
-    return verticies_;
+  get_vertices() const {
+    return vertices_;
   }
 
   Transforms const &
@@ -43,12 +43,12 @@ public:
     return adjacency_matrix_->has_edge(from_idx, to_idx);
   }
 
-  // when two verticies are adjacent, and have the same color, and there is only
+  // when two vertices are adjacent, and have the same color, and there is only
   // one edge into the given "target" vertex, and there is room in the "from"
   // vertex of that edge, then merge them together into the same node, making it
   // a multi-block vertex.  (The graph cannot be created merged, because
   // we don't know where the edges until its construction has completed.)
-  void merge_like_verticies();
+  void compress_vertices();
 
 private:
   void add_rules(boost::json::object const & rules);
@@ -60,9 +60,15 @@ private:
   int process_chain(boost::json::string_view chain, RuleSide side, int prev_idx,
                     TraverseAction action);
 
+  // while compressing vertices, we found two elgible vertices to merge. Do so
+  // if possible.
+
+  bool try_to_merge(int from_idx, int to_idx);
+  void remove_vertex(int doomed_idx, int parent_idx);
+
 private:
   Transforms                     transforms_;
-  Vertices                       verticies_;
+  Vertices                       vertices_;
   VertexVec                      nodes_;
   std::optional<AdjacencyMatrix> adjacency_matrix_;
 };

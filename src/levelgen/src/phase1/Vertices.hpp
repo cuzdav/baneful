@@ -11,8 +11,8 @@
 
 namespace p1 {
 
-// A collection of named verticies, such that if paths logically converge they
-// will use the same verticies, not duplicates.  Example:
+// A collection of named vertices, such that if paths logically converge they
+// will use the same vertices, not duplicates.  Example:
 //
 // a -> bcd
 // b -> cd
@@ -36,7 +36,7 @@ public:
 
   vertex::Vertex
   operator[](int idx) const {
-    return verticies_[idx];
+    return vertices_[idx];
   }
 
   int name_index_of(std::string_view  vertex,
@@ -45,6 +45,11 @@ public:
                             color::FinalColor final_color) const;
 
   std::string const & name_of(int index) const;
+
+  void
+  set_vertex(int idx, vertex::Vertex v) {
+    vertices_[idx] = v;
+  }
 
   // vertex is the block-id of the vertex to create, and the first and
   // only block in it will be vertex[0]
@@ -66,7 +71,7 @@ public:
 private:
   Names                          vertex_names_;
   int                            next_unique_ = 0;
-  std::array<vertex::Vertex, 32> verticies_{};
+  std::array<vertex::Vertex, 32> vertices_{};
 };
 
 } // namespace p1

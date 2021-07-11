@@ -6,7 +6,7 @@
   standard Rectangle types, then "abc" would be a single
   Rectangle(abc). But if "." is the wildcard, that's a different
   color from 'a' and 'c', so they must be represented in multiple
-  verticies.
+  vertices.
   "a.c" would be 3 nodes:Rectangle(a)--Wildcard--Rectangle(c)
 
   if a is Cycle(bcd)

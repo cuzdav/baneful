@@ -18,13 +18,31 @@ constexpr FinalColor frect_color = to_final_color(SOLID_RECTANGLE, FROM),
                      fbref_color = to_final_color(BACKREF, FROM),
                      tbref_color = to_final_color(BACKREF, TO);
 
-static constexpr block::FinalBlock empty_block = block::FinalBlock{'\0'};
-block::FinalBlock                  block1      = block::FinalBlock{1};
-block::FinalBlock                  block2      = block::FinalBlock{2};
-block::FinalBlock                  block3      = block::FinalBlock{3};
-block::FinalBlock                  block4      = block::FinalBlock{4};
-block::FinalBlock                  block5      = block::FinalBlock{5};
-block::FinalBlock                  block6      = block::FinalBlock{6};
+constexpr block::FinalBlock empty_block = block::FinalBlock{'\0'};
+
+constexpr block::FinalBlock block1 = block::FinalBlock{1};
+constexpr block::FinalBlock block2 = block::FinalBlock{2};
+constexpr block::FinalBlock block3 = block::FinalBlock{3};
+constexpr block::FinalBlock block4 = block::FinalBlock{4};
+constexpr block::FinalBlock block5 = block::FinalBlock{5};
+constexpr block::FinalBlock block6 = block::FinalBlock{6};
+
+constexpr Vertex v1           = create(frect_color, block1);
+constexpr Vertex v12          = add_block(v1, block2);
+constexpr Vertex v123         = add_block(v12, block3);
+constexpr Vertex v1234        = add_block(v123, block4);
+constexpr Vertex v12345       = add_block(v1234, block5);
+constexpr Vertex v123456      = add_block(v12345, block6);
+constexpr Vertex empty_vertex = create(frect_color, empty_block);
+
+struct VertexMaker {
+  template <typename... BlockT>
+  Vertex constexpr
+  operator()(BlockT... blocks) const {
+    return create(color_, blocks...);
+  }
+  const color::FinalColor color_;
+};
 
 Transforms tr;
 
@@ -54,8 +72,8 @@ TEST(TestVertex, color_char_conversions) {
   auto iname       = Vertices::internal_name("a", final_color);
 
   // final color is color<<1 to make room for side. SOLID_RECTANGLE is 2, side
-  // is 0, so fc is 4.  CHAR_OFFSET('\"')=34, thus 34 + 4 is 38 ().  Space char
-  // added to put value into visible/printable character range
+  // is 0, so fc is 4.  CHAR_OFFSET('\"')=34, thus 34 + 4 is 38 ().  Space
+  // char added to put value into visible/printable character range
   EXPECT_EQ("&a", iname);
 }
 
@@ -333,7 +351,57 @@ TEST(TestVertex, pop_front_multi) {
   EXPECT_EQ(empty_block, get_block(v, 5));
 }
 
-TEST(TestVertex, createMerged) {
+TEST(TestVertex, create_merged_onto_empty) {
+  Vertex actual1      = create_merged(empty_vertex, v1);
+  Vertex actual12     = create_merged(empty_vertex, v12);
+  Vertex actual123    = create_merged(empty_vertex, v123);
+  Vertex actual1234   = create_merged(empty_vertex, v1234);
+  Vertex actual12345  = create_merged(empty_vertex, v12345);
+  Vertex actual123456 = create_merged(empty_vertex, v123456);
+
+  EXPECT_EQ(v1, actual1);
+  EXPECT_EQ(v12, actual12);
+  EXPECT_EQ(v123, actual123);
+  EXPECT_EQ(v1234, actual1234);
+  EXPECT_EQ(v12345, actual12345);
+  EXPECT_EQ(v123456, actual123456);
+}
+
+TEST(TestVertex, create_merged_onto_one_block) {
+  Vertex actual11      = create_merged(v1, v1);
+  Vertex actual112     = create_merged(v1, v12);
+  Vertex actual1123    = create_merged(v1, v123);
+  Vertex actual11234   = create_merged(v1, v1234);
+  Vertex actual112345  = create_merged(v1, v12345);
+  Vertex actual1123456 = create_merged(v1, v123456);
+
+  VertexMaker vm{frect_color};
+
+  EXPECT_EQ(vm(block1, block1), actual11);
+  EXPECT_EQ(vm(block1, block1, block2), actual112);
+  EXPECT_EQ(vm(block1, block1, block2, block3), actual1123);
+  EXPECT_EQ(vm(block1, block1, block2, block3, block4), actual11234);
+  EXPECT_EQ(vm(block1, block1, block2, block3, block4, block5), actual112345);
+  EXPECT_EQ(vm(block1, block1, block2, block3, block4, block5), actual1123456);
+}
+
+TEST(TestVertex, create_merged_onto_5_blocks) {
+  Vertex actual1 = create_merged(v12345, v1);
+  Vertex actual2 = create_merged(v12345, v12);
+  Vertex actual3 = create_merged(v12345, v123);
+  Vertex actual4 = create_merged(v12345, v1234);
+  Vertex actual5 = create_merged(v12345, v12345);
+  Vertex actual6 = create_merged(v12345, v123456);
+
+  Vertex expected =
+      create(frect_color, block1, block2, block3, block4, block5, block1);
+
+  EXPECT_EQ(expected, actual1);
+  EXPECT_EQ(expected, actual2);
+  EXPECT_EQ(expected, actual3);
+  EXPECT_EQ(expected, actual4);
+  EXPECT_EQ(expected, actual5);
+  EXPECT_EQ(expected, actual6);
 }
 
 } // namespace p1::vertex::test
