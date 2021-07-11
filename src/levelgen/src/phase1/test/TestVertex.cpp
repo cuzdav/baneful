@@ -404,4 +404,9 @@ TEST(TestVertex, create_merged_onto_5_blocks) {
   EXPECT_EQ(expected, actual6);
 }
 
+TEST(TestVertex, to_external_name) {
+  Transforms xforms;
+  EXPECT_EQ("[':abcd]", to_external_name(v1234, xforms));
+}
+
 } // namespace vertex::test
