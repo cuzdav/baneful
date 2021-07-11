@@ -51,16 +51,17 @@ public:
     vertices_[idx] = v;
   }
 
+  // Remove a vertex. This will change the vertex id numbers, moving the
+  // highest-id into the place of the removed vertex. It will return the index
+  // that was moved to fill in the hole.
+  int remove_vertex(int idx);
+
   // vertex is the block-id of the vertex to create, and the first and
   // only block in it will be vertex[0]
   // returns index
   // transformed block has been adjusted by the transforms for fixups.
   int add_vertex_single(std::string_view vertex, block::FinalBlock block,
                         color::FinalColor final_color);
-  // create a synthetic vertex that is guaranteed unique.
-  // Names are assigned, starting at _1 and counts up.
-  // Returns index to it.
-  int generate_unique_vertex_name();
 
   static std::string internal_name(std::string_view  vertex_id_string,
                                    color::FinalColor final_color);
@@ -70,7 +71,6 @@ public:
 
 private:
   Names                          vertex_names_;
-  int                            next_unique_ = 0;
   std::array<vertex::Vertex, 32> vertices_{};
 };
 

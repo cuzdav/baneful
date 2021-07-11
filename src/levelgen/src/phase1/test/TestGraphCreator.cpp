@@ -1,3 +1,4 @@
+#include "AdjacencyMatrix.hpp"
 #include "GraphCreator.hpp"
 #include "jsonlevelconfig.hpp"
 #include "jsonutil.hpp"
@@ -32,8 +33,7 @@ vertex_names(boost::json::object lvl) {
   GraphCreator     gc(lvl);
   Vertices const & vertices = gc.get_vertices();
 
-  std::vector<std::string> actual{vertices.names_begin(),
-                                  vertices.names_end()};
+  std::vector<std::string> actual{vertices.names_begin(), vertices.names_end()};
 
   // 'a=FROM:RECT[a], $!=TO:NOTHING[!]
   std::sort(begin(actual), end(actual));
@@ -204,6 +204,44 @@ TEST(TestGraphCreator, merging_edges) {
   EXPECT_TRUE(gc.has_edge(frect_a, trect_bc));
   EXPECT_TRUE(gc.has_edge(trect_bc, trect_c));
   EXPECT_TRUE(gc.has_edge(frect_b, trect_c));
+}
+
+TEST(TestGraphCreator, remove_vertex1) {
+  auto                    lvl = level(rules(from("a") = to("bbc")));
+  GraphCreator            gc(lvl);
+  Transforms const &      transforms = gc.get_transforms();
+  AdjacencyMatrix const & adjmtx     = gc.get_adjacency_matrix();
+  Vertices &              verts      = gc.get_vertices();
+
+  std::map<std::string, int> name_idx_map;
+  for (auto iter = verts.names_begin(), end = verts.names_end(); iter != end;
+       ++iter) {
+    name_idx_map[*iter] = verts.index_of_internal_name(*iter);
+  }
+
+  auto color      = to_final_color(color::Color::SOLID_RECTANGLE, RuleSide::TO);
+  int  doomed_idx = verts.name_index_of("bc", color);
+
+  vertex::Vertex orig_bbc = verts[1];
+  vertex::Vertex orig_bc  = verts[2];
+  vertex::Vertex orig_c   = verts[3];
+
+  EXPECT_EQ(4, verts.names_size());
+  EXPECT_TRUE(adjmtx.has_edge(0, 1));
+  EXPECT_TRUE(adjmtx.has_edge(1, 2));
+  EXPECT_TRUE(adjmtx.has_edge(2, 3));
+
+  gc.compress_vertices();
+
+  vertex::Vertex expected_bbc = add_block(orig_bbc, get_block(orig_bc, 0));
+  EXPECT_EQ(3, verts.names_size());
+  EXPECT_EQ(-1, verts.name_index_of("bc", color));
+  EXPECT_EQ(expected_bbc, verts[1]);
+  EXPECT_EQ(orig_c, verts[2]);
+
+  EXPECT_TRUE(adjmtx.has_edge(0, 1));
+  EXPECT_TRUE(adjmtx.has_edge(1, 2));
+  EXPECT_FALSE(adjmtx.has_edge(2, 3));
 }
 
 } // namespace p1::test

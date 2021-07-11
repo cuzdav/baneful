@@ -28,8 +28,18 @@ public:
     return vertices_;
   }
 
+  Vertices &
+  get_vertices() {
+    return vertices_;
+  }
+
   Transforms const &
   get_transforms() const {
+    return transforms_;
+  }
+
+  Transforms &
+  get_transforms() {
     return transforms_;
   }
 
@@ -65,6 +75,8 @@ private:
 
   bool try_to_merge(int from_idx, int to_idx);
   void remove_vertex(int doomed_idx, int parent_idx);
+  void give_vertex_out_edges_to_parent(int vertex_idx, int parent_idx);
+  void vertex_moved(int old_idx, int new_idx);
 
 private:
   Transforms                     transforms_;

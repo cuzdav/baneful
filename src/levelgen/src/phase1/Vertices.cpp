@@ -4,6 +4,9 @@
 #include "RuleSide.hpp"
 #include <cassert>
 #include <stdexcept>
+#include <string_view>
+
+#include <iostream>
 
 namespace p1 {
 
@@ -135,6 +138,8 @@ Vertices::index_of_internal_name(std::string_view internal_vertex_name) const {
   if (it == names_end()) {
     return -1;
   }
+  std::cout << "Found, it was at " << (it - names_begin()) << ": " << *it
+            << "\n";
   return it - names_begin();
 }
 
@@ -186,6 +191,22 @@ Vertices::internal_name(std::string_view  vertex_id_string,
                         color::FinalColor final_color) {
   // convert color to printable char and prefix the name with it.
   return color_to_char(final_color) + std::string(vertex_id_string);
+}
+
+int
+Vertices::remove_vertex(int idx) {
+  if (vertex_names_.empty()) {
+    return -1;
+  }
+
+  int last_idx = vertex_names_.size() - 1;
+  if (last_idx != idx) {
+    vertex_names_[idx] = vertex_names_[last_idx];
+    vertices_[idx]     = vertices_[last_idx];
+  }
+  vertex_names_.pop_back();
+
+  return last_idx;
 }
 
 } // namespace p1

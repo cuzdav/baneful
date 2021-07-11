@@ -183,12 +183,29 @@ GraphCreator::remove_vertex(int doomed_idx, int parent_idx) {
 
   assert(adjacency_matrix_->indegree_of(doomed_idx) == 1);
 
+  give_vertex_out_edges_to_parent(doomed_idx, parent_idx);
+  adjacency_matrix_->remove_edge(parent_idx, doomed_idx);
+  int moved_idx = vertices_.remove_vertex(doomed_idx);
+  if (moved_idx != -1 && moved_idx != doomed_idx) {
+    vertex_moved(moved_idx, doomed_idx);
+  }
+}
+
+void
+GraphCreator::give_vertex_out_edges_to_parent(int vertex_idx, int parent_idx) {
   adjacency_matrix_->visit_children_of(
-      doomed_idx, [parent_idx, this](int child_idx) {
+      vertex_idx, [parent_idx, this](int child_idx) {
         adjacency_matrix_->add_edge(parent_idx, child_idx);
       });
+}
 
-  adjacency_matrix_->remove_edge(parent_idx, doomed_idx);
+void
+GraphCreator::vertex_moved(int old_idx, int new_idx) {
+  adjacency_matrix_->visit_parents_of(
+      old_idx, [new_idx, old_idx, this](int parent_idx) {
+        adjacency_matrix_->add_edge(parent_idx, new_idx);
+        adjacency_matrix_->remove_edge(parent_idx, old_idx);
+      });
 }
 
 } // namespace p1
