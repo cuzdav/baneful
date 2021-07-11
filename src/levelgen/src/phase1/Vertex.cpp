@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace p1::vertex {
+namespace vertex {
 
 std::string
 to_string(Vertex vertex) {
@@ -21,4 +21,4 @@ to_string(Vertex vertex) {
   return "#<Vertex:" + to_string(get_final_color(vertex)) + ":" + blocks + ">";
 }
 
-} // namespace p1::vertex
+} // namespace vertex

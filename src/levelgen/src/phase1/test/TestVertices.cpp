@@ -5,7 +5,6 @@
 #include "RuleSide.hpp"
 #include "Vertices.hpp"
 
-using namespace p1;
 using namespace std::literals;
 
 namespace {
@@ -16,12 +15,12 @@ constexpr block::FinalBlock block2      = block::FinalBlock{'\2'};
 constexpr block::FinalBlock block3      = block::FinalBlock{'\3'};
 
 constexpr color::FinalColor fc_rect_from =
-    to_final_color(p1::color::Color::SOLID_RECTANGLE, p1::RuleSide::FROM);
+    to_final_color(color::Color::SOLID_RECTANGLE, RuleSide::FROM);
 constexpr color::FinalColor fc_rect_to =
-    to_final_color(p1::color::Color::SOLID_RECTANGLE, p1::RuleSide::TO);
+    to_final_color(color::Color::SOLID_RECTANGLE, RuleSide::TO);
 
 constexpr color::FinalColor fc_wc_from =
-    to_final_color(p1::color::Color::WILDCARD, p1::RuleSide::FROM);
+    to_final_color(color::Color::WILDCARD, RuleSide::FROM);
 
 } // namespace
 

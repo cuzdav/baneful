@@ -6,10 +6,6 @@
 #include <stdexcept>
 #include <string_view>
 
-#include <iostream>
-
-namespace p1 {
-
 /*
 memory layout
 [???][XYYYY][AAAA][BBBB][CCCC][DDDD][EEEE][FFFF]
@@ -138,8 +134,6 @@ Vertices::index_of_internal_name(std::string_view internal_vertex_name) const {
   if (it == names_end()) {
     return -1;
   }
-  std::cout << "Found, it was at " << (it - names_begin()) << ": " << *it
-            << "\n";
   return it - names_begin();
 }
 
@@ -208,5 +202,3 @@ Vertices::remove_vertex(int idx) {
 
   return last_idx;
 }
-
-} // namespace p1

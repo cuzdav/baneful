@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <string>
 
-namespace p1::block {
+namespace block {
 
 // just a char from a rule json, as in ('a' -> "bc")
 // but the type indicates that it has been fixed up in its
@@ -28,4 +28,4 @@ to_string(FinalBlock block) {
   return "Block:(" + std::to_string(+block) + ")";
 }
 
-} // namespace p1::block
+} // namespace block

@@ -2,13 +2,14 @@
 
 #include "Block.hpp"
 #include "Color.hpp"
+#include "VertexBitConstants.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <stdexcept>
 
-namespace p1::vertex {
+namespace vertex {
 
 // A vertex is a minimal data structor layered inside a uint32_t.
 // It may hold 1 or more blocks (up to 6... AAAA-FFFF)
@@ -17,22 +18,6 @@ namespace p1::vertex {
 
 // Blocks are all in terms of FinalBlock. This is a 0-based number assigned to
 // the current block, for its given color.  See Transforms.
-
-// bit shifting for internal fields
-static constexpr std::uint32_t ColorShift         = 24;
-static constexpr std::uint32_t Block1Shift        = 20;
-static constexpr std::uint32_t Block2Shift        = 16;
-static constexpr std::uint32_t Block3Shift        = 12;
-static constexpr std::uint32_t Block4Shift        = 8;
-static constexpr std::uint32_t Block5Shift        = 4;
-static constexpr std::uint32_t Block6Shift        = 0;
-static constexpr std::uint32_t MaxBlocksPerVertex = 6;
-static constexpr std::uint32_t BitsPerBlock       = 4;
-static constexpr std::uint32_t BlockMask          = (1 << BitsPerBlock) - 1;
-static constexpr std::uint32_t BitsForColor       = 5;
-static constexpr std::uint32_t ColorMask          = (1 << BitsForColor) - 1;
-static constexpr std::uint32_t AllBlocksMask =
-    (1 << MaxBlocksPerVertex * BitsPerBlock) - 1;
 
 enum class Vertex : std::uint32_t {};
 
@@ -174,4 +159,4 @@ create_merged(Vertex a, Vertex b) {
   return Vertex{+a | (b_blockbits >> BitsPerBlock * shift_blocks)};
 }
 
-} // namespace p1::vertex
+} // namespace vertex

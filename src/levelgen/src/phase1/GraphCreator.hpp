@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace p1::vertex {
+namespace vertex {
 enum class Vertex : std::uint32_t;
 }
 

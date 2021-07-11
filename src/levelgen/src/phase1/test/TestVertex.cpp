@@ -4,7 +4,7 @@
 #include "Vertex.hpp"
 #include "Vertices.hpp"
 
-namespace p1::vertex::test {
+namespace vertex::test {
 
 using enum color::Color;
 using enum RuleSide;
@@ -404,4 +404,4 @@ TEST(TestVertex, create_merged_onto_5_blocks) {
   EXPECT_EQ(expected, actual6);
 }
 
-} // namespace p1::vertex::test
+} // namespace vertex::test

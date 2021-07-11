@@ -2,7 +2,7 @@
 
 #include "Block.hpp"
 #include "Color.hpp"
-#include "Vertex.hpp"
+#include "VertexBitConstants.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -21,8 +21,6 @@
   2) break separate "colors" apart into separate vertex nodes
 
  */
-
-namespace p1 {
 
 class Transforms {
 public:
@@ -129,5 +127,3 @@ private:
   ColorNames custom_color_names_;
   Color      next_custom_color_ = Color::NEXT_CUSTOM;
 };
-
-} // namespace p1

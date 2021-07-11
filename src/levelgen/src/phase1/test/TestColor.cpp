@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include <type_traits>
 
-namespace p1::color::test {
+namespace color::test {
 
 static_assert(std::is_same_v<std::uint8_t, decltype(+(color::FinalColor{}))>);
 
@@ -79,4 +79,4 @@ TEST(TestColor, test_to_final_color_string_) {
   EXPECT_EQ("FinalColor(11):CUSTOM(5):FROM"s, cust_fm);
 }
 
-} // namespace p1::color::test
+} // namespace color::test

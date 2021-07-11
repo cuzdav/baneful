@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 
-namespace p1::color {
+namespace color {
 
 // FinalColor is the combination of Color and RuleSide
 // The 1-bit is the RuleSide, and the rest if the color bits shifted up 1.
@@ -90,4 +90,4 @@ char_to_color(char color_char) {
   return color::FinalColor(color_char - CHAR_OFFSET);
 }
 
-} // namespace p1::color
+} // namespace color

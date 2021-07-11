@@ -9,8 +9,6 @@
 #include <string_view>
 #include <vector>
 
-namespace p1 {
-
 // A collection of named vertices, such that if paths logically converge they
 // will use the same vertices, not duplicates.  Example:
 //
@@ -73,5 +71,3 @@ private:
   Names                          vertex_names_;
   std::array<vertex::Vertex, 32> vertices_{};
 };
-
-} // namespace p1

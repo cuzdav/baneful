@@ -2,8 +2,6 @@
 
 #include <string>
 
-namespace p1 {
-
 // a -> b
 //
 // a is FROM, b is TO
@@ -15,5 +13,3 @@ inline std::string
 to_string(RuleSide side) {
   return side == RuleSide::TO ? "TO" : side == RuleSide::FROM ? "FROM" : "???";
 }
-
-} // namespace p1
