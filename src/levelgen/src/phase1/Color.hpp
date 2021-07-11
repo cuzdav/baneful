@@ -62,15 +62,21 @@ to_string(Color color) {
   case SOLID_RECTANGLE: return "SOLID_RECTANGLE";
   case WILDCARD: return "WILDCARD";
   case BACKREF: return "BACKREF";
-  default: return "CUSTOM(" + std::to_string(+color) + ")";
+  default: return "CUSTOM+" + std::to_string(+color - +NEXT_CUSTOM);
   }
 }
 
 inline std::string
-to_string(FinalColor final_color) {
+to_long_string(FinalColor final_color) {
   return "FinalColor(" + std::to_string(+final_color) +
          "):" + to_string(get_color(final_color)) + ":" +
          to_string(get_rule_side(final_color));
+}
+
+inline std::string
+to_string(FinalColor final_color) {
+  return to_string(get_rule_side(final_color)) + ':' +
+         to_string(get_color(final_color));
 }
 
 // An arbitrary offset past ' ' so that value is shifted into printable range.

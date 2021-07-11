@@ -406,7 +406,13 @@ TEST(TestVertex, create_merged_onto_5_blocks) {
 
 TEST(TestVertex, to_external_name) {
   Transforms xforms;
-  EXPECT_EQ("[':abcd]", to_external_name(v1234, xforms));
+  EXPECT_EQ("[':abcd]", to_external_short_name(v1234, xforms));
+  EXPECT_EQ("[FROM:SOLID_RECTANGLE:abcd]", to_external_name(v1234, xforms));
+
+  auto   twc_color  = to_final_color(color::Color::WILDCARD, RuleSide::TO);
+  Vertex wct_vertex = vertex::create(twc_color, block::FinalBlock{1});
+  EXPECT_EQ("[(:.]", to_external_short_name(wct_vertex, xforms));
+  EXPECT_EQ("[TO:WILDCARD:.]", to_external_name(wct_vertex, xforms));
 }
 
 } // namespace vertex::test

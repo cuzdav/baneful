@@ -162,5 +162,6 @@ create_merged(Vertex a, Vertex b) {
 }
 
 std::string to_external_name(Vertex v, Transforms const & transforms);
+std::string to_external_short_name(Vertex v, Transforms const & transforms);
 
 } // namespace vertex

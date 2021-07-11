@@ -9,6 +9,26 @@
 
 namespace vertex {
 
+namespace {
+template <typename ColorPolicy>
+std::string
+to_external_name(Vertex v, Transforms const & transforms,
+                 ColorPolicy color_printer) {
+  std::string       result = "[";
+  color::FinalColor color  = get_final_color(v);
+  result += color_printer(color);
+  result += ':';
+  for (block::FinalBlock block : get_blocks(v)) {
+    if (+block == 0) {
+      break;
+    }
+    result += transforms.unfinalize_block(block, color);
+  }
+  return result + ']';
+}
+
+} // namespace
+
 std::string
 to_string(Vertex vertex) {
   std::string  blocks;
@@ -25,15 +45,15 @@ to_string(Vertex vertex) {
 }
 
 std::string
+to_external_short_name(Vertex v, Transforms const & transforms) {
+  return to_external_name(v, transforms, color::color_to_char);
+}
+
+std::string
 to_external_name(Vertex v, Transforms const & transforms) {
-  std::string       result = "[";
-  color::FinalColor color  = get_final_color(v);
-  result += color_to_char(color);
-  result += ':';
-  for (block::FinalBlock block : get_blocks(v)) {
-    result += transforms.unfinalize_block(block, color);
-  }
-  return result + ']';
+  return to_external_name(
+      v, transforms,
+      static_cast<std::string (*)(color::FinalColor)>(color::to_string));
 }
 
 } // namespace vertex
