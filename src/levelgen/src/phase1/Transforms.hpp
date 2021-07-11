@@ -66,9 +66,8 @@ public:
   };
 
   char
-  unfinalize_block_to_char(block::FinalBlock block,
-                           color::FinalColor color) const {
-    return +block + color_to_char_unfixup_map_[+get_color(color)];
+  unfinalize_block(block::FinalBlock block, color::FinalColor color) const {
+    return +block + color_to_char_unfixup_map_[+get_color(color)] - 1;
   }
 
   std::tuple<block::FinalBlock, color::FinalColor>
@@ -104,12 +103,12 @@ private:
     }
 
     block_to_color_map_[block::NOTHING_BLOCK_CHAR] = Color::NOTHING;
-    block_fixup_map_[block::NOTHING_BLOCK_CHAR]    = ' ';
-    color_to_char_unfixup_map_[+Color::NOTHING]    = ' ';
+    block_fixup_map_[block::NOTHING_BLOCK_CHAR]    = '!';
+    color_to_char_unfixup_map_[+Color::NOTHING]    = '!';
 
     block_to_color_map_['.']                     = Color::WILDCARD;
     block_fixup_map_['.']                        = '.';
-    color_to_char_unfixup_map_[+Color::WILDCARD] = ' ';
+    color_to_char_unfixup_map_[+Color::WILDCARD] = '.';
 
     for (char c = '1'; c <= '9'; ++c) {
       block_to_color_map_[c]                      = Color::BACKREF;

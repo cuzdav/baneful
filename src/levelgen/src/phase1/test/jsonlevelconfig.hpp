@@ -3,7 +3,7 @@
 #include <string_view>
 #include "boost/json.hpp"
 
-namespace test {
+namespace test::json {
 
 /* A tiny DSL for generating json config for baneful levels in a more typesafe
  * way than raw strings parsed into json.
@@ -87,4 +87,4 @@ rotating_colors(boost::json::string_view colors) {
                              std::pair("cycle_chars", colors)};
 }
 
-} // namespace test
+} // namespace test::json

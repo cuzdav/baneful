@@ -1,3 +1,4 @@
+#include "Block.hpp"
 #include "enumutils.hpp"
 #include "Color.hpp"
 #include "Transforms.hpp"
@@ -25,6 +26,14 @@ to_string(Vertex vertex) {
 
 std::string
 to_external_name(Vertex v, Transforms const & transforms) {
+  std::string       result = "[";
+  color::FinalColor color  = get_final_color(v);
+  result += color_to_char(color);
+  result += ':';
+  for (block::FinalBlock block : get_blocks(v)) {
+    result += transforms.unfinalize_block(block, color);
+  }
+  return result + ']';
 }
 
 } // namespace vertex

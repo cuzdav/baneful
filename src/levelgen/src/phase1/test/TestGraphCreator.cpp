@@ -24,6 +24,8 @@ std::string const FR_CUST3 = "1"; //
 
 namespace test {
 
+using namespace json;
+
 using namespace std::literals;
 using StrVec = std::vector<std::string>;
 
