@@ -54,15 +54,15 @@ TEST(TestVertex, enums) {
 }
 
 TEST(TestVertex, Constants) {
-  EXPECT_EQ(4, vertex::BitsPerBlock);
-  EXPECT_EQ(5, vertex::BitsForColor);
-  EXPECT_EQ(6, vertex::MaxBlocksPerVertex);
-  EXPECT_EQ(15, vertex::BlockMask);
-  EXPECT_EQ(31, vertex::ColorMask);
+  EXPECT_EQ(4, BitsPerBlock);
+  EXPECT_EQ(5, BitsForColor);
+  EXPECT_EQ(6, MaxBlocksPerVertex);
+  EXPECT_EQ(15, BlockMask);
+  EXPECT_EQ(31, ColorMask);
 }
 
 TEST(TestVertex, VertexEncodingColor) {
-  vertex::Vertex v1 = vertex::create(frect_color, empty_block);
+  Vertex v1 = create(frect_color, empty_block);
   EXPECT_EQ(frect_color, get_final_color(v1));
 }
 
@@ -78,29 +78,29 @@ TEST(TestVertex, color_char_conversions) {
 }
 
 TEST(TestVertex, VertexEncodingGetBlockSingle) {
-  vertex::Vertex v1 = vertex::create(frect_color, block1);
+  Vertex v1 = create(frect_color, block1);
   EXPECT_EQ(block1, get_block(v1, 0));
   EXPECT_EQ(empty_block, get_block(v1, 1));
 
-  vertex::Vertex v2 = add_block(v1, block2);
+  Vertex v2 = add_block(v1, block2);
   EXPECT_EQ(block1, get_block(v2, 0));
   EXPECT_EQ(block2, get_block(v2, 1));
   EXPECT_EQ(empty_block, get_block(v2, 2));
 
-  vertex::Vertex v3 = add_block(v2, block3);
+  Vertex v3 = add_block(v2, block3);
   EXPECT_EQ(block1, get_block(v3, 0));
   EXPECT_EQ(block2, get_block(v3, 1));
   EXPECT_EQ(block3, get_block(v3, 2));
   EXPECT_EQ(empty_block, get_block(v3, 3));
 
-  vertex::Vertex v4 = add_block(v3, block4);
+  Vertex v4 = add_block(v3, block4);
   EXPECT_EQ(block1, get_block(v4, 0));
   EXPECT_EQ(block2, get_block(v4, 1));
   EXPECT_EQ(block3, get_block(v4, 2));
   EXPECT_EQ(block4, get_block(v4, 3));
   EXPECT_EQ(empty_block, get_block(v4, 4));
 
-  vertex::Vertex v5 = add_block(v4, block5);
+  Vertex v5 = add_block(v4, block5);
   EXPECT_EQ(block1, get_block(v5, 0));
   EXPECT_EQ(block2, get_block(v5, 1));
   EXPECT_EQ(block3, get_block(v5, 2));
@@ -108,7 +108,7 @@ TEST(TestVertex, VertexEncodingGetBlockSingle) {
   EXPECT_EQ(block5, get_block(v5, 4));
   EXPECT_EQ(empty_block, get_block(v5, 5));
 
-  vertex::Vertex v6 = add_block(v5, block6);
+  Vertex v6 = add_block(v5, block6);
   EXPECT_EQ(block1, get_block(v6, 0));
   EXPECT_EQ(block2, get_block(v6, 1));
   EXPECT_EQ(block3, get_block(v6, 2));
@@ -118,35 +118,35 @@ TEST(TestVertex, VertexEncodingGetBlockSingle) {
 }
 
 TEST(TestVertex, VertexEncodingGetBlocks) {
-  vertex::Vertex v1 = vertex::create(frect_color, block1);
+  Vertex v1 = create(frect_color, block1);
 
   auto blocks = get_blocks(v1);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(empty_block, blocks[1]);
 
-  vertex::Vertex v2 = add_block(v1, block2);
-  blocks            = get_blocks(v2);
+  Vertex v2 = add_block(v1, block2);
+  blocks    = get_blocks(v2);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(block2, blocks[1]);
   EXPECT_EQ(empty_block, blocks[2]);
 
-  vertex::Vertex v3 = add_block(v2, block3);
-  blocks            = get_blocks(v3);
+  Vertex v3 = add_block(v2, block3);
+  blocks    = get_blocks(v3);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(block2, blocks[1]);
   EXPECT_EQ(block3, blocks[2]);
   EXPECT_EQ(empty_block, blocks[3]);
 
-  vertex::Vertex v4 = add_block(v3, block4);
-  blocks            = get_blocks(v4);
+  Vertex v4 = add_block(v3, block4);
+  blocks    = get_blocks(v4);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(block2, blocks[1]);
   EXPECT_EQ(block3, blocks[2]);
   EXPECT_EQ(block4, blocks[3]);
   EXPECT_EQ(empty_block, blocks[4]);
 
-  vertex::Vertex v5 = add_block(v4, block5);
-  blocks            = get_blocks(v5);
+  Vertex v5 = add_block(v4, block5);
+  blocks    = get_blocks(v5);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(block2, blocks[1]);
   EXPECT_EQ(block3, blocks[2]);
@@ -154,8 +154,8 @@ TEST(TestVertex, VertexEncodingGetBlocks) {
   EXPECT_EQ(block5, blocks[4]);
   EXPECT_EQ(empty_block, blocks[5]);
 
-  vertex::Vertex v6 = add_block(v5, block6);
-  blocks            = get_blocks(v6);
+  Vertex v6 = add_block(v5, block6);
+  blocks    = get_blocks(v6);
   EXPECT_EQ(block1, blocks[0]);
   EXPECT_EQ(block2, blocks[1]);
   EXPECT_EQ(block3, blocks[2]);
@@ -168,12 +168,12 @@ TEST(TestVertex, same_color) {
   using namespace color;
   using enum Color;
 
-  Vertex v1 = vertex::create(frect_color, empty_block),
-         v2 = vertex::create(trect_color, empty_block),
-         v3 = vertex::create(fwild_color, empty_block),
-         v4 = vertex::create(twild_color, empty_block),
-         v5 = vertex::create(fbref_color, empty_block),
-         v6 = vertex::create(tbref_color, empty_block);
+  Vertex v1 = create(frect_color, empty_block),
+         v2 = create(trect_color, empty_block),
+         v3 = create(fwild_color, empty_block),
+         v4 = create(twild_color, empty_block),
+         v5 = create(fbref_color, empty_block),
+         v6 = create(tbref_color, empty_block);
 
   EXPECT_TRUE(same_color(v1, v1));
   EXPECT_TRUE(same_color(v2, v2));
