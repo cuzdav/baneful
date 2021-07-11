@@ -1,4 +1,6 @@
 #include "enumutils.hpp"
+#include "Color.hpp"
+#include "Transforms.hpp"
 #include "Vertex.hpp"
 #include <cassert>
 #include <stdexcept>
@@ -19,6 +21,10 @@ to_string(Vertex vertex) {
   }
 
   return "#<Vertex:" + to_string(get_final_color(vertex)) + ":" + blocks + ">";
+}
+
+std::string
+to_external_name(Vertex v, Transforms const & transforms) {
 }
 
 } // namespace vertex

@@ -22,7 +22,7 @@ std::string const FR_CUST2 = "/"; //
 std::string const TO_CUST3 = "0"; // 3rd custom
 std::string const FR_CUST3 = "1"; //
 
-namespace p1::test {
+namespace test {
 
 using namespace std::literals;
 using StrVec = std::vector<std::string>;
@@ -109,12 +109,12 @@ TEST(TestGraphCreator, type_override_sets_up_custom_colors) {
   std::sort(xform_names.begin(), xform_names.end());
   EXPECT_EQ(StrVec({"RotCol:abc", "RotCol:cd", "RotCol:cde"}), xform_names);
 
-  color::FinalColor fr_a_color = transforms.get_color('a', RuleSide::FROM);
-  color::FinalColor to_a_color = transforms.get_color('a', RuleSide::TO);
-  color::FinalColor fr_b_color = transforms.get_color('b', RuleSide::FROM);
-  color::FinalColor to_b_color = transforms.get_color('b', RuleSide::TO);
-  color::FinalColor fr_c_color = transforms.get_color('c', RuleSide::FROM);
-  color::FinalColor to_c_color = transforms.get_color('c', RuleSide::TO);
+  color::FinalColor fr_a_color = transforms.to_color('a', RuleSide::FROM);
+  color::FinalColor to_a_color = transforms.to_color('a', RuleSide::TO);
+  color::FinalColor fr_b_color = transforms.to_color('b', RuleSide::FROM);
+  color::FinalColor to_b_color = transforms.to_color('b', RuleSide::TO);
+  color::FinalColor fr_c_color = transforms.to_color('c', RuleSide::FROM);
+  color::FinalColor to_c_color = transforms.to_color('c', RuleSide::TO);
 
   EXPECT_EQ(FR_CUST1[0], color_to_char(fr_a_color));
   EXPECT_EQ(TO_CUST1[0], color_to_char(to_a_color));
@@ -238,10 +238,9 @@ TEST(TestGraphCreator, remove_vertex1) {
   EXPECT_EQ(-1, verts.name_index_of("bc", color));
   EXPECT_EQ(expected_bbc, verts[1]);
   EXPECT_EQ(orig_c, verts[2]);
-
   EXPECT_TRUE(adjmtx.has_edge(0, 1));
   EXPECT_TRUE(adjmtx.has_edge(1, 2));
   EXPECT_FALSE(adjmtx.has_edge(2, 3));
 }
 
-} // namespace p1::test
+} // namespace test

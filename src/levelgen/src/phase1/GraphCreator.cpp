@@ -52,8 +52,6 @@ using namespace std::literals;
 
 */
 
-namespace p1 {
-
 static void
 install_override_transforms(json::object const & type_overrides,
                             Transforms &         transforms) {
@@ -207,5 +205,3 @@ GraphCreator::vertex_moved(int old_idx, int new_idx) {
         adjacency_matrix_->remove_edge(parent_idx, old_idx);
       });
 }
-
-} // namespace p1

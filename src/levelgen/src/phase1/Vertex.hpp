@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <stdexcept>
 
+class Transforms;
+
 namespace vertex {
 
 // A vertex is a minimal data structor layered inside a uint32_t.
@@ -158,5 +160,7 @@ create_merged(Vertex a, Vertex b) {
   auto shift_blocks = MaxBlocksPerVertex - available_spaces(a);
   return Vertex{+a | (b_blockbits >> BitsPerBlock * shift_blocks)};
 }
+
+std::string to_external_name(Vertex v, Transforms const & transforms);
 
 } // namespace vertex

@@ -47,7 +47,7 @@ public:
   }
 
   color::FinalColor
-  get_color(char block, RuleSide side) const {
+  to_color(char block, RuleSide side) const {
     return color::to_final_color(block_to_color_map_[block], side);
   }
 
@@ -65,12 +65,18 @@ public:
     return block::FinalBlock{std::uint8_t(transformed)};
   };
 
+  char
+  unfinalize_block_to_char(block::FinalBlock block,
+                           color::FinalColor color) const {
+    return +block + color_to_char_unfixup_map_[+get_color(color)];
+  }
+
   std::tuple<block::FinalBlock, color::FinalColor>
   do_transform(std::string_view vertex, RuleSide side) const {
     assert(vertex.size() > 0);
     char              block             = vertex[0];
     block::FinalBlock transformed_block = finalize_block(block);
-    return std::make_tuple(transformed_block, get_color(block, side));
+    return std::make_tuple(transformed_block, to_color(block, side));
   }
 
   const_iterator
@@ -92,16 +98,23 @@ private:
     for (auto & e : block_fixup_map_) {
       e = 'a'; // assume letters are the main units
     }
+    for (auto & e : color_to_char_unfixup_map_) {
+      // solid rects, and customs, all use 'a' as base
+      e = 'a';
+    }
 
     block_to_color_map_[block::NOTHING_BLOCK_CHAR] = Color::NOTHING;
     block_fixup_map_[block::NOTHING_BLOCK_CHAR]    = ' ';
+    color_to_char_unfixup_map_[+Color::NOTHING]    = ' ';
 
-    block_to_color_map_['.'] = Color::WILDCARD;
-    block_fixup_map_['.']    = '.';
+    block_to_color_map_['.']                     = Color::WILDCARD;
+    block_fixup_map_['.']                        = '.';
+    color_to_char_unfixup_map_[+Color::WILDCARD] = ' ';
 
     for (char c = '1'; c <= '9'; ++c) {
-      block_to_color_map_[c] = Color::BACKREF;
-      block_fixup_map_[c]    = '1';
+      block_to_color_map_[c]                      = Color::BACKREF;
+      block_fixup_map_[c]                         = '1';
+      color_to_char_unfixup_map_[+Color::BACKREF] = '1';
     }
   }
 
@@ -118,6 +131,10 @@ private:
 private:
   // given a block (char) what is its color
   Color block_to_color_map_[256];
+
+  // given a color, get the offset to convert a block back to a char to
+  // reverse a transform back to original char
+  char color_to_char_unfixup_map_[32]{};
 
   // given a block (char) fixup (adj value to be 0-based by...)
   char block_fixup_map_[256];

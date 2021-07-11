@@ -13,8 +13,6 @@ namespace vertex {
 enum class Vertex : std::uint32_t;
 }
 
-namespace p1 {
-
 class GraphCreator {
   using VertexVec = std::vector<vertex::Vertex>;
 
@@ -84,5 +82,3 @@ private:
   VertexVec                      nodes_;
   std::optional<AdjacencyMatrix> adjacency_matrix_;
 };
-
-} // namespace p1

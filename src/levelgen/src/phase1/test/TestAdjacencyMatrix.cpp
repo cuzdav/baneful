@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 
 TEST(TestAdjacencyMatrix, basic_edges) {
-  p1::AdjacencyMatrix am(3);
+  AdjacencyMatrix am(3);
   // 0---->1--\
   //  \________2
   am.add_edge(0, 1);
@@ -30,7 +30,7 @@ TEST(TestAdjacencyMatrix, basic_edges) {
 }
 
 TEST(TestAdjacencyMatrix, visit_parents) {
-  p1::AdjacencyMatrix am(4);
+  AdjacencyMatrix am(4);
   // 0---->1--\----\
   //  \________2----\
   //   \_____________3
@@ -76,7 +76,7 @@ TEST(TestAdjacencyMatrix, visit_parents) {
 }
 
 TEST(TestAdjacencyMatrix, visit_children) {
-  p1::AdjacencyMatrix am(4);
+  AdjacencyMatrix am(4);
   // 0---->1--\----\
   //  \________2----\
   //   \_____________3

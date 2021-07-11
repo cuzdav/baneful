@@ -4,8 +4,6 @@
 #include <cassert>
 #include <vector>
 
-namespace p1 {
-
 class AdjacencyMatrix {
 public:
   AdjacencyMatrix(int num_vertices)
@@ -97,5 +95,3 @@ private:
   // TODO: make a small SBO version?
   std::vector<bool> adjacency_matrix_;
 };
-
-} // namespace p1
