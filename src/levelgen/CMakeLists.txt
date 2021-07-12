@@ -4,6 +4,8 @@ project (LEVELGEN)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# for clangd and other clang tools
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)

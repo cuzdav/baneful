@@ -176,7 +176,9 @@ GraphCreator::remove_vertex(int doomed_idx, int parent_idx) {
   //    vertex into the dead slot.  Ex: if there are 4 vertices (0..3) and
   //    we remove 1, then 3 takes the empty slot opened by removing 1
   // 4) Thus, we must update the adjacency matrix edges to follow where that
-  //    node moved.
+  //    node moved:
+  //    * remove incoming edges to doomed from its parents
+  //    * remove outgoing edges from doomed (connect parents to its children)
   // clang-format on
 
   assert(adjacency_matrix_->indegree_of(doomed_idx) == 1);
@@ -192,13 +194,15 @@ GraphCreator::remove_vertex(int doomed_idx, int parent_idx) {
 void
 GraphCreator::give_vertex_out_edges_to_parent(int vertex_idx, int parent_idx) {
   adjacency_matrix_->visit_children_of(
-      vertex_idx, [parent_idx, this](int child_idx) {
+      vertex_idx, [vertex_idx, parent_idx, this](int child_idx) {
         adjacency_matrix_->add_edge(parent_idx, child_idx);
+        adjacency_matrix_->remove_edge(vertex_idx, child_idx);
       });
 }
 
 void
 GraphCreator::vertex_moved(int old_idx, int new_idx) {
+  // parents lose edge to old, gain edge to new
   adjacency_matrix_->visit_parents_of(
       old_idx, [new_idx, old_idx, this](int parent_idx) {
         adjacency_matrix_->add_edge(parent_idx, new_idx);

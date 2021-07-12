@@ -35,8 +35,9 @@ public:
 
   int
   outdegree_of(int idx) const {
-    auto b = adjacency_matrix_.begin() + idx * num_vertices_;
-    return std::accumulate(b, b + num_vertices_, 0);
+    auto b        = adjacency_matrix_.begin() + idx * num_vertices_;
+    auto outedges = std::accumulate(b, b + num_vertices_, 0);
+    return outedges;
   }
 
   int
@@ -53,7 +54,7 @@ public:
   // return: number of incoming edges (indegree)
   template <typename CallbackT>
   int
-  visit_parents_of(int idx, CallbackT callback) {
+  visit_parents_of(int idx, CallbackT callback) const {
     int inedges = 0;
     for (int row = 0; row < num_vertices_; row++) {
       if (adjacency_matrix_[row * num_vertices_ + idx]) {
@@ -69,7 +70,7 @@ public:
   // return: number of outgoing edges (outdegree)
   template <typename CallbackT>
   int
-  visit_children_of(int idx, CallbackT callback) {
+  visit_children_of(int idx, CallbackT callback) const {
     int outedges = 0;
     for (int col = 0; col < num_vertices_; col++) {
       if (adjacency_matrix_[idx * num_vertices_ + col]) {
@@ -79,6 +80,18 @@ public:
     }
     return outedges;
   }
+
+  template <typename CallbackT>
+  void
+  visit_start_vertices(CallbackT visitor, bool process_isolated = false) const {
+    for (int i = 0; i < num_vertices_; ++i) {
+      if (indegree_of(i) == 0 && (process_isolated || outdegree_of(i) > 0)) {
+        visitor(i);
+      }
+    }
+  }
+
+  void debug_dump() const;
 
 private:
   int

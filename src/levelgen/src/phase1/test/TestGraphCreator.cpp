@@ -2,6 +2,7 @@
 #include "GraphCreator.hpp"
 #include "jsonlevelconfig.hpp"
 #include "jsonutil.hpp"
+#include "graphutils.hpp"
 
 #include "boost/json.hpp"
 #include "gtest/gtest.h"
@@ -209,7 +210,7 @@ TEST(TestGraphCreator, merging_edges) {
 }
 
 TEST(TestGraphCreator, remove_vertex1) {
-  auto                    lvl = level(rules(from("a") = to("bbc")));
+  auto                    lvl = level(rules(from("a") = to("bc")));
   GraphCreator            gc(lvl);
   Transforms const &      transforms = gc.get_transforms();
   AdjacencyMatrix const & adjmtx     = gc.get_adjacency_matrix();
@@ -228,21 +229,39 @@ TEST(TestGraphCreator, remove_vertex1) {
   vertex::Vertex orig_bc  = verts[2];
   vertex::Vertex orig_c   = verts[3];
 
-  EXPECT_EQ(4, verts.names_size());
+  EXPECT_EQ(3, verts.names_size());
   EXPECT_TRUE(adjmtx.has_edge(0, 1));
   EXPECT_TRUE(adjmtx.has_edge(1, 2));
-  EXPECT_TRUE(adjmtx.has_edge(2, 3));
+  EXPECT_EQ(1, verts.name_index_of("bc", color));
+  EXPECT_EQ(2, verts.name_index_of("c", color));
 
   gc.compress_vertices();
 
   vertex::Vertex expected_bbc = add_block(orig_bbc, get_block(orig_bc, 0));
-  EXPECT_EQ(3, verts.names_size());
-  EXPECT_EQ(-1, verts.name_index_of("bc", color));
+  EXPECT_EQ(2, verts.names_size());
+  EXPECT_EQ(1, verts.name_index_of("bc", color));
+  EXPECT_EQ(-1, verts.name_index_of("c", color));
   EXPECT_EQ(expected_bbc, verts[1]);
-  EXPECT_EQ(orig_c, verts[2]);
   EXPECT_TRUE(adjmtx.has_edge(0, 1));
-  EXPECT_TRUE(adjmtx.has_edge(1, 2));
-  EXPECT_FALSE(adjmtx.has_edge(2, 3));
+  EXPECT_FALSE(adjmtx.has_edge(1, 2));
+}
+
+TEST(TestGraphCreator, dump_graph) {
+  // clang-format off
+  auto lvl = level(
+      rules(from("a") = to("bcc"),
+            from("b") = to("c")));
+  // clang-format on
+  GraphCreator gc(lvl);
+
+  gc.get_adjacency_matrix().debug_dump();
+
+  std::cout << utils::graph_to_string(gc) << std::endl;
+
+  gc.compress_vertices();
+  std::cout << "** AFTER **\n";
+  gc.get_adjacency_matrix().debug_dump();
+  std::cout << utils::graph_to_string(gc) << std::endl;
 }
 
 } // namespace test
