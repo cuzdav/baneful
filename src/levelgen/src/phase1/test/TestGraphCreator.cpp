@@ -1,27 +1,14 @@
 #include "AdjacencyMatrix.hpp"
+#include "Color.hpp"
 #include "GraphCreator.hpp"
 #include "jsonlevelconfig.hpp"
 #include "jsonutil.hpp"
-#include "graphutils.hpp"
+#include "graph_utils.hpp"
+#include "color_constants.hpp"
 
 #include "boost/json.hpp"
 #include "gtest/gtest.h"
 #include <algorithm>
-
-std::string const TO_NOTH  = "$";
-std::string const FR_NOTH  = "%";
-std::string const TO_RECT  = "&";
-std::string const FR_RECT  = "'";
-std::string const TO_WILD  = "(";
-std::string const FR_WILD  = ")";
-std::string const TO_BREF  = "*";
-std::string const FR_BREF  = "+";
-std::string const TO_CUST1 = ","; // first custom.  Additionals are ASCII
-std::string const FR_CUST1 = "-"; // sequentially following.
-std::string const TO_CUST2 = "."; // 2nd custom
-std::string const FR_CUST2 = "/"; //
-std::string const TO_CUST3 = "0"; // 3rd custom
-std::string const FR_CUST3 = "1"; //
 
 namespace test {
 
@@ -38,7 +25,6 @@ vertex_names(boost::json::object lvl) {
 
   std::vector<std::string> actual{vertices.names_begin(), vertices.names_end()};
 
-  // 'a=FROM:RECT[a], $!=TO:NOTHING[!]
   std::sort(begin(actual), end(actual));
   return actual;
 }
@@ -53,7 +39,9 @@ TEST(TestGraphCreator, simple_rule1) {
   auto lvl    = level(rules(from("a") = to("")));
   auto actual = vertex_names(lvl);
 
-  EXPECT_EQ(expected({FR_RECT + "a", TO_NOTH + "!"}), actual);
+  EXPECT_EQ(expected({color::test::short_string::rect_fm + "a",
+                      color::test::short_string::noth_to + "!"}),
+            actual);
 }
 
 TEST(TestGraphCreator, simple_rule2) {
@@ -63,8 +51,11 @@ TEST(TestGraphCreator, simple_rule2) {
   // "bc" is the id of the vertex starting at 'b'
   // "c" is the id of the vertex starting at 'c'
   auto actual = vertex_names(lvl);
-  EXPECT_EQ(expected({FR_RECT + "abc", FR_RECT + "bc", FR_RECT + "c",
-                      TO_RECT + "bb", TO_RECT + "b"}),
+  EXPECT_EQ(expected({color::test::short_string::rect_fm + "abc",
+                      color::test::short_string::rect_fm + "bc",
+                      color::test::short_string::rect_fm + "c",
+                      color::test::short_string::rect_to + "bb",
+                      color::test::short_string::rect_to + "b"}),
             actual);
 }
 
@@ -77,7 +68,9 @@ TEST(TestGraphCreator, rule3_with_transform) {
   // clang-format on
 
   auto actual = vertex_names(lvl);
-  EXPECT_EQ(expected({FR_CUST1 + "a", TO_RECT + "b"}), actual);
+  EXPECT_EQ(expected({color::test::short_string::cust_fm + "a",
+                      color::test::short_string::rect_to + "b"}),
+            actual);
 }
 
 TEST(TestGraphCreator, rule4_wc_backref_colors) {
@@ -88,12 +81,13 @@ TEST(TestGraphCreator, rule4_wc_backref_colors) {
                        from("a") = to("")));
   // clang-format on
 
+  using namespace color::test::short_string;
   auto actual = vertex_names(lvl);
   EXPECT_EQ(expected({
-                FR_RECT + "a", TO_NOTH + "!", FR_WILD + ".",
-                TO_BREF + "121", // id of the first 1
-                TO_BREF + "21",  // id of the 2
-                TO_BREF + "1",   // id of the 2nd 1 (in chain 121)
+                rect_fm + "a", noth_to + "!", wild_fm + ".",
+                bref_to + "121", // id of the first 1
+                bref_to + "21",  // id of the 2
+                bref_to + "1",   // id of the 2nd 1 (in chain 121)
             }),
             actual);
 }
@@ -119,12 +113,13 @@ TEST(TestGraphCreator, type_override_sets_up_custom_colors) {
   color::FinalColor fr_c_color = transforms.to_color('c', RuleSide::FROM);
   color::FinalColor to_c_color = transforms.to_color('c', RuleSide::TO);
 
-  EXPECT_EQ(FR_CUST1[0], color_to_char(fr_a_color));
-  EXPECT_EQ(TO_CUST1[0], color_to_char(to_a_color));
-  EXPECT_EQ(FR_CUST2[0], color_to_char(fr_b_color));
-  EXPECT_EQ(TO_CUST2[0], color_to_char(to_b_color));
-  EXPECT_EQ(FR_CUST3[0], color_to_char(fr_c_color));
-  EXPECT_EQ(TO_CUST3[0], color_to_char(to_c_color));
+  using namespace color::test::short_string;
+  EXPECT_EQ(cust_fm, to_short_string(fr_a_color));
+  EXPECT_EQ(cust_to, to_short_string(to_a_color));
+  EXPECT_EQ(cust2_fm, to_short_string(fr_b_color));
+  EXPECT_EQ(cust2_to, to_short_string(to_b_color));
+  EXPECT_EQ(cust3_fm, to_short_string(fr_c_color));
+  EXPECT_EQ(cust3_to, to_short_string(to_c_color));
 }
 
 TEST(TestGraphCreator, proper_edges) {
@@ -146,47 +141,49 @@ TEST(TestGraphCreator, proper_edges) {
     return gc.has_edge(from_idx, to_idx);
   };
 
-  EXPECT_TRUE(has_edge(FR_RECT + "a", TO_RECT + "b"));
-  EXPECT_TRUE(has_edge(FR_RECT + "a", TO_RECT + "cc"));
-  EXPECT_TRUE(has_edge(FR_RECT + "bb", FR_RECT + "b"));
-  EXPECT_TRUE(has_edge(FR_RECT + "b", TO_NOTH + "!"));
-  EXPECT_TRUE(has_edge(TO_RECT + "cc", TO_RECT + "c"));
-  EXPECT_TRUE(has_edge(FR_RECT + "c", TO_RECT + "bb"));
-  EXPECT_TRUE(has_edge(TO_RECT + "bb", TO_RECT + "b"));
+  using namespace color::test::short_string;
 
-  EXPECT_FALSE(has_edge(FR_RECT + "a", FR_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "a", FR_RECT + "b"));
-  EXPECT_FALSE(has_edge(FR_RECT + "a", TO_NOTH + "!"));
-  EXPECT_FALSE(has_edge(FR_RECT + "a", TO_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "a", TO_RECT + "c"));
+  EXPECT_TRUE(has_edge(rect_fm + "a", rect_to + "b"));
+  EXPECT_TRUE(has_edge(rect_fm + "a", rect_to + "cc"));
+  EXPECT_TRUE(has_edge(rect_fm + "bb", rect_fm + "b"));
+  EXPECT_TRUE(has_edge(rect_fm + "b", noth_to + "!"));
+  EXPECT_TRUE(has_edge(rect_to + "cc", rect_to + "c"));
+  EXPECT_TRUE(has_edge(rect_fm + "c", rect_to + "bb"));
+  EXPECT_TRUE(has_edge(rect_to + "bb", rect_to + "b"));
 
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", FR_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", FR_RECT + "a"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", FR_RECT + "c"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "b"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "cc"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "c"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_RECT + "b"));
-  EXPECT_FALSE(has_edge(FR_RECT + "bb", TO_NOTH + "!"));
+  EXPECT_FALSE(has_edge(rect_fm + "a", rect_fm + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "a", rect_fm + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "a", noth_to + "!"));
+  EXPECT_FALSE(has_edge(rect_fm + "a", rect_to + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "a", rect_to + "c"));
 
-  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "a"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", TO_RECT + "b"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "c"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", TO_RECT + "cc"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", TO_RECT + "c"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "b", FR_RECT + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_fm + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_fm + "a"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_fm + "c"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_to + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_to + "cc"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_to + "c"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_to + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", rect_to + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "bb", noth_to + "!"));
 
-  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "bb"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "a"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "b"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "c"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", TO_RECT + "cc"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", TO_RECT + "c"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", TO_NOTH + "!"));
-  EXPECT_FALSE(has_edge(FR_RECT + "c", FR_RECT + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_fm + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_fm + "a"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_to + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_fm + "c"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_to + "cc"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_to + "c"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_fm + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "b", rect_fm + "b"));
+
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_fm + "bb"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_fm + "a"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_fm + "b"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_fm + "c"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_to + "cc"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_to + "c"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", noth_to + "!"));
+  EXPECT_FALSE(has_edge(rect_fm + "c", rect_fm + "b"));
 }
 
 TEST(TestGraphCreator, merging_edges) {
@@ -199,10 +196,11 @@ TEST(TestGraphCreator, merging_edges) {
   Transforms const & transforms = gc.get_transforms();
   Vertices const &   verts      = gc.get_vertices();
 
-  int frect_a  = verts.index_of_internal_name(FR_RECT + "a");
-  int frect_b  = verts.index_of_internal_name(FR_RECT + "b");
-  int trect_bc = verts.index_of_internal_name(TO_RECT + "bc");
-  int trect_c  = verts.index_of_internal_name(TO_RECT + "c");
+  using namespace color::test::short_string;
+  int frect_a  = verts.index_of_internal_name(rect_fm + "a");
+  int frect_b  = verts.index_of_internal_name(rect_fm + "b");
+  int trect_bc = verts.index_of_internal_name(rect_to + "bc");
+  int trect_c  = verts.index_of_internal_name(rect_to + "c");
 
   EXPECT_TRUE(gc.has_edge(frect_a, trect_bc));
   EXPECT_TRUE(gc.has_edge(trect_bc, trect_c));

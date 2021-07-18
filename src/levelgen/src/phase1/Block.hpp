@@ -1,6 +1,6 @@
 #pragma once
 
-#include "enumutils.hpp"
+#include "enum_utils.hpp"
 #include <cstdint>
 #include <string>
 

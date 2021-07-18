@@ -1,5 +1,5 @@
 #include "Block.hpp"
-#include "enumutils.hpp"
+#include "enum_utils.hpp"
 #include "Color.hpp"
 #include "Transforms.hpp"
 #include "Vertex.hpp"
@@ -46,7 +46,7 @@ to_string(Vertex vertex) {
 
 std::string
 to_external_short_name(Vertex v, Transforms const & transforms) {
-  return to_external_name(v, transforms, color::color_to_char);
+  return to_external_name(v, transforms, color::to_short_string);
 }
 
 std::string

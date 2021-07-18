@@ -184,7 +184,7 @@ std::string
 Vertices::internal_name(std::string_view  vertex_id_string,
                         color::FinalColor final_color) {
   // convert color to printable char and prefix the name with it.
-  return color_to_char(final_color) + std::string(vertex_id_string);
+  return to_short_string(final_color) + std::string(vertex_id_string);
 }
 
 int

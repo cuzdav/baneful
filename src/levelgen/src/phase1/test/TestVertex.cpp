@@ -74,7 +74,7 @@ TEST(TestVertex, color_char_conversions) {
   // final color is color<<1 to make room for side. SOLID_RECTANGLE is 2, side
   // is 0, so fc is 4.  CHAR_OFFSET('\"')=34, thus 34 + 4 is 38 ().  Space
   // char added to put value into visible/printable character range
-  EXPECT_EQ("&a", iname);
+  EXPECT_EQ("TRa", iname);
 }
 
 TEST(TestVertex, VertexEncodingGetBlockSingle) {
@@ -406,12 +406,12 @@ TEST(TestVertex, create_merged_onto_5_blocks) {
 
 TEST(TestVertex, to_external_name) {
   Transforms xforms;
-  EXPECT_EQ("[':abcd]", to_external_short_name(v1234, xforms));
+  EXPECT_EQ("[FR:abcd]", to_external_short_name(v1234, xforms));
   EXPECT_EQ("[FROM:SOLID_RECTANGLE:abcd]", to_external_name(v1234, xforms));
 
   auto   twc_color  = to_final_color(color::Color::WILDCARD, RuleSide::TO);
   Vertex wct_vertex = vertex::create(twc_color, block::FinalBlock{1});
-  EXPECT_EQ("[(:.]", to_external_short_name(wct_vertex, xforms));
+  EXPECT_EQ("[T.:.]", to_external_short_name(wct_vertex, xforms));
   EXPECT_EQ("[TO:WILDCARD:.]", to_external_name(wct_vertex, xforms));
 }
 

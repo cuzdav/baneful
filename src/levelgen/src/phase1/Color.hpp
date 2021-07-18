@@ -1,9 +1,11 @@
 #pragma once
 
 #include "RuleSide.hpp"
-#include "enumutils.hpp"
+#include "enum_utils.hpp"
+#include <cassert>
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace color {
 
@@ -27,6 +29,46 @@ enum class Color : std::uint8_t {
   BACKREF     = 4,
   NEXT_CUSTOM = 5,
 };
+
+constexpr char
+color_as_char(Color color) {
+  using enum Color;
+  switch (color) {
+  case UNUSED_: return ' ';
+  case NOTHING: return '!';
+  case SOLID_RECTANGLE: return 'R';
+  case WILDCARD: return '.';
+  case BACKREF: return 'B';
+  default: return 'U' - +NEXT_CUSTOM + +color;
+  }
+}
+
+constexpr Color
+char_as_color(char c) {
+  Color color;
+  switch (c) {
+  case 'R': color = Color::SOLID_RECTANGLE; break;
+  case 'B': color = Color::BACKREF; break;
+  case '.': color = Color::WILDCARD; break;
+  case '!': color = Color::NOTHING;
+  default: color = Color(+c - 'U' + +Color::NEXT_CUSTOM);
+  }
+  return color;
+}
+
+inline std::string
+to_string(Color color) {
+  using enum Color;
+  switch (color) {
+
+  case UNUSED_: return "[UNUSED!]";
+  case NOTHING: return "NOTHING";
+  case SOLID_RECTANGLE: return "SOLID_RECTANGLE";
+  case WILDCARD: return "WILDCARD";
+  case BACKREF: return "BACKREF";
+  default: return "CUSTOM+" + std::to_string(+color - +NEXT_CUSTOM);
+  }
+}
 
 // Combines pure Color and a RuleSide enum
 enum class FinalColor : std::uint8_t {};
@@ -53,20 +95,6 @@ has_from(FinalColor color) {
 }
 
 inline std::string
-to_string(Color color) {
-  using enum Color;
-  switch (color) {
-
-  case UNUSED_: return "[UNUSED!]";
-  case NOTHING: return "NOTHING";
-  case SOLID_RECTANGLE: return "SOLID_RECTANGLE";
-  case WILDCARD: return "WILDCARD";
-  case BACKREF: return "BACKREF";
-  default: return "CUSTOM+" + std::to_string(+color - +NEXT_CUSTOM);
-  }
-}
-
-inline std::string
 to_long_string(FinalColor final_color) {
   return "FinalColor(" + std::to_string(+final_color) +
          "):" + to_string(get_color(final_color)) + ":" +
@@ -79,21 +107,19 @@ to_string(FinalColor final_color) {
          to_string(get_color(final_color));
 }
 
-// An arbitrary offset past ' ' so that value is shifted into printable range.
-// Start at " makes computed values be after it, so '"' isn't a name, which is
-// ugly to use as a marker char.
-constexpr char CHAR_OFFSET = '\"';
-
-// internal printable-char representation of colors
-constexpr char
-color_to_char(FinalColor fcolor) {
-  return char(+fcolor + CHAR_OFFSET);
+inline std::string
+to_short_string(FinalColor fcolor) {
+  return std::string(has_from(fcolor) ? "F" : "T") +
+         color_as_char(get_color(fcolor));
 }
 
 // internal printable-char representation of colors
-constexpr FinalColor
-char_to_color(char color_char) {
-  return color::FinalColor(color_char - CHAR_OFFSET);
+inline FinalColor
+short_string_to_color(std::string_view short_str) {
+  assert(short_str.size() == 2);
+  RuleSide side  = short_str[0] == 'F' ? RuleSide::FROM : RuleSide::TO;
+  Color    color = char_as_color(short_str[1]);
+  return to_final_color(color, side);
 }
 
 } // namespace color

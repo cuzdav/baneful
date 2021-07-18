@@ -1,6 +1,6 @@
 #include "Color.hpp"
-#include "enumutils.hpp"
-
+#include "enum_utils.hpp"
+#include "color_constants.hpp"
 #include "gtest/gtest.h"
 #include <type_traits>
 
@@ -20,29 +20,18 @@ TEST(TestColor, to_final_color_and_back) {
   using enum Color;
   using enum RuleSide;
 
-  auto rect_to = std::pair(SOLID_RECTANGLE, TO);
-  auto rect_fm = std::pair(SOLID_RECTANGLE, FROM);
-  auto wild_to = std::pair(WILDCARD, TO);
-  auto wild_fm = std::pair(WILDCARD, FROM);
-  auto bref_to = std::pair(BACKREF, TO);
-  auto bref_fm = std::pair(BACKREF, FROM);
-  auto cust_to = std::pair(NEXT_CUSTOM, TO);
-  auto cust_fm = std::pair(NEXT_CUSTOM, FROM);
-
-  auto encode_decode = [](auto colorSidePair) {
-    auto [color, side] = colorSidePair;
-    FinalColor fc      = to_final_color(color, side);
-    return std::pair(get_color(fc), get_rule_side(fc));
+  auto decode = [](auto fcolor) {
+    return std::pair(get_color(fcolor), get_rule_side(fcolor));
   };
 
-  EXPECT_EQ(rect_to, encode_decode(rect_to));
-  EXPECT_EQ(rect_fm, encode_decode(rect_fm));
-  EXPECT_EQ(wild_to, encode_decode(wild_to));
-  EXPECT_EQ(wild_fm, encode_decode(wild_fm));
-  EXPECT_EQ(bref_to, encode_decode(bref_to));
-  EXPECT_EQ(bref_fm, encode_decode(bref_fm));
-  EXPECT_EQ(cust_to, encode_decode(cust_to));
-  EXPECT_EQ(cust_fm, encode_decode(cust_fm));
+  EXPECT_EQ(std::pair(SOLID_RECTANGLE, TO), decode(fc::rect_to));
+  EXPECT_EQ(std::pair(SOLID_RECTANGLE, FROM), decode(fc::rect_fm));
+  EXPECT_EQ(std::pair(WILDCARD, TO), decode(fc::wild_to));
+  EXPECT_EQ(std::pair(WILDCARD, FROM), decode(fc::wild_fm));
+  EXPECT_EQ(std::pair(BACKREF, TO), decode(fc::bref_to));
+  EXPECT_EQ(std::pair(BACKREF, FROM), decode(fc::bref_fm));
+  EXPECT_EQ(std::pair(NEXT_CUSTOM, TO), decode(fc::cust_to));
+  EXPECT_EQ(std::pair(NEXT_CUSTOM, FROM), decode(fc::cust_fm));
 }
 
 TEST(TestColor, test_color_to_string) {
@@ -59,58 +48,78 @@ TEST(TestColor, test_final_color_to_long_string) {
   using enum Color;
   using enum RuleSide;
   using namespace std::literals;
-
-  auto rect_to_long = to_long_string(to_final_color(SOLID_RECTANGLE, TO));
-  auto rect_fm_long = to_long_string(to_final_color(SOLID_RECTANGLE, FROM));
-  auto wild_to_long = to_long_string(to_final_color(WILDCARD, TO));
-  auto wild_fm_long = to_long_string(to_final_color(WILDCARD, FROM));
-  auto bref_to_long = to_long_string(to_final_color(BACKREF, TO));
-  auto bref_fm_long = to_long_string(to_final_color(BACKREF, FROM));
-  auto cust_to_long = to_long_string(to_final_color(NEXT_CUSTOM, TO));
-  auto cust_fm_long = to_long_string(to_final_color(NEXT_CUSTOM, FROM));
-  auto cust2_to_long =
-      to_long_string(to_final_color(Color(+NEXT_CUSTOM + 1), TO));
-  auto cust2_fm_long =
-      to_long_string(to_final_color(Color(+NEXT_CUSTOM + 1), FROM));
-
-  EXPECT_EQ("FinalColor(4):SOLID_RECTANGLE:TO"s, rect_to_long);
-  EXPECT_EQ("FinalColor(5):SOLID_RECTANGLE:FROM"s, rect_fm_long);
-  EXPECT_EQ("FinalColor(6):WILDCARD:TO"s, wild_to_long);
-  EXPECT_EQ("FinalColor(7):WILDCARD:FROM"s, wild_fm_long);
-  EXPECT_EQ("FinalColor(8):BACKREF:TO"s, bref_to_long);
-  EXPECT_EQ("FinalColor(9):BACKREF:FROM"s, bref_fm_long);
-  EXPECT_EQ("FinalColor(10):CUSTOM+0:TO"s, cust_to_long);
-  EXPECT_EQ("FinalColor(11):CUSTOM+0:FROM"s, cust_fm_long);
-  EXPECT_EQ("FinalColor(12):CUSTOM+1:TO"s, cust2_to_long);
-  EXPECT_EQ("FinalColor(13):CUSTOM+1:FROM"s, cust2_fm_long);
+  using namespace fc;
+  EXPECT_EQ("FinalColor(4):SOLID_RECTANGLE:TO"s, to_long_string(rect_to));
+  EXPECT_EQ("FinalColor(5):SOLID_RECTANGLE:FROM"s, to_long_string(rect_fm));
+  EXPECT_EQ("FinalColor(6):WILDCARD:TO"s, to_long_string(wild_to));
+  EXPECT_EQ("FinalColor(7):WILDCARD:FROM"s, to_long_string(wild_fm));
+  EXPECT_EQ("FinalColor(8):BACKREF:TO"s, to_long_string(bref_to));
+  EXPECT_EQ("FinalColor(9):BACKREF:FROM"s, to_long_string(bref_fm));
+  EXPECT_EQ("FinalColor(10):CUSTOM+0:TO"s, to_long_string(cust_to));
+  EXPECT_EQ("FinalColor(11):CUSTOM+0:FROM"s, to_long_string(cust_fm));
+  EXPECT_EQ("FinalColor(12):CUSTOM+1:TO"s, to_long_string(cust2_to));
+  EXPECT_EQ("FinalColor(13):CUSTOM+1:FROM"s, to_long_string(cust2_fm));
 }
 
 TEST(TestColor, test_final_color_to_string) {
+  using namespace fc;
+  EXPECT_EQ("TO:SOLID_RECTANGLE"s, to_string(rect_to));
+  EXPECT_EQ("FROM:SOLID_RECTANGLE"s, to_string(rect_fm));
+  EXPECT_EQ("TO:WILDCARD"s, to_string(wild_to));
+  EXPECT_EQ("FROM:WILDCARD"s, to_string(wild_fm));
+  EXPECT_EQ("TO:BACKREF"s, to_string(bref_to));
+  EXPECT_EQ("FROM:BACKREF"s, to_string(bref_fm));
+  EXPECT_EQ("TO:CUSTOM+0"s, to_string(cust_to));
+  EXPECT_EQ("FROM:CUSTOM+0"s, to_string(cust_fm));
+  EXPECT_EQ("TO:CUSTOM+1"s, to_string(cust2_to));
+  EXPECT_EQ("FROM:CUSTOM+1"s, to_string(cust2_fm));
+}
+
+TEST(TestColor, test_color_to_short_string) {
+  using namespace fc;
+  EXPECT_EQ("TR"s, to_short_string(rect_to));
+  EXPECT_EQ("FR"s, to_short_string(rect_fm));
+  EXPECT_EQ("T."s, to_short_string(wild_to));
+  EXPECT_EQ("F."s, to_short_string(wild_fm));
+  EXPECT_EQ("TB"s, to_short_string(bref_to));
+  EXPECT_EQ("FB"s, to_short_string(bref_fm));
+  EXPECT_EQ("TU"s, to_short_string(cust_to));
+  EXPECT_EQ("FU"s, to_short_string(cust_fm));
+  EXPECT_EQ("TV"s, to_short_string(cust2_to));
+  EXPECT_EQ("FV"s, to_short_string(cust2_fm));
+  EXPECT_EQ("TW"s, to_short_string(cust3_to));
+  EXPECT_EQ("FW"s, to_short_string(cust3_fm));
+}
+
+TEST(TestColor, test_short_string_to_color) {
   using enum Color;
+
+  EXPECT_EQ(SOLID_RECTANGLE, get_color(short_string_to_color("TR"s)));
+  EXPECT_EQ(SOLID_RECTANGLE, get_color(short_string_to_color("FR"s)));
+  EXPECT_EQ(WILDCARD, get_color(short_string_to_color("T."s)));
+  EXPECT_EQ(WILDCARD, get_color(short_string_to_color("F."s)));
+  EXPECT_EQ(BACKREF, get_color(short_string_to_color("TB"s)));
+  EXPECT_EQ(BACKREF, get_color(short_string_to_color("FB"s)));
+  EXPECT_EQ(NEXT_CUSTOM, get_color(short_string_to_color("TU"s)));
+  EXPECT_EQ(NEXT_CUSTOM, get_color(short_string_to_color("FU"s)));
+  EXPECT_EQ(Color(+NEXT_CUSTOM + 1), get_color(short_string_to_color("TV"s)));
+  EXPECT_EQ(Color(+NEXT_CUSTOM + 1), get_color(short_string_to_color("FV"s)));
+  EXPECT_EQ(Color(+NEXT_CUSTOM + 2), get_color(short_string_to_color("TW"s)));
+  EXPECT_EQ(Color(+NEXT_CUSTOM + 2), get_color(short_string_to_color("FW"s)));
+
   using enum RuleSide;
-  using namespace std::literals;
-
-  auto rect_to  = to_string(to_final_color(SOLID_RECTANGLE, TO));
-  auto rect_fm  = to_string(to_final_color(SOLID_RECTANGLE, FROM));
-  auto wild_to  = to_string(to_final_color(WILDCARD, TO));
-  auto wild_fm  = to_string(to_final_color(WILDCARD, FROM));
-  auto bref_to  = to_string(to_final_color(BACKREF, TO));
-  auto bref_fm  = to_string(to_final_color(BACKREF, FROM));
-  auto cust_to  = to_string(to_final_color(NEXT_CUSTOM, TO));
-  auto cust_fm  = to_string(to_final_color(NEXT_CUSTOM, FROM));
-  auto cust2_to = to_string(to_final_color(Color(+NEXT_CUSTOM + 1), TO));
-  auto cust2_fm = to_string(to_final_color(Color(+NEXT_CUSTOM + 1), FROM));
-
-  EXPECT_EQ("TO:SOLID_RECTANGLE"s, rect_to);
-  EXPECT_EQ("FROM:SOLID_RECTANGLE"s, rect_fm);
-  EXPECT_EQ("TO:WILDCARD"s, wild_to);
-  EXPECT_EQ("FROM:WILDCARD"s, wild_fm);
-  EXPECT_EQ("TO:BACKREF"s, bref_to);
-  EXPECT_EQ("FROM:BACKREF"s, bref_fm);
-  EXPECT_EQ("TO:CUSTOM+0"s, cust_to);
-  EXPECT_EQ("FROM:CUSTOM+0"s, cust_fm);
-  EXPECT_EQ("TO:CUSTOM+1"s, cust2_to);
-  EXPECT_EQ("FROM:CUSTOM+1"s, cust2_fm);
+  EXPECT_EQ(TO, get_rule_side(short_string_to_color("TR"s)));
+  EXPECT_EQ(FROM, get_rule_side(short_string_to_color("FR"s)));
+  EXPECT_EQ(TO, get_rule_side(short_string_to_color("T."s)));
+  EXPECT_EQ(FROM, get_rule_side(short_string_to_color("F."s)));
+  EXPECT_EQ(TO, get_rule_side(short_string_to_color("TB"s)));
+  EXPECT_EQ(FROM, get_rule_side(short_string_to_color("FB"s)));
+  EXPECT_EQ(TO, get_rule_side(short_string_to_color("TU"s)));
+  EXPECT_EQ(FROM, get_rule_side(short_string_to_color("FU"s)));
+  EXPECT_EQ(TO, get_rule_side(short_string_to_color("TV"s)));
+  EXPECT_EQ(FROM, get_rule_side(short_string_to_color("FV"s)));
+  EXPECT_EQ(TO, get_rule_side(short_string_to_color("TW"s)));
+  EXPECT_EQ(FROM, get_rule_side(short_string_to_color("FW"s)));
 }
 
 } // namespace color::test
