@@ -79,6 +79,10 @@ GraphCreator::GraphCreator(boost::json::object const & level_obj) {
   }
 }
 
+// A chain of blocks, such as "a -> bcc", then "a" or "bcc" would be a chain,
+// that get translated, and put into vertices, like [a] -> [b] -> [c] -> [c]
+// This will either create the vertices or add edges between them (if they've
+// already been created), depending on the traverse action.
 int
 GraphCreator::process_chain(json::string_view chain, RuleSide side,
                             int prev_idx, GraphCreator::TraverseAction action) {
@@ -91,7 +95,9 @@ GraphCreator::process_chain(json::string_view chain, RuleSide side,
   for (char const & ch : chain) {
     auto vertex_id      = std::string_view(&ch, len--);
     auto [block, color] = transforms_.do_transform(vertex_id, side);
-    idx                 = vertices_.add_vertex_single(vertex_id, block, color);
+
+    // creates, or if already added, returns the existing index.
+    idx = vertices_.add_vertex_single(vertex_id, block, color);
 
     if (action == TraverseAction::CREATE_EDGES) {
       assert(adjacency_matrix_.has_value());
@@ -104,6 +110,7 @@ GraphCreator::process_chain(json::string_view chain, RuleSide side,
   return idx;
 }
 
+// for each from/to rule, process both the "from" chain, and the "to" chains
 void
 GraphCreator::traverse_input(json::object const &         rules,
                              GraphCreator::TraverseAction action) {
@@ -121,11 +128,15 @@ GraphCreator::traverse_input(json::object const &         rules,
 void
 GraphCreator::add_rules(json::object const & rules) {
   traverse_input(rules, TraverseAction::CREATE_VERTEX_ONLY);
-  // must know the number of vertices before we can size the adj matrix
+  // must know the number of vertices before we can size the adj matrix, so must
+  // be after the CREATE_VERTEX_ONLY step
   adjacency_matrix_.emplace(vertices_.names_size());
   traverse_input(rules, TraverseAction::CREATE_EDGES);
 }
 
+// optimize to reduce number of vertices once the whole graph is known. Combines
+// adjacent connected vertices that have the same color and have space to
+// combine--provided they have the only to the "target"
 void
 GraphCreator::compress_vertices() {
   int  am_size = adjacency_matrix_->size();

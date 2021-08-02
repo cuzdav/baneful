@@ -9,11 +9,13 @@ namespace color::test {
 static_assert(std::is_same_v<std::uint8_t, decltype(+(color::FinalColor{}))>);
 
 TEST(TestColor, toUnderlying) {
-  EXPECT_EQ(1, +Color::NOTHING);
-  EXPECT_EQ(2, +Color::SOLID_RECTANGLE);
-  EXPECT_EQ(3, +Color::WILDCARD);
-  EXPECT_EQ(4, +Color::BACKREF);
-  EXPECT_EQ(5, +Color::NEXT_CUSTOM);
+  using enum Color;
+  EXPECT_EQ(1, +NOTHING);
+  EXPECT_EQ(2, +SOLID_RECTANGLE);
+  EXPECT_EQ(3, +WILDCARD);
+  EXPECT_EQ(4, +BACKREF);
+  EXPECT_EQ(5, +ROTATING_COLORS);
+  EXPECT_EQ(6, +NEXT_CUSTOM);
 }
 
 TEST(TestColor, to_final_color_and_back) {
@@ -30,6 +32,8 @@ TEST(TestColor, to_final_color_and_back) {
   EXPECT_EQ(std::pair(WILDCARD, FROM), decode(fc::wild_fm));
   EXPECT_EQ(std::pair(BACKREF, TO), decode(fc::bref_to));
   EXPECT_EQ(std::pair(BACKREF, FROM), decode(fc::bref_fm));
+  EXPECT_EQ(std::pair(ROTATING_COLORS, TO), decode(fc::rotc_to));
+  EXPECT_EQ(std::pair(ROTATING_COLORS, FROM), decode(fc::rotc_fm));
   EXPECT_EQ(std::pair(NEXT_CUSTOM, TO), decode(fc::cust_to));
   EXPECT_EQ(std::pair(NEXT_CUSTOM, FROM), decode(fc::cust_fm));
 }
@@ -41,6 +45,7 @@ TEST(TestColor, test_color_to_string) {
   EXPECT_EQ("SOLID_RECTANGLE"s, to_string(SOLID_RECTANGLE));
   EXPECT_EQ("WILDCARD"s, to_string(WILDCARD));
   EXPECT_EQ("BACKREF"s, to_string(BACKREF));
+  EXPECT_EQ("ROTATING_COLORS"s, to_string(ROTATING_COLORS));
   EXPECT_EQ("CUSTOM+0"s, to_string(NEXT_CUSTOM));
 }
 
@@ -55,10 +60,12 @@ TEST(TestColor, test_final_color_to_long_string) {
   EXPECT_EQ("FinalColor(7):WILDCARD:FROM"s, to_long_string(wild_fm));
   EXPECT_EQ("FinalColor(8):BACKREF:TO"s, to_long_string(bref_to));
   EXPECT_EQ("FinalColor(9):BACKREF:FROM"s, to_long_string(bref_fm));
-  EXPECT_EQ("FinalColor(10):CUSTOM+0:TO"s, to_long_string(cust_to));
-  EXPECT_EQ("FinalColor(11):CUSTOM+0:FROM"s, to_long_string(cust_fm));
-  EXPECT_EQ("FinalColor(12):CUSTOM+1:TO"s, to_long_string(cust2_to));
-  EXPECT_EQ("FinalColor(13):CUSTOM+1:FROM"s, to_long_string(cust2_fm));
+  EXPECT_EQ("FinalColor(10):ROTATING_COLORS:TO"s, to_long_string(rotc_to));
+  EXPECT_EQ("FinalColor(11):ROTATING_COLORS:FROM"s, to_long_string(rotc_fm));
+  EXPECT_EQ("FinalColor(12):CUSTOM+0:TO"s, to_long_string(cust_to));
+  EXPECT_EQ("FinalColor(13):CUSTOM+0:FROM"s, to_long_string(cust_fm));
+  EXPECT_EQ("FinalColor(14):CUSTOM+1:TO"s, to_long_string(cust2_to));
+  EXPECT_EQ("FinalColor(15):CUSTOM+1:FROM"s, to_long_string(cust2_fm));
 }
 
 TEST(TestColor, test_final_color_to_string) {

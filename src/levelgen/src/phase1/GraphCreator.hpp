@@ -21,6 +21,8 @@ public:
 
   GraphCreator(boost::json::object const & level);
 
+  //  Graph create();
+
   Vertices const &
   get_vertices() const {
     return vertices_;

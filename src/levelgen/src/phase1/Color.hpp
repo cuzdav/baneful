@@ -21,14 +21,27 @@ namespace color {
 
 // Color is a category of type of vertex
 enum class Color : std::uint8_t {
-  UNUSED_ = 0,
-  NOTHING = 1, // "Goes to nothing i.e., "a" -> ""
-  SOLID_RECTANGLE,
-  DEFAULT     = SOLID_RECTANGLE,
-  WILDCARD    = 3,
-  BACKREF     = 4,
-  NEXT_CUSTOM = 5,
+  UNUSED_         = 0,
+  NOTHING         = 1, // "Goes to nothing i.e., "a" -> ""
+  SOLID_RECTANGLE = 2,
+  DEFAULT         = SOLID_RECTANGLE,
+  WILDCARD        = 3,
+  BACKREF         = 4,
+  ROTATING_COLORS = 5,
+
+  NEXT_CUSTOM,
 };
+
+constexpr bool
+is_mergeable(Color color) {
+  using enum Color;
+  switch (color) {
+  case SOLID_RECTANGLE:
+  case WILDCARD:
+  case BACKREF: return true;
+  }
+  return false;
+}
 
 constexpr char
 color_as_char(Color color) {
@@ -39,19 +52,22 @@ color_as_char(Color color) {
   case SOLID_RECTANGLE: return 'R';
   case WILDCARD: return '.';
   case BACKREF: return 'B';
+  case ROTATING_COLORS: return 'T'; // roTating
   default: return 'U' - +NEXT_CUSTOM + +color;
   }
 }
 
 constexpr Color
 char_as_color(char c) {
+  using enum Color;
   Color color;
   switch (c) {
-  case 'R': color = Color::SOLID_RECTANGLE; break;
-  case 'B': color = Color::BACKREF; break;
-  case '.': color = Color::WILDCARD; break;
-  case '!': color = Color::NOTHING;
-  default: color = Color(+c - 'U' + +Color::NEXT_CUSTOM);
+  case 'R': color = SOLID_RECTANGLE; break;
+  case 'B': color = BACKREF; break;
+  case '.': color = WILDCARD; break;
+  case '!': color = NOTHING;
+  case 'T': color = ROTATING_COLORS;
+  default: color = Color(+c - 'U' + +NEXT_CUSTOM);
   }
   return color;
 }
@@ -66,6 +82,7 @@ to_string(Color color) {
   case SOLID_RECTANGLE: return "SOLID_RECTANGLE";
   case WILDCARD: return "WILDCARD";
   case BACKREF: return "BACKREF";
+  case ROTATING_COLORS: return "ROTATING_COLORS";
   default: return "CUSTOM+" + std::to_string(+color - +NEXT_CUSTOM);
   }
 }
