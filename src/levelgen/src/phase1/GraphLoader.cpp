@@ -1,4 +1,5 @@
 #include "GraphLoader.hpp"
+#include "GraphCreator.hpp"
 #include <filesystem>
 #include <boost/json.hpp>
 
@@ -29,7 +30,7 @@ create_graphs(json::value const & file_json) {
   graphs.reserve(levels_ary.size());
   for (auto const & level_val : levels_ary) {
     auto const & level_obj = level_val.as_object();
-    graphs.emplace_back(level_obj);
+    graphs.push_back(GraphCreator(level_obj).compress_vertices().create());
   }
   return graphs;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "AdjacencyMatrix.hpp"
+#include "Graph.hpp"
 #include "RuleSide.hpp"
 #include "Transforms.hpp"
 #include "Vertex.hpp"
@@ -21,7 +22,10 @@ public:
 
   GraphCreator(boost::json::object const & level);
 
-  //  Graph create();
+  Graph
+  create() {
+    return Graph(std::move(vertices_), std::move(*adjacency_matrix_));
+  }
 
   Vertices const &
   get_vertices() const {
@@ -58,7 +62,7 @@ public:
   // vertex of that edge, then merge them together into the same node, making it
   // a multi-block vertex.  (The graph cannot be created merged, because
   // we don't know where the edges until its construction has completed.)
-  void compress_vertices();
+  GraphCreator & compress_vertices();
 
 private:
   void add_rules(boost::json::object const & rules);
@@ -81,6 +85,5 @@ private:
 private:
   Transforms                     transforms_;
   Vertices                       vertices_;
-  VertexVec                      nodes_;
   std::optional<AdjacencyMatrix> adjacency_matrix_;
 };

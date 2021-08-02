@@ -12,7 +12,7 @@ main(int argc, char * argv[]) {
   std::cout << "hello levelgen\n";
   if (argc == 2) {
     try {
-      std::vector<p1::Graph> graphs = p1::create_graphs(argv[1]);
+      std::vector<Graph> graphs = p1::create_graphs(argv[1]);
     }
     catch (std::runtime_error const & e) {
       std::cout << "Caught exception: " << e.what() << std::endl;

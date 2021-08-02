@@ -136,7 +136,7 @@ GraphCreator::add_rules(json::object const & rules) {
 
 // optimize to reduce number of vertices once the whole graph is known. Attempts
 // to merge adjacent connected vertices 'a' and 'b' if 'a' is the only parent.
-void
+GraphCreator &
 GraphCreator::compress_vertices() {
   int  am_size = adjacency_matrix_->size();
   bool something_changed;
@@ -151,6 +151,7 @@ GraphCreator::compress_vertices() {
       }
     }
   } while (something_changed);
+  return *this;
 }
 
 bool
