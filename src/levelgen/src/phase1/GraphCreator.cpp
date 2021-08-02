@@ -134,9 +134,8 @@ GraphCreator::add_rules(json::object const & rules) {
   traverse_input(rules, TraverseAction::CREATE_EDGES);
 }
 
-// optimize to reduce number of vertices once the whole graph is known. Combines
-// adjacent connected vertices that have the same color and have space to
-// combine--provided they have the only to the "target"
+// optimize to reduce number of vertices once the whole graph is known. Attempts
+// to merge adjacent connected vertices 'a' and 'b' if 'a' is the only parent.
 void
 GraphCreator::compress_vertices() {
   int  am_size = adjacency_matrix_->size();
@@ -161,7 +160,7 @@ GraphCreator::try_to_merge(int from_idx, int to_idx) {
 
   bool something_changed = false;
 
-  if (same_color(from_vtx, to_vtx)) {
+  if (vertex::colors_are_mergeable(from_vtx, to_vtx)) {
     vertex::Vertex merged_vtx = create_merged(from_vtx, to_vtx);
     if (merged_vtx != from_vtx) {
       something_changed = true;

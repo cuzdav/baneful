@@ -96,6 +96,11 @@ because while we are reading in the graph it's too early to merge.  We do not
 
 */
 
+Vertices::Vertices() {
+  vertex_names_.reserve(DefaultCapacity);
+  vertices_.reserve(DefaultCapacity);
+}
+
 Vertices::size_type
 Vertices::names_size() const {
   return std::size(vertex_names_);
@@ -173,9 +178,8 @@ Vertices::add_vertex_single(std::string_view  vertex_name,
 
   if (idx == -1) {
     idx = names_size();
-    assert(idx < vertices_.size());
     vertex_names_.emplace_back(internal_vertex_name);
-    vertices_[idx] = vertex::create(final_color, transformed_block);
+    vertices_.push_back(vertex::create(final_color, transformed_block));
   }
   return idx;
 }

@@ -101,6 +101,11 @@ get_color(FinalColor color) {
   return Color(+color >> 1);
 }
 
+constexpr bool
+is_mergeable(FinalColor a, FinalColor b) {
+  return a == b && is_mergeable(get_color(a));
+}
+
 constexpr RuleSide
 get_rule_side(FinalColor color) {
   return RuleSide(+color & 1);

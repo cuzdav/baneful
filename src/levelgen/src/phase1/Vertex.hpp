@@ -120,6 +120,11 @@ same_color(Vertex a, Vertex b) {
 }
 
 constexpr bool
+colors_are_mergeable(Vertex a, Vertex b) {
+  return is_mergeable(get_final_color(a), get_final_color(b));
+}
+
+constexpr bool
 is_full(Vertex vertex) {
   // the "last" block is in the lowest bits.
   return +vertex & BlockMask;
@@ -142,6 +147,7 @@ size(Vertex vertex) {
 
 constexpr int
 num_can_merge(Vertex a, Vertex b) {
+  assert(colors_are_mergeable(a, b));
   return std::min(available_spaces(a), size(b));
 }
 

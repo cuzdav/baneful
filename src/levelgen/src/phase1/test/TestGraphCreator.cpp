@@ -186,7 +186,7 @@ TEST(TestGraphCreator, proper_edges) {
   EXPECT_FALSE(has_edge(rect_fm + "c", rect_fm + "b"));
 }
 
-TEST(TestGraphCreator, merging_edges) {
+TEST(TestGraphCreator, using_common_vertices) {
   // clang-format off
   auto lvl = level(rules(from("a") = to("bc"),
                          from("b") = to("c")

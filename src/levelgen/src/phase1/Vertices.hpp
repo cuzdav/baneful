@@ -19,12 +19,13 @@
 
 class Vertices {
 public:
-  using Names          = std::vector<std::string>;
-  using iterator       = Names::iterator;
-  using const_iterator = Names::const_iterator;
-  using size_type      = Names::size_type;
+  using NameVec        = std::vector<std::string>;
+  using VertexVec      = std::vector<vertex::Vertex>;
+  using iterator       = NameVec::iterator;
+  using const_iterator = NameVec::const_iterator;
+  using size_type      = NameVec::size_type;
 
-  Vertices() = default;
+  Vertices();
 
   size_type      names_size() const;
   iterator       names_begin();
@@ -68,6 +69,9 @@ public:
   int index_of_checked_internal_name(std::string_view intern_vertex_name) const;
 
 private:
-  Names                          vertex_names_;
-  std::array<vertex::Vertex, 32> vertices_{};
+  constexpr static int DefaultCapacity = 16;
+
+private:
+  NameVec   vertex_names_;
+  VertexVec vertices_{};
 };
