@@ -79,6 +79,11 @@ GraphCreator::GraphCreator(boost::json::object const & level_obj) {
   }
 }
 
+Graph
+GraphCreator::create() {
+  return Graph(std::move(vertices_), std::move(*adjacency_matrix_));
+}
+
 // A chain of blocks, such as "a -> bcc", then "a" or "bcc" would be a chain,
 // that get translated, and put into vertices, like [a] -> [b] -> [c] -> [c]
 // This will either create the vertices or add edges between them (if they've
@@ -128,6 +133,7 @@ GraphCreator::traverse_input(json::object const &         rules,
 void
 GraphCreator::add_rules(json::object const & rules) {
   traverse_input(rules, TraverseAction::CREATE_VERTEX_ONLY);
+
   // must know the number of vertices before we can size the adj matrix, so must
   // be after the CREATE_VERTEX_ONLY step
   adjacency_matrix_.emplace(vertices_.names_size());
@@ -168,9 +174,11 @@ GraphCreator::try_to_merge(int from_idx, int to_idx) {
       int  num_merged   = num_can_merge(from_vtx, to_vtx);
       auto to_vtx2      = pop_front(to_vtx, num_merged);
       vertices_.set_vertex(from_idx, merged_vtx);
-      vertices_.set_vertex(to_idx, to_vtx2);
       if (size(to_vtx2) == 0) {
         remove_vertex(to_idx, from_idx);
+      }
+      else {
+        vertices_.set_vertex(to_idx, to_vtx2);
       }
     }
   }
@@ -194,16 +202,17 @@ GraphCreator::remove_vertex(int doomed_idx, int parent_idx) {
 
   assert(adjacency_matrix_->indegree_of(doomed_idx) == 1);
 
-  give_vertex_out_edges_to_parent(doomed_idx, parent_idx);
+  give_vertex_children_to_parent(doomed_idx, parent_idx);
   adjacency_matrix_->remove_edge(parent_idx, doomed_idx);
   int moved_idx = vertices_.remove_vertex(doomed_idx);
   if (moved_idx != -1 && moved_idx != doomed_idx) {
+    // filled hole by moving last item
     vertex_moved(moved_idx, doomed_idx);
   }
 }
 
 void
-GraphCreator::give_vertex_out_edges_to_parent(int vertex_idx, int parent_idx) {
+GraphCreator::give_vertex_children_to_parent(int vertex_idx, int parent_idx) {
   adjacency_matrix_->visit_children_of(
       vertex_idx, [vertex_idx, parent_idx, this](int child_idx) {
         adjacency_matrix_->add_edge(parent_idx, child_idx);
@@ -214,9 +223,16 @@ GraphCreator::give_vertex_out_edges_to_parent(int vertex_idx, int parent_idx) {
 void
 GraphCreator::vertex_moved(int old_idx, int new_idx) {
   // parents lose edge to old, gain edge to new
+  std::cout << "Vertex " << old_idx << " moved to " << new_idx << std::endl;
   adjacency_matrix_->visit_parents_of(
       old_idx, [new_idx, old_idx, this](int parent_idx) {
         adjacency_matrix_->add_edge(parent_idx, new_idx);
         adjacency_matrix_->remove_edge(parent_idx, old_idx);
+      });
+  // children lose edge from old, gain edge from new
+  adjacency_matrix_->visit_children_of(
+      old_idx, [new_idx, old_idx, this](int child_idx) {
+        adjacency_matrix_->add_edge(new_idx, child_idx);
+        adjacency_matrix_->remove_edge(old_idx, child_idx);
       });
 }

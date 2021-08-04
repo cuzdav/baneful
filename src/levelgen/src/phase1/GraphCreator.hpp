@@ -22,10 +22,7 @@ public:
 
   GraphCreator(boost::json::object const & level);
 
-  Graph
-  create() {
-    return Graph(std::move(vertices_), std::move(*adjacency_matrix_));
-  }
+  Graph create();
 
   Vertices const &
   get_vertices() const {
@@ -79,7 +76,7 @@ private:
 
   bool try_to_merge(int from_idx, int to_idx);
   void remove_vertex(int doomed_idx, int parent_idx);
-  void give_vertex_out_edges_to_parent(int vertex_idx, int parent_idx);
+  void give_vertex_children_to_parent(int vertex_idx, int parent_idx);
   void vertex_moved(int old_idx, int new_idx);
 
 private:

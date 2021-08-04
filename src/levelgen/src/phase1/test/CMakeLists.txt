@@ -1,6 +1,7 @@
 enable_testing()
 
 add_executable(testphase1
+  algotest.cpp
   TestAdjacencyMatrix.cpp
   TestColor.cpp
   TestGraph.cpp

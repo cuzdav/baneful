@@ -214,34 +214,63 @@ TEST(TestGraphCreator, remove_vertex1) {
   AdjacencyMatrix const & adjmtx     = gc.get_adjacency_matrix();
   Vertices &              verts      = gc.get_vertices();
 
-  std::map<std::string, int> name_idx_map;
-  for (auto iter = verts.names_begin(), end = verts.names_end(); iter != end;
-       ++iter) {
-    name_idx_map[*iter] = verts.index_of_internal_name(*iter);
+  int a_idx      = verts.index_of_internal_name("FRa");
+  int bc_idx     = verts.index_of_internal_name("TRbc");
+  int c_idx      = verts.index_of_internal_name("TRc");
+  int doomed_idx = bc_idx;
+
+  /////////////// debug
+  int i_ = 0;
+  for (auto name : std::vector(verts.names_begin(), verts.names_end())) {
+    std::cout << i_++ << " name: " << name << std::endl;
   }
+  /////////////// debug end
 
-  auto color      = to_final_color(color::Color::SOLID_RECTANGLE, RuleSide::TO);
-  int  doomed_idx = verts.name_index_of("bc", color);
+  ASSERT_NE(-1, a_idx);
+  ASSERT_NE(-1, bc_idx);
+  ASSERT_NE(-1, c_idx);
 
-  vertex::Vertex orig_bbc = verts[1];
-  vertex::Vertex orig_bc  = verts[2];
-  vertex::Vertex orig_c   = verts[3];
+  vertex::Vertex orig_a  = verts[a_idx];
+  vertex::Vertex orig_bc = verts[bc_idx];
+  vertex::Vertex orig_c  = verts[c_idx];
 
-  EXPECT_EQ(3, verts.names_size());
-  EXPECT_TRUE(adjmtx.has_edge(0, 1));
-  EXPECT_TRUE(adjmtx.has_edge(1, 2));
-  EXPECT_EQ(1, verts.name_index_of("bc", color));
-  EXPECT_EQ(2, verts.name_index_of("c", color));
+  EXPECT_EQ(1, size(orig_a));  // num_blocks
+  EXPECT_EQ(1, size(orig_bc)); // num_blocks
+  EXPECT_EQ(1, size(orig_c));  // num_blocks
+
+  ASSERT_EQ(3, verts.names_size());
+  ASSERT_EQ(3, adjmtx.size());
+  EXPECT_TRUE(adjmtx.has_edge(a_idx, bc_idx));
+  EXPECT_TRUE(adjmtx.has_edge(bc_idx, c_idx));
+  EXPECT_FALSE(adjmtx.has_edge(a_idx, c_idx));
+  EXPECT_FALSE(adjmtx.has_edge(c_idx, bc_idx));
+  EXPECT_FALSE(adjmtx.has_edge(c_idx, a_idx));
+  EXPECT_FALSE(adjmtx.has_edge(bc_idx, a_idx));
 
   gc.compress_vertices();
 
-  vertex::Vertex expected_bbc = add_block(orig_bbc, get_block(orig_bc, 0));
+  int a_idx_compressed  = verts.index_of_internal_name("FRa");  // From Rect a
+  int bc_idx_compressed = verts.index_of_internal_name("TRbc"); // To Rect bc
+  int c_idx_compressed  = verts.index_of_internal_name("TRc");  // To Rect c
+  ASSERT_NE(-1, a_idx_compressed);
+  ASSERT_NE(-1, bc_idx_compressed);
+
+  vertex::Vertex a_compressed  = verts[a_idx_compressed];
+  vertex::Vertex bc_compressed = verts[bc_idx_compressed];
+
   EXPECT_EQ(2, verts.names_size());
-  EXPECT_EQ(1, verts.name_index_of("bc", color));
-  EXPECT_EQ(-1, verts.name_index_of("c", color));
-  EXPECT_EQ(expected_bbc, verts[1]);
-  EXPECT_TRUE(adjmtx.has_edge(0, 1));
-  EXPECT_FALSE(adjmtx.has_edge(1, 2));
+  EXPECT_EQ(3, adjmtx.size()); // Does not shrink
+
+  EXPECT_EQ(1, size(a_compressed));  // num_blocks
+  EXPECT_EQ(2, size(bc_compressed)); // num_blocks
+
+  // should be merged into bc
+  EXPECT_EQ(-1, c_idx_compressed);
+
+  vertex::Vertex expected_bc = add_block(orig_bc, get_block(orig_c, 0));
+  EXPECT_EQ(expected_bc, bc_compressed);
+  EXPECT_TRUE(adjmtx.has_edge(a_idx_compressed, bc_idx_compressed));
+  EXPECT_FALSE(adjmtx.has_edge(bc_idx_compressed, a_idx_compressed));
 }
 
 TEST(TestGraphCreator, dump_graph) {

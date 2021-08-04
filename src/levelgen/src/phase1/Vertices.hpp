@@ -4,6 +4,7 @@
 #include "Vertex.hpp"
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -35,6 +36,7 @@ public:
 
   vertex::Vertex
   operator[](int idx) const {
+    assert(idx < vertices_.size());
     return vertices_[idx];
   }
 
@@ -49,6 +51,8 @@ public:
   set_vertex(int idx, vertex::Vertex v) {
     vertices_[idx] = v;
   }
+
+  void sort();
 
   // Remove a vertex. This will change the vertex id numbers, moving the
   // highest-id into the place of the removed vertex. It will return the index

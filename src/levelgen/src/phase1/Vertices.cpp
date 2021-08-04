@@ -2,7 +2,11 @@
 
 #include "Block.hpp"
 #include "RuleSide.hpp"
+#include "sort.hpp"
+
+#include <algorithm>
 #include <cassert>
+#include <numeric>
 #include <stdexcept>
 #include <string_view>
 
@@ -205,4 +209,49 @@ Vertices::remove_vertex(int idx) {
   vertex_names_.pop_back();
 
   return last_idx;
+}
+
+// first sort by color, then num blocks in vertex, then numeric value of
+// vertex
+static auto vertex_compare = [](vertex::Vertex v1, vertex::Vertex v2) {
+  auto color_diff = +get_final_color(v1) - +get_final_color(v2);
+  if (color_diff != 0) {
+    return color_diff < 0;
+  }
+
+  auto size_diff = size(v1) - size(v2);
+  if (size_diff != 0) {
+    return size_diff < 0;
+  }
+
+  return +v1 < +v2;
+};
+
+void
+Vertices::sort() {
+  // simultaneous sort of 2 vectors, so sort indices instead of elements (first)
+  // This initially sorts it such that each element e (an index) is in the
+  // location of where vertex_names_[e] should go.
+  // If a->bc then we may and up with [a, b, c] with corresponding index
+  // array [1, 2, 0].  It means "take element 1, then 2, then 0".
+  std::vector<VertexVec::size_type> idx(vertex_names_.size());
+  std::iota(begin(idx), end(idx), 0);
+  std::sort(begin(idx), end(idx), [this](auto idx1, auto idx2) {
+    return vertex_compare(vertices_[idx1], vertices_[idx2]);
+  });
+
+  // But the swapping algorithm (below) wants the mapping reversed. Instead of
+  // "take 1, then 2, then 0" it processes it as "put a in slot 1, b in slot 2,
+  // c in slot 0". Reversing the index and mapped value solves this:
+  algo::swap_idx_and_val(idx);
+
+  // Now a series of swaps to simultaneously sort both arrays (vertices and
+  // vertex_names) in sync.
+  for (int i = 0, e = size(idx); i != e; ++i) {
+    while (idx[i] != i) {
+      std::swap(vertices_[i], vertices_[idx[i]]);
+      std::swap(vertex_names_[i], vertex_names_[idx[i]]);
+      std::swap(idx[i], idx[idx[i]]);
+    }
+  }
 }
