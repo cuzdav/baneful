@@ -273,7 +273,7 @@ TEST(TestGraphCreator, remove_vertex1) {
   EXPECT_FALSE(adjmtx.has_edge(bc_idx_compressed, a_idx_compressed));
 }
 
-TEST(TestGraphCreator, dump_graph) {
+TEST(DISABLED_TestGraphCreator, dump_graph) {
   // clang-format off
   auto lvl = level(
       rules(from("a") = to("bcc"),

@@ -61,6 +61,12 @@ public:
   // we don't know where the edges until its construction has completed.)
   GraphCreator & compress_vertices();
 
+  // at any time (either before or after compression, though it mostly only
+  // makes sense out of doing it _after_ compression) we can sort the vertices
+  // such that all of the same color are adjacent. This will also update the
+  // adjacency matrix to reflect the new locations of the vertices.
+  GraphCreator & group_by_colors();
+
 private:
   void add_rules(boost::json::object const & rules);
 

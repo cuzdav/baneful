@@ -52,7 +52,11 @@ public:
     vertices_[idx] = v;
   }
 
-  void sort();
+  // index map shows where items should go if they were sorted by color, num
+  // blocks, then block values
+  std::vector<int> compute_sorted_index_map();
+
+  void swap(int idx1, int idx2);
 
   // Remove a vertex. This will change the vertex id numbers, moving the
   // highest-id into the place of the removed vertex. It will return the index

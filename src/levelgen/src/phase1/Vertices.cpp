@@ -227,31 +227,27 @@ static auto vertex_compare = [](vertex::Vertex v1, vertex::Vertex v2) {
   return +v1 < +v2;
 };
 
-void
-Vertices::sort() {
-  // simultaneous sort of 2 vectors, so sort indices instead of elements (first)
-  // This initially sorts it such that each element e (an index) is in the
-  // location of where vertex_names_[e] should go.
-  // If a->bc then we may and up with [a, b, c] with corresponding index
-  // array [1, 2, 0].  It means "take element 1, then 2, then 0".
-  std::vector<VertexVec::size_type> idx(vertex_names_.size());
-  std::iota(begin(idx), end(idx), 0);
+std::vector<int>
+Vertices::compute_sorted_index_map() {
+  // Enables a simultaneous sort of 2 vectors, so sort the *indices* instead of
+  // elements. This initially sorts it such that each element e (an index) is in
+  // the location of where vertex_names_[e] should go. If a->bc then we may and
+  // up with [b, c, a] with corresponding index array [1, 2, 0]. In that case it
+  // means "take element 1, then 2, then 0".
+  // But the swapping algorithm wants the mapping reversed. Instead of "take 1,
+  // then 2, then 0" it must be represented as "put a in slot 2, b in slot 0, c
+  // in slot 1". Reversing the index and mapped value solves this:
+  std::vector<int> idx(vertex_names_.size());
+  std::iota(begin(idx), end(idx), 0); // populate w/ initial indices
   std::sort(begin(idx), end(idx), [this](auto idx1, auto idx2) {
     return vertex_compare(vertices_[idx1], vertices_[idx2]);
   });
-
-  // But the swapping algorithm (below) wants the mapping reversed. Instead of
-  // "take 1, then 2, then 0" it processes it as "put a in slot 1, b in slot 2,
-  // c in slot 0". Reversing the index and mapped value solves this:
   algo::swap_idx_and_val(idx);
+  return idx;
+}
 
-  // Now a series of swaps to simultaneously sort both arrays (vertices and
-  // vertex_names) in sync.
-  for (int i = 0, e = size(idx); i != e; ++i) {
-    while (idx[i] != i) {
-      std::swap(vertices_[i], vertices_[idx[i]]);
-      std::swap(vertex_names_[i], vertex_names_[idx[i]]);
-      std::swap(idx[i], idx[idx[i]]);
-    }
-  }
+void
+Vertices::swap(int idx1, int idx2) {
+  std::swap(vertices_[idx1], vertices_[idx2]);
+  std::swap(vertex_names_[idx1], vertex_names_[idx2]);
 }

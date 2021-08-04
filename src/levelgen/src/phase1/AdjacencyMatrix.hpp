@@ -91,7 +91,25 @@ public:
     }
   }
 
-  void debug_dump() const;
+  void
+  swap_rows(int idx1, int idx2) {
+    if (idx1 == idx2) {
+      return;
+    }
+    // swap rows idx1 and idx2
+    for (int i = 0; i < num_vertices_; ++i) {
+      std::swap(adjacency_matrix_[to_flat_idx(idx1, i)],
+                adjacency_matrix_[to_flat_idx(idx2, i)]);
+    }
+
+    // swap columns idx1 and idx2
+    for (int i = 0; i < num_vertices_; ++i) {
+      std::swap(adjacency_matrix_[to_flat_idx(i, idx1)],
+                adjacency_matrix_[to_flat_idx(i, idx2)]);
+    }
+  }
+
+  void debug_dump(char const * msg = "AdjacencyMatrix") const;
 
 private:
   int

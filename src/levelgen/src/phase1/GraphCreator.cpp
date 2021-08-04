@@ -160,6 +160,20 @@ GraphCreator::compress_vertices() {
   return *this;
 }
 
+GraphCreator &
+GraphCreator::group_by_colors() {
+  auto idx_map = vertices_.compute_sorted_index_map();
+
+  for (int i = 0, size = idx_map.size(); i != size; ++i) {
+    while (idx_map[i] != i) {
+      vertices_.swap(i, idx_map[i]);
+      adjacency_matrix_->swap_rows(i, idx_map[i]);
+      std::swap(idx_map[i], idx_map[idx_map[i]]);
+    }
+  }
+  return *this;
+}
+
 bool
 GraphCreator::try_to_merge(int from_idx, int to_idx) {
   vertex::Vertex from_vtx = vertices_[from_idx];

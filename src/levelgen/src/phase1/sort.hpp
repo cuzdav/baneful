@@ -5,7 +5,8 @@
 
 namespace algo {
 
-void inline swap_idx_and_val(std::vector<std::size_t> & vec) {
+template <typename T>
+void inline swap_idx_and_val(std::vector<T> & vec) {
   // Prereq: vec must be populated with N unique elements, in range 0-(N-1).
 
   // An array is like a hash from index->value, and this function reverses the
@@ -18,15 +19,15 @@ void inline swap_idx_and_val(std::vector<std::size_t> & vec) {
     e += sz;
   }
 
-  for (int i = 0; i < sz; ++i) {
+  for (T i = 0; i < sz; ++i) {
     auto idx = vec[i];
 
     // keep following chain as long as current index is not processed (value is
     // greater than size)
-    for (int val = i; idx >= sz;) {
-      int n = idx - sz;
-      idx   = std::exchange(vec[n], val);
-      val   = n;
+    for (T val = i; idx >= sz;) {
+      T n = idx - sz;
+      idx = std::exchange(vec[n], val);
+      val = n;
     }
   }
 }

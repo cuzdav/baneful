@@ -3,7 +3,8 @@
 #include <iostream>
 
 void
-AdjacencyMatrix::debug_dump() const {
+AdjacencyMatrix::debug_dump(char const * msg) const {
+  std::cout << msg << "\n";
   int col = 0;
   int row = 0;
   for (int i = 0; i < num_vertices_; ++i) {

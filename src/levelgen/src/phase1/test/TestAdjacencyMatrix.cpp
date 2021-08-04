@@ -122,3 +122,69 @@ TEST(TestAdjacencyMatrix, visit_children) {
   EXPECT_EQ(0, outdegree);
   EXPECT_EQ(0, edge_count);
 }
+
+TEST(TestAdjacencyMatrix, test_swap_rows) {
+  AdjacencyMatrix am(4);
+  // 0---->1--\----\
+  //  \________2----\
+  //   \_____________3
+  //
+  am.add_edge(0, 1);
+  am.add_edge(0, 2);
+  am.add_edge(0, 3);
+  am.add_edge(1, 2);
+  am.add_edge(1, 3);
+  am.add_edge(2, 3);
+
+  EXPECT_EQ(3, am.outdegree_of(0));
+  EXPECT_EQ(2, am.outdegree_of(1));
+  EXPECT_EQ(1, am.outdegree_of(2));
+  EXPECT_EQ(0, am.outdegree_of(3));
+
+  EXPECT_EQ(0, am.indegree_of(0));
+  EXPECT_EQ(1, am.indegree_of(1));
+  EXPECT_EQ(2, am.indegree_of(2));
+  EXPECT_EQ(3, am.indegree_of(3));
+
+  EXPECT_TRUE(am.has_edge(0, 1));
+  EXPECT_TRUE(am.has_edge(0, 2));
+  EXPECT_TRUE(am.has_edge(0, 3));
+  EXPECT_TRUE(am.has_edge(1, 2));
+  EXPECT_TRUE(am.has_edge(1, 3));
+  EXPECT_TRUE(am.has_edge(2, 3));
+  EXPECT_FALSE(am.has_edge(3, 0));
+  EXPECT_FALSE(am.has_edge(3, 1));
+  EXPECT_FALSE(am.has_edge(3, 2));
+  EXPECT_FALSE(am.has_edge(2, 1));
+  EXPECT_FALSE(am.has_edge(2, 0));
+  EXPECT_FALSE(am.has_edge(1, 0));
+
+  am.debug_dump("Before");
+
+  am.swap_rows(0, 3);
+
+  am.debug_dump("After ");
+
+  EXPECT_EQ(0, am.outdegree_of(0));
+  EXPECT_EQ(2, am.outdegree_of(1));
+  EXPECT_EQ(1, am.outdegree_of(2));
+  EXPECT_EQ(3, am.outdegree_of(3));
+
+  EXPECT_EQ(3, am.indegree_of(0));
+  EXPECT_EQ(1, am.indegree_of(1));
+  EXPECT_EQ(2, am.indegree_of(2));
+  EXPECT_EQ(0, am.indegree_of(3));
+
+  EXPECT_FALSE(am.has_edge(0, 1));
+  EXPECT_FALSE(am.has_edge(0, 2));
+  EXPECT_FALSE(am.has_edge(0, 3));
+  EXPECT_TRUE(am.has_edge(1, 2));
+  EXPECT_FALSE(am.has_edge(1, 3));
+  EXPECT_FALSE(am.has_edge(2, 3));
+  EXPECT_TRUE(am.has_edge(3, 0));
+  EXPECT_TRUE(am.has_edge(3, 1));
+  EXPECT_TRUE(am.has_edge(3, 2));
+  EXPECT_FALSE(am.has_edge(2, 1));
+  EXPECT_TRUE(am.has_edge(2, 0));
+  EXPECT_TRUE(am.has_edge(1, 0));
+}
