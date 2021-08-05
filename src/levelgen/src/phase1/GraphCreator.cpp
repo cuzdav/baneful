@@ -144,7 +144,9 @@ GraphCreator::add_rules(json::object const & rules) {
 // to merge adjacent connected vertices 'a' and 'b' if 'a' is the only parent.
 GraphCreator &
 GraphCreator::compress_vertices() {
-  int  am_size = adjacency_matrix_->size();
+  int am_size = adjacency_matrix_->size();
+  assert(am_size == vertices_.size());
+
   bool something_changed;
   do {
     something_changed = false;
@@ -157,6 +159,8 @@ GraphCreator::compress_vertices() {
       }
     }
   } while (something_changed);
+  adjacency_matrix_->resize_down(vertices_.size());
+
   return *this;
 }
 
@@ -237,7 +241,6 @@ GraphCreator::give_vertex_children_to_parent(int vertex_idx, int parent_idx) {
 void
 GraphCreator::vertex_moved(int old_idx, int new_idx) {
   // parents lose edge to old, gain edge to new
-  std::cout << "Vertex " << old_idx << " moved to " << new_idx << std::endl;
   adjacency_matrix_->visit_parents_of(
       old_idx, [new_idx, old_idx, this](int parent_idx) {
         adjacency_matrix_->add_edge(parent_idx, new_idx);

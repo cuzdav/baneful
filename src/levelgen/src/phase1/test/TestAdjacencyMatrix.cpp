@@ -195,7 +195,8 @@ TEST(TestAdjacencyMatrixPrinter, test_to_string) {
   am.add_edge(1, 1);
 
   std::vector<std::string> names{"a", "b", "c", "x1", "x2"};
-  std::cout << WithNames{am, names} << std::endl;
+
+  // Trailing whitespace (below) is important!  DO NOT REMOVE
 
   std::string expected1 = R"(       a(0)  b(1)  c(2) x1(3) x2(4) 
 a(0)    0     1     0     0     0   

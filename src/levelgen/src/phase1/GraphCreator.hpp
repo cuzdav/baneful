@@ -1,5 +1,6 @@
 #pragma once
 #include "AdjacencyMatrix.hpp"
+#include "AdjacencyMatrixPrinter.hpp"
 #include "Graph.hpp"
 #include "RuleSide.hpp"
 #include "Transforms.hpp"
@@ -47,6 +48,15 @@ public:
   matrix::AdjacencyMatrix const &
   get_adjacency_matrix() const {
     return *adjacency_matrix_;
+  }
+
+  // For printing with named vertices rather than (just) index
+  // used with:
+  // * to_string(XXX);
+  // operator<< (std::ostream&, XXX);
+  matrix::WithNames
+  get_pretty_adjacency_matrix() const {
+    return {*adjacency_matrix_, vertices_.names()};
   }
 
   bool

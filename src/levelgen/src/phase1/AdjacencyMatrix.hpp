@@ -113,6 +113,10 @@ public:
 
   void
   resize_down(int num_vertices) {
+    if (num_vertices == num_vertices_) {
+      return;
+    }
+
     // verify
     assert(num_vertices < num_vertices_);
     for (int i = num_vertices; i < num_vertices_; ++i) {

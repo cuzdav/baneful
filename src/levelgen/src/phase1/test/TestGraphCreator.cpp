@@ -20,7 +20,6 @@ using StrVec = std::vector<std::string>;
 
 StrVec
 vertex_names(boost::json::object lvl) {
-
   GraphCreator     gc(lvl);
   Vertices const & vertices = gc.get_vertices();
 
@@ -253,7 +252,7 @@ TEST(TestGraphCreator, remove_vertex1) {
   vertex::Vertex bc_compressed = verts[bc_idx_compressed];
 
   EXPECT_EQ(2, verts.names_size());
-  EXPECT_EQ(3, adjmtx.size()); // Does not shrink
+  EXPECT_EQ(2, adjmtx.size());
 
   EXPECT_EQ(1, size(a_compressed));  // num_blocks
   EXPECT_EQ(2, size(bc_compressed)); // num_blocks
