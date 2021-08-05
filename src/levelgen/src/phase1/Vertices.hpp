@@ -28,6 +28,7 @@ public:
 
   Vertices();
 
+  size_type      size() const;
   size_type      names_size() const;
   iterator       names_begin();
   iterator       names_end();
@@ -38,6 +39,16 @@ public:
   operator[](int idx) const {
     assert(idx < vertices_.size());
     return vertices_[idx];
+  }
+
+  NameVec const &
+  names() const {
+    return vertex_names_;
+  }
+
+  VertexVec const &
+  values() const {
+    return vertices_;
   }
 
   int name_index_of(std::string_view  vertex,

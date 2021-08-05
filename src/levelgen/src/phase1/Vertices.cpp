@@ -106,6 +106,11 @@ Vertices::Vertices() {
 }
 
 Vertices::size_type
+Vertices::size() const {
+  return std::size(vertex_names_);
+}
+
+Vertices::size_type
 Vertices::names_size() const {
   return std::size(vertex_names_);
 }

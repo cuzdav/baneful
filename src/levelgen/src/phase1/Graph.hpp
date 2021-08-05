@@ -5,11 +5,11 @@
 class Graph {
 
 public:
-  Graph(Vertices && vertices, AdjacencyMatrix && adjacency_matrix)
+  Graph(Vertices && vertices, matrix::AdjacencyMatrix && adjacency_matrix)
       : vertices_(vertices), adjacency_matrix_(adjacency_matrix) {
   }
 
 private:
-  Vertices        vertices_;
-  AdjacencyMatrix adjacency_matrix_;
+  Vertices                vertices_;
+  matrix::AdjacencyMatrix adjacency_matrix_;
 };

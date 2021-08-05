@@ -1,4 +1,5 @@
 #include "AdjacencyMatrix.hpp"
+#include "AdjacencyMatrixPrinter.hpp"
 #include "Color.hpp"
 #include "GraphCreator.hpp"
 #include "jsonlevelconfig.hpp"
@@ -208,23 +209,16 @@ TEST(TestGraphCreator, using_common_vertices) {
 }
 
 TEST(TestGraphCreator, remove_vertex1) {
-  auto                    lvl = level(rules(from("a") = to("bc")));
-  GraphCreator            gc(lvl);
-  Transforms const &      transforms = gc.get_transforms();
-  AdjacencyMatrix const & adjmtx     = gc.get_adjacency_matrix();
-  Vertices &              verts      = gc.get_vertices();
+  auto                            lvl = level(rules(from("a") = to("bc")));
+  GraphCreator                    gc(lvl);
+  Transforms const &              transforms = gc.get_transforms();
+  matrix::AdjacencyMatrix const & adjmtx     = gc.get_adjacency_matrix();
+  Vertices &                      verts      = gc.get_vertices();
 
   int a_idx      = verts.index_of_internal_name("FRa");
   int bc_idx     = verts.index_of_internal_name("TRbc");
   int c_idx      = verts.index_of_internal_name("TRc");
   int doomed_idx = bc_idx;
-
-  /////////////// debug
-  int i_ = 0;
-  for (auto name : std::vector(verts.names_begin(), verts.names_end())) {
-    std::cout << i_++ << " name: " << name << std::endl;
-  }
-  /////////////// debug end
 
   ASSERT_NE(-1, a_idx);
   ASSERT_NE(-1, bc_idx);
@@ -273,22 +267,47 @@ TEST(TestGraphCreator, remove_vertex1) {
   EXPECT_FALSE(adjmtx.has_edge(bc_idx_compressed, a_idx_compressed));
 }
 
-TEST(DISABLED_TestGraphCreator, dump_graph) {
+TEST(TestGraphCreator, remove_group_by_color) {
   // clang-format off
-  auto lvl = level(
-      rules(from("a") = to("bcc"),
-            from("b") = to("c")));
+  auto lvl = level(rules(from("a")   = to("bc"),
+                         from("b..") = to("")));
   // clang-format on
+
   GraphCreator gc(lvl);
 
-  gc.get_adjacency_matrix().debug_dump();
+  matrix::AdjacencyMatrix const & adjmtx = gc.get_adjacency_matrix();
+  Vertices &                      verts  = gc.get_vertices();
 
-  std::cout << utils::graph_to_string(gc) << std::endl;
+  int w_idx = verts.index_of_internal_name("F.."); // from wild .
+  int c_idx = verts.index_of_internal_name("TRc"); // to rect c
+  EXPECT_NE(-1, w_idx);
+  EXPECT_NE(-1, c_idx);
 
-  gc.compress_vertices();
-  std::cout << "** AFTER **\n";
-  gc.get_adjacency_matrix().debug_dump();
-  std::cout << utils::graph_to_string(gc) << std::endl;
+  gc.compress_vertices().group_by_colors();
+
+  int a_idx   = verts.index_of_internal_name("FRa");   // from rect a
+  int bc_idx  = verts.index_of_internal_name("TRbc");  // to rect b, c follows
+  int bww_idx = verts.index_of_internal_name("FRb.."); // from rect b, . follows
+  int ww_idx  = verts.index_of_internal_name("F...");  // from wild ., . follows
+  int noth_idx = verts.index_of_internal_name("T!!");  // to nothing
+
+  w_idx = verts.index_of_internal_name("F.."); // from wild .
+  c_idx = verts.index_of_internal_name("TRc"); // to rect c
+
+  // bww and ww - diff in color, can't compress
+
+  EXPECT_NE(-1, a_idx);
+  EXPECT_NE(-1, bc_idx);
+  EXPECT_NE(-1, bww_idx);
+  EXPECT_NE(-1, ww_idx);
+  EXPECT_NE(-1, noth_idx);
+
+  EXPECT_EQ(-1, c_idx); // c doesn't exist after compression
+  EXPECT_EQ(-1, w_idx); // (last) . doesn't exist after compression
+
+  EXPECT_TRUE(adjmtx.has_edge(a_idx, bc_idx));
+  EXPECT_TRUE(adjmtx.has_edge(bww_idx, ww_idx));
+  EXPECT_TRUE(adjmtx.has_edge(ww_idx, noth_idx));
 }
 
 } // namespace test

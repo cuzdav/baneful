@@ -35,8 +35,17 @@ set_property(
     PROPERTY COMPILE_OPTIONS -Wno-undef -Wno-maybe-uninitialized
 )
 
+FetchContent_Declare(
+  fmt
+  UPDATE_DISCONNECTED 0,
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG
+)
+
+
 FetchContent_MakeAvailable(googletest)
 FetchContent_MakeAvailable(boost_json)
+FetchContent_MakeAvailable(fmt)
 
 add_subdirectory (src)
 add_subdirectory (test)

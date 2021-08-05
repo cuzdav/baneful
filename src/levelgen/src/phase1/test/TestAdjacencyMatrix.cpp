@@ -1,5 +1,8 @@
 #include "AdjacencyMatrix.hpp"
+#include "AdjacencyMatrixPrinter.hpp"
 #include "gtest/gtest.h"
+
+namespace matrix::test {
 
 TEST(TestAdjacencyMatrix, basic_edges) {
   AdjacencyMatrix am(3);
@@ -159,11 +162,7 @@ TEST(TestAdjacencyMatrix, test_swap_rows) {
   EXPECT_FALSE(am.has_edge(2, 0));
   EXPECT_FALSE(am.has_edge(1, 0));
 
-  am.debug_dump("Before");
-
   am.swap_rows(0, 3);
-
-  am.debug_dump("After ");
 
   EXPECT_EQ(0, am.outdegree_of(0));
   EXPECT_EQ(2, am.outdegree_of(1));
@@ -188,3 +187,37 @@ TEST(TestAdjacencyMatrix, test_swap_rows) {
   EXPECT_TRUE(am.has_edge(2, 0));
   EXPECT_TRUE(am.has_edge(1, 0));
 }
+
+TEST(TestAdjacencyMatrixPrinter, test_to_string) {
+  AdjacencyMatrix am(5);
+  am.add_edge(0, 1);
+  am.add_edge(2, 1);
+  am.add_edge(1, 1);
+
+  std::vector<std::string> names{"a", "b", "c", "x1", "x2"};
+  std::cout << WithNames{am, names} << std::endl;
+
+  std::string expected1 = R"(       a(0)  b(1)  c(2) x1(3) x2(4) 
+a(0)    0     1     0     0     0   
+b(1)    0     1     0     0     0   
+c(2)    0     1     0     0     0   
+x1(3)   0     0     0     0     0   
+x2(4)   0     0     0     0     0   
+)";
+
+  auto actual1 = to_string(WithNames{am, names});
+  EXPECT_EQ(expected1, actual1);
+
+  am.resize_down(3);
+
+  std::string expected2 = R"(     a(0) b(1) c(2) 
+a(0)   0    1    0  
+b(1)   0    1    0  
+c(2)   0    1    0  
+)";
+
+  auto actual2 = to_string(WithNames{am, names});
+  EXPECT_EQ(expected2, actual2);
+}
+
+} // namespace matrix::test

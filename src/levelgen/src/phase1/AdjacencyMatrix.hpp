@@ -4,6 +4,8 @@
 #include <cassert>
 #include <vector>
 
+namespace matrix {
+
 class AdjacencyMatrix {
 public:
   AdjacencyMatrix(int num_vertices)
@@ -109,7 +111,32 @@ public:
     }
   }
 
-  void debug_dump(char const * msg = "AdjacencyMatrix") const;
+  void
+  resize_down(int num_vertices) {
+    // verify
+    assert(num_vertices < num_vertices_);
+    for (int i = num_vertices; i < num_vertices_; ++i) {
+      for (int j = 0; j < num_vertices_; ++j) {
+        assert(adjacency_matrix_[to_flat_idx(i, j)] == false);
+        assert(adjacency_matrix_[to_flat_idx(j, i)] == false);
+      }
+    }
+
+    // perform (copy down into smaller square)
+    for (int i = 0; i < num_vertices; ++i) {
+      for (int j = 0; j < num_vertices; ++j) {
+        adjacency_matrix_[num_vertices * i + j] =
+            adjacency_matrix_[num_vertices_ * i + j];
+      }
+    }
+    adjacency_matrix_.resize(num_vertices * num_vertices);
+    num_vertices_ = num_vertices;
+  }
+
+  std::vector<bool> const &
+  adjacency_matrix() const {
+    return adjacency_matrix_;
+  }
 
 private:
   int
@@ -123,6 +150,8 @@ private:
   int num_vertices_;
 
   // Minimizing allocations is desirable.  This gives 64 edges in 8 bytes.
-  // TODO: make a small SBO version?
+  // TODO: make a small SBO version that doesn't usually allocate anything?
   std::vector<bool> adjacency_matrix_;
 };
+
+} // namespace matrix

@@ -44,7 +44,7 @@ public:
     return transforms_;
   }
 
-  AdjacencyMatrix const &
+  matrix::AdjacencyMatrix const &
   get_adjacency_matrix() const {
     return *adjacency_matrix_;
   }
@@ -86,7 +86,7 @@ private:
   void vertex_moved(int old_idx, int new_idx);
 
 private:
-  Transforms                     transforms_;
-  Vertices                       vertices_;
-  std::optional<AdjacencyMatrix> adjacency_matrix_;
+  Transforms                             transforms_;
+  Vertices                               vertices_;
+  std::optional<matrix::AdjacencyMatrix> adjacency_matrix_;
 };
