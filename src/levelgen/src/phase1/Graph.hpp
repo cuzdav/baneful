@@ -24,6 +24,7 @@ public:
       : indices_(vertices.size()),
         adjacency_matrix_(adjacency_matrix),
         vertices_(vertices) {
+
     populate_colorgroups();
   }
 
@@ -36,10 +37,10 @@ public:
 
   Vertices const &
   vertices() const {
-    return vertices();
+    return vertices_;
   };
 
-  void dump();
+  void dump() const;
 
 private:
   void populate_colorgroups();

@@ -1,7 +1,10 @@
 #include "Block.hpp"
 #include "Color.hpp"
 #include "Graph.hpp"
+#include "AdjacencyMatrixPrinter.hpp"
+
 #include <algorithm>
+#include <iostream>
 
 void
 Graph::append_colorgroup(Graph::Index from, Graph::Index to) {
@@ -106,6 +109,7 @@ Graph::equivalent_adjacency_matricies(Graph const & other) const {
   auto const & am2 = other.adjacency_matrix_;
   auto const   sz  = am1.size();
   assert(sz == am2.size());
+  assert(indices_.size() == am1.size());
 
   for (Index i = 0; i < sz; ++i) {
     for (Index j = 0; j < sz; ++j) {
@@ -117,14 +121,34 @@ Graph::equivalent_adjacency_matricies(Graph const & other) const {
   return true;
 }
 
+void
+Graph::dump() const {
+  std::cout << "**** Graph ****\n"
+            << matrix::WithNames{adjacency_matrix_, vertices_.names()} << '\n'
+            << "perm range " << permutable_block_ranges_.size() << ".."
+            << indices_.size() << ": [\n";
+  for (auto [from, to] : permutable_block_ranges_) {
+    std::cout << "  [" << from << ", " << to << "]\n";
+  }
+  std::cout << "]\nindices:";
+  for (auto i : indices_) {
+    std::cout << i << " ";
+  }
+  std::cout << std::endl;
+}
+
 bool
 Graph::check_isomorphism(Graph const & other) const {
+  std::iota(begin(indices_), end(indices_), 0);
   Graph::BlockEquivalenceMap colormap{};
+
   if (not check_basic_colorgroup_compatibility(*this, other, colormap)) {
     return false;
   }
 
-  std::iota(begin(indices_), end(indices_), 0);
+  if (permutable_block_ranges_.empty()) {
+    return equivalent_adjacency_matricies(other);
+  }
 
   // Permute every ordering of each permutable block range, and check for
   // equivalence

@@ -94,5 +94,5 @@ private:
 
 private:
   NameVec   vertex_names_;
-  VertexVec vertices_{};
+  VertexVec vertices_;
 };

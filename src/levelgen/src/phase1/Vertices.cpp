@@ -184,6 +184,7 @@ Vertices::compatible_number_and_colors(Vertices const & other) const {
   if (sz != other.vertices_.size()) {
     return false;
   }
+
   for (int i = 0; i < sz; ++i) {
     if (get_final_color(vertices_[i]) != get_final_color(other.vertices_[i])) {
       return false;
