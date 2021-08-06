@@ -33,14 +33,26 @@ enum class Color : std::uint8_t {
 };
 
 constexpr bool
+has_dynamic_block_colors(Color color) {
+  using enum Color;
+  switch (color) {
+  case UNUSED_:
+  case NOTHING:
+  case WILDCARD:
+  case BACKREF: return false;
+  default: return true;
+  }
+}
+
+constexpr bool
 is_mergeable(Color color) {
   using enum Color;
   switch (color) {
   case SOLID_RECTANGLE:
   case WILDCARD:
   case BACKREF: return true;
+  default: return false;
   }
-  return false;
 }
 
 constexpr char
@@ -99,6 +111,11 @@ to_final_color(Color color, RuleSide side) {
 constexpr Color
 get_color(FinalColor color) {
   return Color(+color >> 1);
+}
+
+constexpr bool
+has_dynamic_block_colors(FinalColor color) {
+  return has_dynamic_block_colors(get_color(color));
 }
 
 constexpr bool

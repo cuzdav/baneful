@@ -178,6 +178,20 @@ Vertices::name_of(int index) const {
   return vertex_names_[index];
 }
 
+bool
+Vertices::compatible_number_and_colors(Vertices const & other) const {
+  auto const sz = vertices_.size();
+  if (sz != other.vertices_.size()) {
+    return false;
+  }
+  for (int i = 0; i < sz; ++i) {
+    if (get_final_color(vertices_[i]) != get_final_color(other.vertices_[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int
 Vertices::add_vertex_single(std::string_view  vertex_name,
                             block::FinalBlock transformed_block,

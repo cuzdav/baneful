@@ -307,6 +307,8 @@ TEST(TestGraphCreator, remove_group_by_color) {
   EXPECT_TRUE(adjmtx.has_edge(a_idx, bc_idx));
   EXPECT_TRUE(adjmtx.has_edge(bww_idx, ww_idx));
   EXPECT_TRUE(adjmtx.has_edge(ww_idx, noth_idx));
+
+  std::cout << gc.get_pretty_adjacency_matrix() << std::endl;
 }
 
 } // namespace test

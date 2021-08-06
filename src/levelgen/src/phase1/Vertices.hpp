@@ -63,6 +63,8 @@ public:
     vertices_[idx] = v;
   }
 
+  bool compatible_number_and_colors(Vertices const & other) const;
+
   // index map shows where items should go if they were sorted by color, num
   // blocks, then block values
   std::vector<int> compute_sorted_index_map();
