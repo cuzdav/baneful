@@ -95,6 +95,8 @@ TEST(TestVertices, remove_vertex) {
 
   EXPECT_EQ(1, idx2);
   EXPECT_EQ(3, v.names_size());
+  EXPECT_EQ(3, v.values().size());
+
   EXPECT_EQ(block2, get_block(v[idx2], 0)); // vertex data moved too
 
   int moved_idx = v.remove_vertex(idx2);
@@ -103,4 +105,7 @@ TEST(TestVertices, remove_vertex) {
   EXPECT_EQ(block3, get_block(v[idx2], 0)); // vertex data moved too
 
   EXPECT_EQ(-1, v.name_index_of("bc"sv, fc_rect_from));
+
+  EXPECT_EQ(2, v.names().size());
+  EXPECT_EQ(2, v.values().size());
 }

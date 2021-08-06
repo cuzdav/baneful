@@ -227,6 +227,7 @@ Vertices::remove_vertex(int idx) {
     vertices_[idx]     = vertices_[last_idx];
   }
   vertex_names_.pop_back();
+  vertices_.pop_back();
 
   return last_idx;
 }

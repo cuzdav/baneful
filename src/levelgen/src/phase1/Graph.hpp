@@ -21,10 +21,9 @@ public:
   using BlockEquivalenceMap = Block[16];
 
   Graph(Vertices && vertices, matrix::AdjacencyMatrix && adjacency_matrix)
-      : indices_(vertices.size()),
-        adjacency_matrix_(adjacency_matrix),
-        vertices_(vertices) {
-
+      : adjacency_matrix_(adjacency_matrix),
+        vertices_(vertices),
+        indices_(vertices.size()) {
     populate_colorgroups();
   }
 

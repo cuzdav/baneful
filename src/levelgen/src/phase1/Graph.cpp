@@ -2,9 +2,8 @@
 #include "Color.hpp"
 #include "Graph.hpp"
 #include "AdjacencyMatrixPrinter.hpp"
-
+#include "debug.hpp"
 #include <algorithm>
-#include <iostream>
 
 void
 Graph::append_colorgroup(Graph::Index from, Graph::Index to) {
@@ -16,8 +15,10 @@ Graph::append_colorgroup(Graph::Index from, Graph::Index to) {
 void
 Graph::populate_colorgroups() {
   color::FinalColor color{};
-  Graph::Index      from = 0;
-  Graph::Index      to   = 0;
+
+  Graph::Index from = 0;
+  Graph::Index to   = 0;
+
   for (auto vertex : vertices_.values()) {
     if (auto cur_color = get_final_color(vertex); cur_color != color) {
       append_colorgroup(from, to);
@@ -45,12 +46,14 @@ check_blocks(Graph::BlockEquivalenceMap & blockmap, Graph::Vertex v1,
 
   auto const sz1 = size(v1);
   if (sz1 != size(v2)) {
+    DEBUGTRACE;
     return false;
   }
 
   if (has_dynamic_block_colors(get_final_color(v1))) {
     for (int i = 0; i < sz1; ++i) {
       if (not is_valid_mapping(blockmap, get_block(v1, i), get_block(v2, i))) {
+        DEBUGTRACE;
         return false;
       }
     }
@@ -58,6 +61,7 @@ check_blocks(Graph::BlockEquivalenceMap & blockmap, Graph::Vertex v1,
   else {
     for (int i = 0; i < sz1; ++i) {
       if (get_block(v1, i) != get_block(v2, i)) {
+        DEBUGTRACE;
         return false;
       }
     }
@@ -69,6 +73,7 @@ bool
 check_basic_colorgroup_compatibility(Graph const & graph1, Graph const & graph2,
                                      Graph::BlockEquivalenceMap & colormap) {
   if (not graph1.vertices().compatible_number_and_colors(graph2.vertices())) {
+    DEBUGTRACE;
     return false;
   }
 
@@ -76,6 +81,7 @@ check_basic_colorgroup_compatibility(Graph const & graph1, Graph const & graph2,
   visit_nonpermutable_vertices(
       [&](vertex::Vertex v1, vertex::Vertex v2) {
         valid &= check_blocks(colormap, v1, v2);
+        DEBUGTRACE;
       },
       graph1,
       graph2);
@@ -96,6 +102,7 @@ Graph::check_dynamic_equivalence(Graph::BlockEquivalenceMap & colormap,
       auto vertex1 = vertices_[indices_[from]];
       auto vertex2 = other.vertices_[from];
       if (not check_blocks(colormap, vertex1, vertex2)) {
+        DEBUGTRACE;
         return false;
       }
     }
@@ -114,6 +121,7 @@ Graph::equivalent_adjacency_matricies(Graph const & other) const {
   for (Index i = 0; i < sz; ++i) {
     for (Index j = 0; j < sz; ++j) {
       if (am1.has_edge(indices_[i], indices_[j]) != am2.has_edge(i, j)) {
+        DEBUGTRACE;
         return false;
       }
     }
@@ -125,8 +133,8 @@ void
 Graph::dump() const {
   std::cout << "**** Graph ****\n"
             << matrix::WithNames{adjacency_matrix_, vertices_.names()} << '\n'
-            << "perm range " << permutable_block_ranges_.size() << ".."
-            << indices_.size() << ": [\n";
+            << "perm size: " << permutable_block_ranges_.size()
+            << ", indices.size=" << indices_.size() << ", perm ranges: [\n";
   for (auto [from, to] : permutable_block_ranges_) {
     std::cout << "  [" << from << ", " << to << "]\n";
   }
@@ -143,6 +151,7 @@ Graph::check_isomorphism(Graph const & other) const {
   Graph::BlockEquivalenceMap colormap{};
 
   if (not check_basic_colorgroup_compatibility(*this, other, colormap)) {
+    DEBUGTRACE;
     return false;
   }
 
@@ -152,22 +161,28 @@ Graph::check_isomorphism(Graph const & other) const {
 
   // Permute every ordering of each permutable block range, and check for
   // equivalence
-  while (true) {
-    for (auto range_idx_iter = permutable_block_ranges_.begin();
-         not std::next_permutation(begin(indices_) + range_idx_iter->first,
-                                   begin(indices_) + range_idx_iter->second);) {
-      if (++range_idx_iter == permutable_block_ranges_.end()) {
-        return false;
-      }
-      Graph::BlockEquivalenceMap dynamic_colormap;
-      std::copy(std::begin(colormap), std::end(colormap), dynamic_colormap);
+  auto range_idx_iter = permutable_block_ranges_.begin(),
+       range_idx_end  = permutable_block_ranges_.end();
 
-      if (check_dynamic_equivalence(dynamic_colormap, other)) {
-        if (equivalent_adjacency_matricies(other)) {
-          return true;
-        }
+  while (true) {
+    Graph::BlockEquivalenceMap dynamic_colormap;
+    std::copy(std::begin(colormap), std::end(colormap), dynamic_colormap);
+
+    if (check_dynamic_equivalence(dynamic_colormap, other)) {
+      if (equivalent_adjacency_matricies(other)) {
+        DEBUGTRACE;
+        return true;
+      }
+    }
+
+    range_idx_iter = permutable_block_ranges_.begin();
+    while (
+        not std::next_permutation(begin(indices_) + range_idx_iter->first,
+                                  begin(indices_) + range_idx_iter->second)) {
+      if (++range_idx_iter == range_idx_end) {
+        DEBUGTRACE;
+        return false;
       }
     }
   }
-  return false;
 }
