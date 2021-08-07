@@ -1,4 +1,5 @@
 
+#include "AdjacencyMatrix.hpp"
 #include "Color.hpp"
 #include "Graph.hpp"
 #include "GraphCreator.hpp"
@@ -6,6 +7,7 @@
 #include "Vertex.hpp"
 #include "Vertices.hpp"
 
+#include "color_constants.hpp"
 #include "jsonlevelconfig.hpp"
 
 #include <gtest/gtest.h>
@@ -22,6 +24,69 @@ test_isomorphism(json::object level1, json::object level2) {
       GraphCreator(level2).compress_vertices().group_by_colors().create();
 
   return graph1.check_isomorphism(graph2);
+}
+
+TEST(TestGraph, test_populate_colorgroups) {
+  Vertices v;
+  using namespace color::test;
+  v.add_vertex_single("a", block::FinalBlock{1}, fc::rect_fm);
+  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("c", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
+  ASSERT_EQ(1, victim.permutable_block_ranges().size());
+  EXPECT_EQ(std::pair(1, 3), victim.permutable_block_ranges()[0]);
+}
+
+TEST(TestGraph, test_populate_colorgroups_start) {
+  Vertices v;
+  using namespace color::test;
+  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("c", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
+  ASSERT_EQ(1, victim.permutable_block_ranges().size());
+  EXPECT_EQ(std::pair(0, 2), victim.permutable_block_ranges()[0]);
+}
+
+TEST(TestGraph, test_populate_colorgroups_end) {
+  Vertices v;
+  using namespace color::test;
+  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("c", block::FinalBlock{1}, fc::rect_to);
+  Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
+  ASSERT_EQ(1, victim.permutable_block_ranges().size());
+  EXPECT_EQ(std::pair(1, 3), victim.permutable_block_ranges()[0]);
+}
+
+TEST(TestGraph, test_populate_colorgroups_multi_with_gaps) {
+  Vertices v;
+  using namespace color::test;
+  v.add_vertex_single("a", block::FinalBlock{1}, fc::rect_fm);
+  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_fm);
+  v.add_vertex_single("c", block::FinalBlock{1}, fc::noth_to);
+  v.add_vertex_single("d", block::FinalBlock{1}, fc::bref_to);
+  v.add_vertex_single("e", block::FinalBlock{1}, fc::bref_to);
+  v.add_vertex_single("ee", block::FinalBlock{1}, fc::bref_to);
+  v.add_vertex_single("c", block::FinalBlock{1}, fc::wild_to);
+  v.add_vertex_single("f", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("g", block::FinalBlock{1}, fc::rect_to);
+  Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
+  ASSERT_EQ(3, victim.permutable_block_ranges().size());
+  EXPECT_EQ(std::pair(0, 2), victim.permutable_block_ranges()[0]);
+  EXPECT_EQ(std::pair(3, 6), victim.permutable_block_ranges()[1]);
+  EXPECT_EQ(std::pair(7, 9), victim.permutable_block_ranges()[2]);
+}
+
+TEST(TestGraph, test_populate_colorgroups_none) {
+  Vertices v;
+  using namespace color::test;
+  v.add_vertex_single("a", block::FinalBlock{1}, fc::rect_fm);
+  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
+  ASSERT_EQ(0, victim.permutable_block_ranges().size());
 }
 
 TEST(TestGraph, test_simplist_isoporphism) {
