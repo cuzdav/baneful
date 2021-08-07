@@ -96,6 +96,7 @@ private:
   void vertex_moved(int old_idx, int new_idx);
 
 private:
+  std::string                            level_name_;
   Transforms                             transforms_;
   Vertices                               vertices_;
   std::optional<matrix::AdjacencyMatrix> adjacency_matrix_;

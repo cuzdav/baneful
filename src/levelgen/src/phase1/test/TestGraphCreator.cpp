@@ -84,7 +84,9 @@ TEST(TestGraphCreator, rule4_wc_backref_colors) {
   using namespace color::test::short_string;
   auto actual = vertex_names(lvl);
   EXPECT_EQ(expected({
-                rect_fm + "a", noth_to + "!", wild_fm + ".",
+                rect_fm + "a",
+                noth_to + "!",
+                wild_fm + ".",
                 bref_to + "121", // id of the first 1
                 bref_to + "21",  // id of the 2
                 bref_to + "1",   // id of the 2nd 1 (in chain 121)
@@ -307,8 +309,6 @@ TEST(TestGraphCreator, remove_group_by_color) {
   EXPECT_TRUE(adjmtx.has_edge(a_idx, bc_idx));
   EXPECT_TRUE(adjmtx.has_edge(bww_idx, ww_idx));
   EXPECT_TRUE(adjmtx.has_edge(ww_idx, noth_idx));
-
-  std::cout << gc.get_pretty_adjacency_matrix() << std::endl;
 }
 
 } // namespace test

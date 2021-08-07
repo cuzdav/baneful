@@ -20,8 +20,10 @@ public:
   using Block               = block::FinalBlock;
   using BlockEquivalenceMap = Block[16];
 
-  Graph(Vertices && vertices, matrix::AdjacencyMatrix && adjacency_matrix)
-      : adjacency_matrix_(adjacency_matrix),
+  Graph(Vertices && vertices, matrix::AdjacencyMatrix && adjacency_matrix,
+        std::string level_name = "unspecified")
+      : level_name_(std::move(level_name)),
+        adjacency_matrix_(adjacency_matrix),
         vertices_(vertices),
         indices_(vertices.size()) {
     populate_colorgroups();
@@ -39,16 +41,25 @@ public:
     return vertices_;
   };
 
-  void dump() const;
+  void dump(char const *) const;
+
+  std::string const &
+  level_name() const {
+    return level_name_;
+  }
+
+  Index
+  mapped_index(Index idx) const {
+    return indices_[idx];
+  }
 
 private:
   void populate_colorgroups();
   void append_colorgroup(Index from, Index to);
-
-  bool check_dynamic_equivalence(BlockEquivalenceMap &, Graph const &) const;
   bool equivalent_adjacency_matricies(Graph const & other) const;
 
 private:
+  std::string     level_name_;
   IndexRangeVec   permutable_block_ranges_;
   AdjacencyMatrix adjacency_matrix_;
   Vertices        vertices_;
@@ -92,5 +103,11 @@ visit_nonpermutable_vertices(CallbackT cb, Graph const & graph1,
     }
     // jump to start of next nonpermutable range
     idx = end_idx;
+  }
+  // Visit the rest...
+  auto end_idx = graph1.vertices().size();
+  while (idx != end_idx) {
+    cb(graph1.vertices().values()[idx], graphs.vertices().values()[idx]...);
+    idx++;
   }
 }

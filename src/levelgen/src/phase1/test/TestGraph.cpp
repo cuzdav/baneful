@@ -17,12 +17,16 @@ using namespace test::json;
 using namespace boost;
 
 bool
-test_isomorphism(json::object level1, json::object level2) {
+test_isomorphism(json::object level1, json::object level2, bool dump = false) {
   Graph graph1 =
       GraphCreator(level1).compress_vertices().group_by_colors().create();
   Graph graph2 =
       GraphCreator(level2).compress_vertices().group_by_colors().create();
 
+  if (dump) {
+    graph1.dump("Graph1");
+    graph2.dump("Graph2");
+  }
   return graph1.check_isomorphism(graph2);
 }
 
@@ -89,18 +93,18 @@ TEST(TestGraph, test_populate_colorgroups_none) {
   ASSERT_EQ(0, victim.permutable_block_ranges().size());
 }
 
-TEST(TestGraph, test_simplist_isoporphism) {
+TEST(TestGraph, test_simplist_isomorphism) {
   auto lvl = level(rules(from("a") = to("b")));
   EXPECT_TRUE(test_isomorphism(lvl, lvl));
 }
 
-TEST(TestGraph, test_simple_isoporphism) {
+TEST(TestGraph, test_simple_isomorphism) {
   auto lvl1 = level(rules(from("a") = to("b")));
   auto lvl2 = level(rules(from("b") = to("c")));
   EXPECT_TRUE(test_isomorphism(lvl1, lvl2));
 }
 
-TEST(TestGraph, test_simple_revered_identical_isoporphism) {
+TEST(TestGraph, test_simple_reversed_identical_isomorphism) {
   // clang-format off
   auto lvl1 = level(rules(from("a") = to("b"),
                           from("b") = to("c")));
@@ -110,7 +114,7 @@ TEST(TestGraph, test_simple_revered_identical_isoporphism) {
   EXPECT_TRUE(test_isomorphism(lvl1, lvl2));
 }
 
-TEST(TestGraph, test_simple_not_isoporphism) {
+TEST(TestGraph, test_simple_not_isomorphism) {
   // clang-format off
   auto lvl1 = level(rules(from("a") = to("b"),
                           from("b") = to("c")));
@@ -120,7 +124,7 @@ TEST(TestGraph, test_simple_not_isoporphism) {
   EXPECT_FALSE(test_isomorphism(lvl1, lvl2));
 }
 
-TEST(TestGraph, test_simple_mixed_color_isoporphism) {
+TEST(TestGraph, test_simple_mixed_color_isomorphism) {
   // clang-format off
   auto lvl1 = level(rules(from("a") = to("b"),
                           from(".") = to("c")));
@@ -130,7 +134,7 @@ TEST(TestGraph, test_simple_mixed_color_isoporphism) {
   EXPECT_TRUE(test_isomorphism(lvl1, lvl2));
 }
 
-TEST(TestGraph, test_simple_mixed_color_isoporphism2) {
+TEST(TestGraph, test_simple_mixed_color_isomorphism2) {
   // clang-format off
   auto lvl1 = level(rules(from("a") = to("b"),
                           from(".") = to("c")));
@@ -231,4 +235,29 @@ TEST(TestGraph, test_simple_compressed_isomorphism) {
   auto lvl2 = level(rules(from("ac") = to("acd")));
 
   EXPECT_TRUE(test_isomorphism(lvl1, lvl2));
+}
+
+TEST(TestGraph, careful_reduce) {
+  // These two from standard.json were falsely flagged as isomorphism, so it is
+  // now a test case.
+
+  // clang-format off
+  auto lvl1 = level(rules(from("ab") = to("b"),
+                          from("b")  = to("")));
+  auto lvl2 = level(rules(from("abbb") = to(""),
+                          from("b")    = to("bb", "")));
+  // clang-format off
+
+  EXPECT_FALSE(test_isomorphism(lvl1, lvl2));
+}
+
+TEST(TestGraph, bad_subsumption) {
+  // clang-format off
+  auto lvl1 = level(rules(from("ab") = to(""),
+                          from("b")  = to("")));
+
+  auto lvl2 = level(rules(from("ab") = to("")));
+  // clang-format off
+
+  EXPECT_FALSE(test_isomorphism(lvl1, lvl2));
 }

@@ -67,6 +67,9 @@ install_override_transforms(json::object const & type_overrides,
 }
 
 GraphCreator::GraphCreator(boost::json::object const & level_obj) {
+  if (auto * name_val = level_obj.if_contains("name")) {
+    level_name_ = name_val->as_string();
+  }
   if (auto * type_overrides_val = level_obj.if_contains("type_overrides")) {
     install_override_transforms(type_overrides_val->as_object(), transforms_);
   }
@@ -81,7 +84,8 @@ GraphCreator::GraphCreator(boost::json::object const & level_obj) {
 
 Graph
 GraphCreator::create() {
-  return Graph(std::move(vertices_), std::move(*adjacency_matrix_));
+  return Graph(
+      std::move(vertices_), std::move(*adjacency_matrix_), level_name_);
 }
 
 // A chain of blocks, such as "a -> bcc", then "a" or "bcc" would be a chain,
