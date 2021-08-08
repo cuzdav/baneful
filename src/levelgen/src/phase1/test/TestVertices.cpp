@@ -3,9 +3,11 @@
 
 #include "Color.hpp"
 #include "RuleSide.hpp"
+#include "Vertex.hpp"
 #include "Vertices.hpp"
 
 using namespace std::literals;
+using enum vertex::VertexRole;
 
 namespace {
 
@@ -37,13 +39,13 @@ TEST(TestVertices, BasicInterface) {
 TEST(TestVertices, AddVertexSingleDefault) {
   Vertices v;
 
-  int idx = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
+  int idx = v.add_vertex_single("abc"sv, empty_block, fc_rect_from, INTERNAL);
   EXPECT_EQ(1, v.names_size());
 
   auto abc_internal = Vertices::internal_name("abc", fc_rect_from);
   EXPECT_EQ(abc_internal, v.name_of(idx));
 
-  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
+  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from, INTERNAL);
   EXPECT_EQ(1, v.names_size());
   EXPECT_EQ(idx, idx2);
 }
@@ -51,8 +53,8 @@ TEST(TestVertices, AddVertexSingleDefault) {
 TEST(TestVertices, AddVertexSingle_SameNameDifferentColor) {
   Vertices v;
 
-  int idx  = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_wc_from);
+  int idx  = v.add_vertex_single("abc"sv, empty_block, fc_rect_from, INTERNAL);
+  int idx2 = v.add_vertex_single("abc"sv, empty_block, fc_wc_from, INTERNAL);
   EXPECT_EQ(2, v.names_size());
   EXPECT_EQ(0, idx);
   EXPECT_EQ(1, idx2);
@@ -67,13 +69,33 @@ TEST(TestVertices, AddVertexSingle_SameNameDifferentColor) {
   ASSERT_EQ(v.names_end(), iter);
 }
 
+TEST(TestVertices, StartVertex) {
+  Vertices v;
+
+  // three-node chain "a->b->c"
+  int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from, START);
+  int idx2 = v.add_vertex_single("bc"sv, empty_block, fc_rect_from, INTERNAL);
+  int idx3 = v.add_vertex_single("c"sv, empty_block, fc_rect_from, INTERNAL);
+
+  int actual1 = v.name_index_of("abc", fc_rect_from);
+  int actual2 = v.name_index_of("bc", fc_rect_from);
+  int actual3 = v.name_index_of("c", fc_rect_from);
+  ASSERT_NE(-1, actual1);
+  ASSERT_NE(-1, actual2);
+  ASSERT_NE(-1, actual3);
+
+  EXPECT_TRUE(vertex::get_start_bit(v[actual1]));
+  EXPECT_FALSE(vertex::get_start_bit(v[actual2]));
+  EXPECT_FALSE(vertex::get_start_bit(v[actual3]));
+}
+
 TEST(TestVertices, IndexOfs) {
   Vertices v;
 
   // three-node chain "a->b->c"
-  int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from);
-  int idx2 = v.add_vertex_single("bc"sv, empty_block, fc_rect_from);
-  int idx3 = v.add_vertex_single("c"sv, empty_block, fc_rect_from);
+  int idx1 = v.add_vertex_single("abc"sv, empty_block, fc_rect_from, INTERNAL);
+  int idx2 = v.add_vertex_single("bc"sv, empty_block, fc_rect_from, INTERNAL);
+  int idx3 = v.add_vertex_single("c"sv, empty_block, fc_rect_from, INTERNAL);
 
   int actual1 = v.name_index_of("abc", fc_rect_from);
   int actual2 = v.name_index_of("bc", fc_rect_from);
@@ -89,9 +111,9 @@ TEST(TestVertices, remove_vertex) {
   Vertices v;
 
   // three-node chain "a->b->c"
-  int idx1 = v.add_vertex_single("abc"sv, block1, fc_rect_from);
-  int idx2 = v.add_vertex_single("bc"sv, block2, fc_rect_from);
-  int idx3 = v.add_vertex_single("c"sv, block3, fc_rect_from);
+  int idx1 = v.add_vertex_single("abc"sv, block1, fc_rect_from, INTERNAL);
+  int idx2 = v.add_vertex_single("bc"sv, block2, fc_rect_from, INTERNAL);
+  int idx3 = v.add_vertex_single("c"sv, block3, fc_rect_from, INTERNAL);
 
   EXPECT_EQ(1, idx2);
   EXPECT_EQ(3, v.names_size());

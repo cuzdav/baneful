@@ -9,6 +9,8 @@
 
 namespace vertex {
 
+using namespace std::literals;
+
 namespace {
 template <typename ColorPolicy>
 std::string
@@ -18,6 +20,9 @@ to_external_name(Vertex v, Transforms const & transforms,
   color::FinalColor color  = get_final_color(v);
   result += color_printer(color);
   result += ':';
+  if (get_start_bit(v)) {
+    result += "START:";
+  }
   for (block::FinalBlock block : get_blocks(v)) {
     if (+block == 0) {
       break;
@@ -41,7 +46,8 @@ to_string(Vertex vertex) {
     blocks += std::to_string(+block);
   }
 
-  return "#<Vertex:" + to_string(get_final_color(vertex)) + ":" + blocks + ">";
+  return "#<Vertex:"s + (get_start_bit(vertex) ? "START:" : "") +
+         to_string(get_final_color(vertex)) + ":" + blocks + ">";
 }
 
 std::string
@@ -52,7 +58,8 @@ to_external_short_name(Vertex v, Transforms const & transforms) {
 std::string
 to_external_name(Vertex v, Transforms const & transforms) {
   return to_external_name(
-      v, transforms,
+      v,
+      transforms,
       static_cast<std::string (*)(color::FinalColor)>(color::to_string));
 }
 

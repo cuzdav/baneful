@@ -194,18 +194,35 @@ Vertices::compatible_number_and_colors(Vertices const & other) const {
 }
 
 int
-Vertices::add_vertex_single(std::string_view  vertex_name,
-                            block::FinalBlock transformed_block,
-                            color::FinalColor final_color) {
+Vertices::add_vertex_single(std::string_view   vertex_name,
+                            block::FinalBlock  transformed_block,
+                            color::FinalColor  final_color,
+                            vertex::VertexRole role) {
   auto internal_vertex_name = internal_name(vertex_name, final_color);
   int  idx                  = index_of_internal_name(internal_vertex_name);
 
   if (idx == -1) {
     idx = names_size();
     vertex_names_.emplace_back(internal_vertex_name);
-    vertices_.push_back(vertex::create(final_color, transformed_block));
+    vertices_.push_back(vertex::create(final_color, transformed_block, role));
+  }
+  else if (role == vertex::VertexRole::START &&
+           get_start_bit(vertices_[idx]) == false) {
+    vertices_[idx] = set_start_bit(vertices_[idx]);
   }
   return idx;
+}
+
+std::string
+Vertices::pretty_name(int idx) const {
+  using ::vertex::size;
+
+  auto vertex = vertices_.at(idx);
+  auto name   = vertex_names_[idx];
+  if (size(name) > size(vertex) + 2) {
+    name.insert(size(vertex) + 2, 1, ':');
+  }
+  return (get_start_bit(vertex) ? '^' : ' ') + name;
 }
 
 std::string
@@ -232,12 +249,17 @@ Vertices::remove_vertex(int idx) {
   return last_idx;
 }
 
-// first sort by color, then num blocks in vertex, then numeric value of
-// vertex
+// first sort by color, then start-bit, then num blocks in vertex, then numeric
+// value of vertex
 static auto vertex_compare = [](vertex::Vertex v1, vertex::Vertex v2) {
   auto color_diff = +get_final_color(v1) - +get_final_color(v2);
   if (color_diff != 0) {
     return color_diff < 0;
+  }
+
+  auto start_diff = get_start_bit(v1) - get_start_bit(v2);
+  if (start_diff != 0) {
+    return start_diff < 0;
   }
 
   auto size_diff = size(v1) - size(v2);

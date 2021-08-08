@@ -8,6 +8,7 @@ namespace vertex::test {
 
 using enum color::Color;
 using enum RuleSide;
+using enum VertexRole;
 
 using FinalColor = color::FinalColor;
 
@@ -31,19 +32,19 @@ constexpr block::FinalBlock block4 = block::FinalBlock{4};
 constexpr block::FinalBlock block5 = block::FinalBlock{5};
 constexpr block::FinalBlock block6 = block::FinalBlock{6};
 
-constexpr Vertex v1           = create(frect_color, block1);
+constexpr Vertex v1           = create(frect_color, block1, INTERNAL);
 constexpr Vertex v12          = add_block(v1, block2);
 constexpr Vertex v123         = add_block(v12, block3);
 constexpr Vertex v1234        = add_block(v123, block4);
 constexpr Vertex v12345       = add_block(v1234, block5);
 constexpr Vertex v123456      = add_block(v12345, block6);
-constexpr Vertex empty_vertex = create(frect_color, empty_block);
+constexpr Vertex empty_vertex = create(frect_color, empty_block, INTERNAL);
 
 struct VertexMaker {
   template <typename... BlockT>
   Vertex constexpr
   operator()(BlockT... blocks) const {
-    return create(color_, blocks...);
+    return create(color_, blocks..., INTERNAL);
   }
   const color::FinalColor color_;
 };
@@ -51,10 +52,10 @@ struct VertexMaker {
 Transforms tr;
 
 TEST(TestVertex, enums) {
-  char              c = 'C';
+  char              c = 4;
   block::FinalBlock b{std::uint8_t(c)};
   char              result = +b;
-  EXPECT_EQ('C', result);
+  EXPECT_EQ(4, result);
 }
 
 TEST(TestVertex, Constants) {
@@ -65,9 +66,77 @@ TEST(TestVertex, Constants) {
   EXPECT_EQ(31, ColorMask);
 }
 
-TEST(TestVertex, VertexEncodingColor) {
-  Vertex v1 = create(frect_color, empty_block);
+TEST(TestVeretx, start_bit) {
+  Vertex v1 = create(
+      frect_color, block1, block2, block3, block4, block5, block6, INTERNAL);
+  EXPECT_FALSE(get_start_bit(v1));
   EXPECT_EQ(frect_color, get_final_color(v1));
+  EXPECT_EQ(6, size(v1));
+
+  std::array expected_blocks{block1, block2, block3, block4, block5, block6};
+
+  Vertex v2 = set_start_bit(v1);
+  EXPECT_TRUE(get_start_bit(v2));
+  EXPECT_EQ(frect_color, get_final_color(v2));
+  EXPECT_EQ(6, size(v2));
+  EXPECT_EQ(expected_blocks, get_blocks(v2));
+
+  Vertex v3 = set_start_bit(v1);
+  EXPECT_TRUE(get_start_bit(v2));
+  EXPECT_EQ(frect_color, get_final_color(v2));
+  EXPECT_EQ(6, size(v2));
+  EXPECT_EQ(expected_blocks, get_blocks(v3));
+}
+
+TEST(TestVertex, VertexEncodingColor) {
+  Vertex v1 = create(frect_color, empty_block, INTERNAL);
+  EXPECT_EQ(frect_color, get_final_color(v1));
+}
+
+TEST(TestVertex, test_add_block) {
+  Vertex v = create(frect_color, empty_block, INTERNAL);
+  EXPECT_EQ(0, size(v));
+
+  auto v1 = add_block(v, block1);
+  EXPECT_EQ(1, size(v1));
+  EXPECT_EQ(block1, get_block(v1, 0));
+
+  auto v2 = add_block(v1, block2);
+  EXPECT_EQ(2, size(v2));
+  EXPECT_EQ(block1, get_block(v2, 0));
+  EXPECT_EQ(block2, get_block(v2, 1));
+
+  auto v3 = add_block(v2, block3);
+  EXPECT_EQ(3, size(v3));
+  EXPECT_EQ(block1, get_block(v2, 0));
+  EXPECT_EQ(block2, get_block(v3, 1));
+  EXPECT_EQ(block3, get_block(v3, 2));
+
+  auto v4 = add_block(v3, block4);
+  EXPECT_EQ(4, size(v4));
+  EXPECT_EQ(block1, get_block(v4, 0));
+  EXPECT_EQ(block2, get_block(v4, 1));
+  EXPECT_EQ(block3, get_block(v4, 2));
+  EXPECT_EQ(block4, get_block(v4, 3));
+
+  auto v5 = add_block(v4, block5);
+  EXPECT_EQ(5, size(v5));
+  EXPECT_EQ(block1, get_block(v5, 0));
+  EXPECT_EQ(block2, get_block(v5, 1));
+  EXPECT_EQ(block3, get_block(v5, 2));
+  EXPECT_EQ(block4, get_block(v5, 3));
+  EXPECT_EQ(block5, get_block(v5, 4));
+
+  auto v6 = add_block(v5, block6);
+  EXPECT_EQ(6, size(v6));
+  EXPECT_EQ(block1, get_block(v6, 0));
+  EXPECT_EQ(block2, get_block(v6, 1));
+  EXPECT_EQ(block3, get_block(v6, 2));
+  EXPECT_EQ(block4, get_block(v6, 3));
+  EXPECT_EQ(block5, get_block(v6, 4));
+  EXPECT_EQ(block6, get_block(v6, 5));
+
+  EXPECT_THROW(add_block(v6, block1), std::runtime_error);
 }
 
 TEST(TestVertex, color_char_conversions) {
@@ -82,7 +151,7 @@ TEST(TestVertex, color_char_conversions) {
 }
 
 TEST(TestVertex, VertexEncodingGetBlockSingle) {
-  Vertex v1 = create(frect_color, block1);
+  Vertex v1 = create(frect_color, block1, INTERNAL);
   EXPECT_EQ(block1, get_block(v1, 0));
   EXPECT_EQ(empty_block, get_block(v1, 1));
 
@@ -122,7 +191,7 @@ TEST(TestVertex, VertexEncodingGetBlockSingle) {
 }
 
 TEST(TestVertex, VertexEncodingGetBlocks) {
-  Vertex v1 = create(frect_color, block1);
+  Vertex v1 = create(frect_color, block1, INTERNAL);
 
   auto blocks = get_blocks(v1);
   EXPECT_EQ(block1, blocks[0]);
@@ -172,12 +241,12 @@ TEST(TestVertex, same_color) {
   using namespace color;
   using enum Color;
 
-  Vertex v1 = create(frect_color, empty_block),
-         v2 = create(trect_color, empty_block),
-         v3 = create(fwild_color, empty_block),
-         v4 = create(twild_color, empty_block),
-         v5 = create(fbref_color, empty_block),
-         v6 = create(tbref_color, empty_block);
+  Vertex v1 = create(frect_color, empty_block, INTERNAL),
+         v2 = create(trect_color, empty_block, INTERNAL),
+         v3 = create(fwild_color, empty_block, INTERNAL),
+         v4 = create(twild_color, empty_block, INTERNAL),
+         v5 = create(fbref_color, empty_block, INTERNAL),
+         v6 = create(tbref_color, empty_block, INTERNAL);
 
   EXPECT_TRUE(same_color(v1, v1));
   EXPECT_TRUE(same_color(v2, v2));
@@ -208,7 +277,7 @@ TEST(TestVertex, same_color) {
 }
 
 TEST(TestVertex, capacity_funcs) {
-  Vertex v = create(frect_color, block1);
+  Vertex v = create(frect_color, block1, INTERNAL);
 
   EXPECT_EQ(1, size(v));
   EXPECT_EQ(5, available_spaces(v));
@@ -241,9 +310,8 @@ TEST(TestVertex, capacity_funcs) {
 }
 
 TEST(TestVertex, num_can_merge) {
-  block::FinalBlock block = block::FinalBlock{1};
-  Vertex            v     = create(frect_color, block1);
-  Vertex            v2    = create(frect_color, block1, block1, block1);
+  Vertex v  = create(frect_color, block1, INTERNAL);
+  Vertex v2 = create(frect_color, block1, block1, block1, INTERNAL);
 
   // v has 1
   EXPECT_EQ(1, size(v));
@@ -267,8 +335,28 @@ TEST(TestVertex, num_can_merge) {
   EXPECT_EQ(0, num_can_merge(v, v2));
 }
 
+TEST(TestVertex, cannot_merge_start_vertex) {
+  Vertex v  = create(frect_color, block1, INTERNAL);
+  Vertex v2 = create(frect_color, block1, block1, block1, START);
+
+  // v has 1
+  EXPECT_EQ(1, size(v));
+  EXPECT_EQ(3, size(v2));
+  EXPECT_EQ(0, num_can_merge(v, v2));
+}
+
+TEST(TestVertex, can_merge_nonstart_into_start_vertex) {
+  Vertex v  = create(frect_color, block1, START);
+  Vertex v2 = create(frect_color, block1, block1, block1, INTERNAL);
+
+  // v has 1
+  EXPECT_EQ(1, size(v));
+  EXPECT_EQ(3, size(v2));
+  EXPECT_EQ(3, num_can_merge(v, v2));
+}
+
 TEST(TestVertex, pop_front_small) {
-  Vertex v = create(frect_color, block1, block2);
+  Vertex v = create(frect_color, block1, block2, INTERNAL);
   EXPECT_EQ(block1, get_block(v, 0));
   EXPECT_EQ(block2, get_block(v, 1));
 
@@ -277,125 +365,125 @@ TEST(TestVertex, pop_front_small) {
 }
 
 TEST(TestVertex, only_merge_compatible_colors) {
-  Vertex rect_fm = create(frect_color, block1),
-         rect_to = create(trect_color, block1),
-         wild_fm = create(fwild_color, block1),
-         wild_to = create(twild_color, block1),
-         noth_fm = create(fnoth_color, block1),
-         noth_to = create(tnoth_color, block1),
-         bref_fm = create(fbref_color, block1),
-         bref_to = create(tbref_color, block1),
-         rotc_fm = create(frotc_color, block1),
-         rotc_to = create(trotc_color, block1);
+  Vertex rect_fm = create(frect_color, block1, INTERNAL),
+         rect_to = create(trect_color, block1, INTERNAL),
+         wild_fm = create(fwild_color, block1, INTERNAL),
+         wild_to = create(twild_color, block1, INTERNAL),
+         noth_fm = create(fnoth_color, block1, INTERNAL),
+         noth_to = create(tnoth_color, block1, INTERNAL),
+         bref_fm = create(fbref_color, block1, INTERNAL),
+         bref_to = create(tbref_color, block1, INTERNAL),
+         rotc_fm = create(frotc_color, block1, INTERNAL),
+         rotc_to = create(trotc_color, block1, INTERNAL);
 
-  EXPECT_TRUE(colors_are_mergeable(rect_fm, rect_fm));
-  EXPECT_TRUE(colors_are_mergeable(rect_to, rect_to));
-  EXPECT_TRUE(colors_are_mergeable(wild_fm, wild_fm));
-  EXPECT_TRUE(colors_are_mergeable(wild_to, wild_to));
-  EXPECT_TRUE(colors_are_mergeable(bref_fm, bref_fm));
-  EXPECT_TRUE(colors_are_mergeable(bref_to, bref_to));
+  EXPECT_TRUE(vertices_are_mergeable(rect_fm, rect_fm));
+  EXPECT_TRUE(vertices_are_mergeable(rect_to, rect_to));
+  EXPECT_TRUE(vertices_are_mergeable(wild_fm, wild_fm));
+  EXPECT_TRUE(vertices_are_mergeable(wild_to, wild_to));
+  EXPECT_TRUE(vertices_are_mergeable(bref_fm, bref_fm));
+  EXPECT_TRUE(vertices_are_mergeable(bref_to, bref_to));
 
-  EXPECT_FALSE(colors_are_mergeable(rect_to, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, rect_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, rect_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, wild_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, wild_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, bref_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, bref_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(rect_fm, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(rect_to, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_fm, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(wild_to, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_fm, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(bref_to, rotc_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, rect_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, rect_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, wild_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, wild_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, bref_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, bref_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rect_fm, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(rect_to, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_fm, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(wild_to, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_fm, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(bref_to, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, rotc_to));
 
   // same colors but they are explicitly not mergeable
-  EXPECT_FALSE(colors_are_mergeable(noth_fm, noth_fm));
-  EXPECT_FALSE(colors_are_mergeable(noth_to, noth_to));
-  EXPECT_FALSE(colors_are_mergeable(rotc_fm, rotc_fm));
-  EXPECT_FALSE(colors_are_mergeable(rotc_to, rotc_to));
+  EXPECT_FALSE(vertices_are_mergeable(noth_fm, noth_fm));
+  EXPECT_FALSE(vertices_are_mergeable(noth_to, noth_to));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_fm, rotc_fm));
+  EXPECT_FALSE(vertices_are_mergeable(rotc_to, rotc_to));
 }
 
 TEST(TestVertex, pop_front) {
-  Vertex v =
-      create(frect_color, block1, block2, block3, block4, block5, block6);
+  Vertex v = create(
+      frect_color, block1, block2, block3, block4, block5, block6, INTERNAL);
   EXPECT_EQ(block1, get_block(v, 0));
   EXPECT_EQ(block2, get_block(v, 1));
   EXPECT_EQ(block3, get_block(v, 2));
@@ -461,8 +549,9 @@ TEST(TestVertex, pop_front) {
 }
 
 TEST(TestVertex, pop_front_multi) {
-  Vertex v =
-      create(frect_color, block1, block2, block3, block4, block5, block6);
+  Vertex v = create(
+      frect_color, block1, block2, block3, block4, block5, block6, INTERNAL);
+
   v = pop_front(v, 3);
   EXPECT_EQ(block4, get_block(v, 0));
   EXPECT_EQ(block5, get_block(v, 1));
@@ -514,9 +603,8 @@ TEST(TestVertex, create_merged_onto_5_blocks) {
   Vertex actual5 = create_merged(v12345, v12345);
   Vertex actual6 = create_merged(v12345, v123456);
 
-  Vertex expected =
-      create(frect_color, block1, block2, block3, block4, block5, block1);
-
+  Vertex expected = create(
+      frect_color, block1, block2, block3, block4, block5, block1, INTERNAL);
   EXPECT_EQ(expected, actual1);
   EXPECT_EQ(expected, actual2);
   EXPECT_EQ(expected, actual3);
@@ -531,7 +619,7 @@ TEST(TestVertex, to_external_name) {
   EXPECT_EQ("[FROM:SOLID_RECTANGLE:abcd]", to_external_name(v1234, xforms));
 
   auto   twc_color  = to_final_color(color::Color::WILDCARD, RuleSide::TO);
-  Vertex wct_vertex = vertex::create(twc_color, block::FinalBlock{1});
+  Vertex wct_vertex = vertex::create(twc_color, block::FinalBlock{1}, INTERNAL);
   EXPECT_EQ("[T.:.]", to_external_short_name(wct_vertex, xforms));
   EXPECT_EQ("[TO:WILDCARD:.]", to_external_name(wct_vertex, xforms));
 }

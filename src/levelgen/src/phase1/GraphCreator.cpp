@@ -4,6 +4,8 @@
 #include "Vertices.hpp"
 #include <boost/json.hpp>
 
+#include "AdjacencyMatrixPrinter.hpp"
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -101,12 +103,16 @@ GraphCreator::process_chain(json::string_view chain, RuleSide side,
   }
   auto len = chain.size();
   int  idx;
+  bool first = true;
   for (char const & ch : chain) {
     auto vertex_id      = std::string_view(&ch, len--);
     auto [block, color] = transforms_.do_transform(vertex_id, side);
 
     // creates, or if already added, returns the existing index.
-    idx = vertices_.add_vertex_single(vertex_id, block, color);
+    auto role = side == RuleSide::FROM && first ? vertex::VertexRole::START
+                                                : vertex::VertexRole::INTERNAL;
+    idx       = vertices_.add_vertex_single(vertex_id, block, color, role);
+    first     = false;
 
     if (action == TraverseAction::CREATE_EDGES) {
       assert(adjacency_matrix_.has_value());
@@ -148,18 +154,26 @@ GraphCreator::add_rules(json::object const & rules) {
 // to merge adjacent connected vertices 'a' and 'b' if 'a' is the only parent.
 GraphCreator &
 GraphCreator::compress_vertices() {
-  int am_size = adjacency_matrix_->size();
-  assert(am_size == vertices_.size());
+  assert(adjacency_matrix_->size() == vertices_.size());
 
   bool something_changed;
   do {
     something_changed = false;
-    for (int cur_idx = 0; cur_idx < am_size; ++cur_idx) {
+
+    for (int cur_idx = 0, sz = vertices_.size(); cur_idx < sz;) {
       int source_idx;
       int indegree = adjacency_matrix_->visit_parents_of(
           cur_idx, [&](int src_idx) { source_idx = src_idx; });
       if (indegree == 1) {
-        something_changed = try_to_merge(source_idx, cur_idx);
+        something_changed |= try_to_merge(source_idx, cur_idx);
+      }
+
+      // if vertex merged away, new node took its place
+      if (vertices_.size() < sz) {
+        sz--;
+      }
+      else {
+        cur_idx++;
       }
     }
   } while (something_changed);
@@ -189,7 +203,7 @@ GraphCreator::try_to_merge(int from_idx, int to_idx) {
 
   bool something_changed = false;
 
-  if (vertex::colors_are_mergeable(from_vtx, to_vtx)) {
+  if (vertex::vertices_are_mergeable(from_vtx, to_vtx)) {
     vertex::Vertex merged_vtx = create_merged(from_vtx, to_vtx);
     if (merged_vtx != from_vtx) {
       something_changed = true;

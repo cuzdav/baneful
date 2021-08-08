@@ -1,5 +1,8 @@
 #include "AdjacencyMatrix.hpp"
 #include "AdjacencyMatrixPrinter.hpp"
+#include "GraphCreator.hpp"
+#include "jsonlevelconfig.hpp"
+#include "boost/json.hpp"
 #include "gtest/gtest.h"
 
 namespace matrix::test {
@@ -219,6 +222,29 @@ c(2)   0    1    0
 
   auto actual2 = to_string(WithNames{am, names});
   EXPECT_EQ(expected2, actual2);
+}
+
+TEST(TestAdjacencyMatrixPrinter, test_print_vertices) {
+  using namespace ::test::json;
+
+  // clang-format off
+  auto lvl = level(rules(from("a") = to("bc"),
+                         from("b") = to("c")
+                  ));
+  // clang-format on
+  Graph graph =
+      GraphCreator(lvl).compress_vertices().group_by_colors().create();
+
+  auto actual =
+      to_string(WithVertices{graph.adjacency_matrix(), graph.vertices()});
+
+  std::string expected = R"(           TRb:c(0)   TRc(1)   ^FRa(2)   ^FRb(3)  
+ TRb:c(0)     0         1         0         0     
+ TRc(1)       0         0         0         0     
+^FRa(2)       1         0         0         0     
+^FRb(3)       0         1         0         0     
+)";
+  EXPECT_EQ(expected, actual);
 }
 
 } // namespace matrix::test

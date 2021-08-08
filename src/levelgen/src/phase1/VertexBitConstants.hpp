@@ -5,6 +5,7 @@
 namespace vertex {
 
 // bit shifting for internal fields
+static constexpr std::uint32_t StartBitShift      = 29;
 static constexpr std::uint32_t ColorShift         = 24;
 static constexpr std::uint32_t Block1Shift        = 20;
 static constexpr std::uint32_t Block2Shift        = 16;

@@ -53,6 +53,11 @@ public:
     return indices_[idx];
   }
 
+  AdjacencyMatrix const &
+  adjacency_matrix() const {
+    return adjacency_matrix_;
+  }
+
 private:
   void populate_colorgroups();
   void append_colorgroup(Index from, Index to);

@@ -51,6 +51,11 @@ check_blocks(Graph::BlockEquivalenceMap & blockmap, Graph::Vertex v1,
     return false;
   }
 
+  if (get_start_bit(v1) != get_start_bit(v2)) {
+    DEBUGTRACE;
+    return false;
+  }
+
   if (has_dynamic_block_colors(get_final_color(v1))) {
     for (int i = 0; i < sz1; ++i) {
       if (not is_valid_mapping(blockmap, get_block(v1, i), get_block(v2, i))) {
@@ -152,7 +157,7 @@ Graph::equivalent_adjacency_matricies(Graph const & other) const {
 void
 Graph::dump(char const * msg = "Graph") const {
   std::cout << "**** " << msg << "****\n"
-            << matrix::WithNames{adjacency_matrix_, vertices_.names()} << '\n'
+            << matrix::WithVertices{adjacency_matrix_, vertices_} << '\n'
             << "perm size: " << permutable_block_ranges_.size()
             << ", indices.size=" << indices_.size() << ", perm ranges: [\n";
   for (auto [from, to] : permutable_block_ranges_) {

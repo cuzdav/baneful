@@ -15,11 +15,20 @@
 
 using namespace test::json;
 using namespace boost;
+using enum vertex::VertexRole;
+
+auto const block1 = block::FinalBlock{1};
 
 bool
 test_isomorphism(json::object level1, json::object level2, bool dump = false) {
+  if (dump) {
+    std::cout << "Creating Graph1\n";
+  }
   Graph graph1 =
       GraphCreator(level1).compress_vertices().group_by_colors().create();
+  if (dump) {
+    std::cout << "Creating Graph2\n";
+  }
   Graph graph2 =
       GraphCreator(level2).compress_vertices().group_by_colors().create();
 
@@ -33,10 +42,10 @@ test_isomorphism(json::object level1, json::object level2, bool dump = false) {
 TEST(TestGraph, test_populate_colorgroups) {
   Vertices v;
   using namespace color::test;
-  v.add_vertex_single("a", block::FinalBlock{1}, fc::rect_fm);
-  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("c", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  v.add_vertex_single("a", block1, fc::rect_fm, INTERNAL);
+  v.add_vertex_single("b", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("c", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("d", block1, fc::noth_to, INTERNAL);
   Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
   ASSERT_EQ(1, victim.permutable_block_ranges().size());
   EXPECT_EQ(std::pair(1, 3), victim.permutable_block_ranges()[0]);
@@ -45,9 +54,9 @@ TEST(TestGraph, test_populate_colorgroups) {
 TEST(TestGraph, test_populate_colorgroups_start) {
   Vertices v;
   using namespace color::test;
-  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("c", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  v.add_vertex_single("b", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("c", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("d", block1, fc::noth_to, INTERNAL);
   Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
   ASSERT_EQ(1, victim.permutable_block_ranges().size());
   EXPECT_EQ(std::pair(0, 2), victim.permutable_block_ranges()[0]);
@@ -56,9 +65,9 @@ TEST(TestGraph, test_populate_colorgroups_start) {
 TEST(TestGraph, test_populate_colorgroups_end) {
   Vertices v;
   using namespace color::test;
-  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
-  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("c", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("d", block1, fc::noth_to, INTERNAL);
+  v.add_vertex_single("b", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("c", block1, fc::rect_to, INTERNAL);
   Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
   ASSERT_EQ(1, victim.permutable_block_ranges().size());
   EXPECT_EQ(std::pair(1, 3), victim.permutable_block_ranges()[0]);
@@ -67,15 +76,15 @@ TEST(TestGraph, test_populate_colorgroups_end) {
 TEST(TestGraph, test_populate_colorgroups_multi_with_gaps) {
   Vertices v;
   using namespace color::test;
-  v.add_vertex_single("a", block::FinalBlock{1}, fc::rect_fm);
-  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_fm);
-  v.add_vertex_single("c", block::FinalBlock{1}, fc::noth_to);
-  v.add_vertex_single("d", block::FinalBlock{1}, fc::bref_to);
-  v.add_vertex_single("e", block::FinalBlock{1}, fc::bref_to);
-  v.add_vertex_single("ee", block::FinalBlock{1}, fc::bref_to);
-  v.add_vertex_single("c", block::FinalBlock{1}, fc::wild_to);
-  v.add_vertex_single("f", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("g", block::FinalBlock{1}, fc::rect_to);
+  v.add_vertex_single("a", block1, fc::rect_fm, INTERNAL);
+  v.add_vertex_single("b", block1, fc::rect_fm, INTERNAL);
+  v.add_vertex_single("c", block1, fc::noth_to, INTERNAL);
+  v.add_vertex_single("d", block1, fc::bref_to, INTERNAL);
+  v.add_vertex_single("e", block1, fc::bref_to, INTERNAL);
+  v.add_vertex_single("ee", block1, fc::bref_to, INTERNAL);
+  v.add_vertex_single("c", block1, fc::wild_to, INTERNAL);
+  v.add_vertex_single("f", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("g", block1, fc::rect_to, INTERNAL);
   Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
   ASSERT_EQ(3, victim.permutable_block_ranges().size());
   EXPECT_EQ(std::pair(0, 2), victim.permutable_block_ranges()[0]);
@@ -86,9 +95,9 @@ TEST(TestGraph, test_populate_colorgroups_multi_with_gaps) {
 TEST(TestGraph, test_populate_colorgroups_none) {
   Vertices v;
   using namespace color::test;
-  v.add_vertex_single("a", block::FinalBlock{1}, fc::rect_fm);
-  v.add_vertex_single("b", block::FinalBlock{1}, fc::rect_to);
-  v.add_vertex_single("d", block::FinalBlock{1}, fc::noth_to);
+  v.add_vertex_single("a", block1, fc::rect_fm, INTERNAL);
+  v.add_vertex_single("b", block1, fc::rect_to, INTERNAL);
+  v.add_vertex_single("d", block1, fc::noth_to, INTERNAL);
   Graph victim(std::move(v), matrix::AdjacencyMatrix{0});
   ASSERT_EQ(0, victim.permutable_block_ranges().size());
 }
@@ -252,6 +261,11 @@ TEST(TestGraph, careful_reduce) {
 }
 
 TEST(TestGraph, bad_subsumption) {
+  // Before start bits were maintained, the following completely folded b->""
+  // into the tail of ab->"" and the two levels below were indistinguishable.
+  // But now in level1 "a" and "b" both have start bits, while in lvl2 only "a"
+  // has the start bit.
+
   // clang-format off
   auto lvl1 = level(rules(from("ab") = to(""),
                           from("b")  = to("")));
@@ -260,4 +274,17 @@ TEST(TestGraph, bad_subsumption) {
   // clang-format off
 
   EXPECT_FALSE(test_isomorphism(lvl1, lvl2));
+}
+
+TEST(TestGraph, test_level_reordered) {
+  // clang-format off
+  auto lvl1 = level(rules(from("abc") = to(""),
+                          from("cb")  = to("a")
+                          ));
+
+  auto lvl2 = level(rules(from("cb")  = to("a"),
+                          from("abc") = to("")
+                          ));
+  // clang-format on
+  EXPECT_TRUE(test_isomorphism(lvl1, lvl2));
 }

@@ -81,10 +81,12 @@ public:
   // returns index
   // transformed block has been adjusted by the transforms for fixups.
   int add_vertex_single(std::string_view vertex, block::FinalBlock block,
-                        color::FinalColor final_color);
+                        color::FinalColor final_color, vertex::VertexRole role);
 
   static std::string internal_name(std::string_view  vertex_id_string,
                                    color::FinalColor final_color);
+
+  std::string pretty_name(int idx) const;
 
   int index_of_internal_name(std::string_view intern_vertex_name) const;
   int index_of_checked_internal_name(std::string_view intern_vertex_name) const;
